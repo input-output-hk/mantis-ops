@@ -1,0 +1,26 @@
+{
+	"encrypt": "ENC[AES256_GCM,data:Hfnock8kVPWBA31JjiNpv/Wr+ldEmZmAtxPflmCMlyN/lRQkaXuqFDIsZsk=,iv:1FdoM3TIm5AmjIEgiRUZzbOjf6jp6C/KRTPoat8mI2k=,tag:Dcyo3oJ+ufGJn75iY+VEig==,type:str]",
+	"acl": {
+		"tokens": {
+			"master": "ENC[AES256_GCM,data:C/0qK9fBaoOoLwKdUYmCy8jZf9pIegm86qGn2WLtB/Wf5DWO,iv:q19gu/a9N9Gi3aA3Po0bvOOh4XK3P/AOcYR0RvXMZwc=,tag:5gQTod95kweX0tw6iAZ5/Q==,type:str]"
+		}
+	},
+	"sops": {
+		"kms": [
+			{
+				"arn": "arn:aws:kms:eu-central-1:166923377823:key/745684e5-272e-49af-aad8-8b073b8d996a",
+				"created_at": "2020-09-11T08:40:08Z",
+				"enc": "AQICAHhrojTK6n26HmYKLb0yBk/ElAVU1hzpU0tO+VpBwhxnTgHNv5GqOnWe+cRc5T+BX3j8AAAAfjB8BgkqhkiG9w0BBwagbzBtAgEAMGgGCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQM5cM9HTZxiLDDWmRIAgEQgDv03v953+cnm+yV9zhqh/SeGY27FbMNIasbQj1NhH2fn29LQIWNPg5bstco5TS1J8v2QFsOpF5fqesqFQ==",
+				"aws_profile": ""
+			}
+		],
+		"gcp_kms": null,
+		"azure_kv": null,
+		"hc_vault": null,
+		"lastmodified": "2020-09-11T08:40:08Z",
+		"mac": "ENC[AES256_GCM,data:8rkxPmvG2yoNJFIQaWVzpngjuAGybTNsCqz+TmixyW8hbrQcaSpIpdVZkrv2DUtJ/MegyDsnp+jmiG9+3yB4rYIn+Zz1YhxWN1EBPo8BX1as7F9ZkXFzKOcuxUjU+v1oCJ8bOp9+yQiU+CsaQu3/i813tMsQgVdxW/spXLz8s8c=,iv:7jR1yulxicAqLCyyGH78Ing/SoNXGxreTxrGv1RvM1s=,tag:Dw6/AEoXyk+87oyzRqa3Ug==,type:str]",
+		"pgp": null,
+		"unencrypted_suffix": "_unencrypted",
+		"version": "3.6.0"
+	}
+}
