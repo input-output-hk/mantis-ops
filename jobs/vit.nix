@@ -1,28 +1,8 @@
-{ mkNomadJob, systemdSandbox, writeShellScript, coreutils, lib, block0, db
-, vit-servicing-station, wget, gzip, gnutar, cacert }:
+{ mkNomadJob, systemdSandbox, writeShellScript, coreutils, lib,
+, wget, gzip, gnutar, cacert }:
 let
-  run-vit = writeShellScript "vit" ''
-    set -exuo pipefail
-
-    home="''${NOMAD_ALLOC_DIR}"
-    cd $home
-
-    db="''${NOMAD_ALLOC_DIR}/database.db"
-    cp ${db} "$db"
-    chmod u+wr "$db"
-
-    ${vit-servicing-station}/bin/vit-servicing-station-server \
-      --block0-path ${block0} --db-url "$db"
-  '';
-
-  run-jormungandr = writeShellScript "jormungandr" ''
-    set -exuo pipefail
-
-    cd "''${NOMAD_ALLOC_DIR}"
-
-    wget -O jormungandr.tar.gz https://github.com/input-output-hk/jormungandr/releases/download/nightly.20200903/jormungandr-0.9.1-nightly.20200903-x86_64-unknown-linux-musl-generic.tar.gz
-    tar --no-same-permissions xvf jormungandr.tar.gz
-    exec ./jormungandr
+  run-mantis = writeShellScript "mantis" ''
+    exec ${mantis}/bin/mantis-core
   '';
 in {
   vit = mkNomadJob "vit" {
