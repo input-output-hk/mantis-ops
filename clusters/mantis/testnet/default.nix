@@ -21,7 +21,7 @@ in {
   cluster = {
     name = "mantis-testnet";
     kms = "arn:aws:kms:eu-central-1:166923377823:key/745684e5-272e-49af-aad8-8b073b8d996a";
-    domain = "mantis.pw";
+    domain = "mantis.ws";
     s3Bucket = "iohk-mantis-bitte";
     s3CachePubKey = lib.fileContents ../../../encrypted/nix-public-key-file;
     adminNames = [
