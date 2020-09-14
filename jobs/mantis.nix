@@ -117,7 +117,7 @@ in {
 
         resources = {
           cpu = 100;
-          memoryMB = 4 * 1024;
+          memoryMB = 8 * 1024;
           networks = [{
             reservedPorts = [
               {
