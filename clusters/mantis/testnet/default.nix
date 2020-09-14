@@ -62,7 +62,7 @@ in {
         '';
         attrs = ({
           desiredCapacity = 1;
-          instanceType = "t3a.medium";
+          instanceType = "c5.2xlarge";
           associatePublicIP = true;
           maxInstanceLifetime = 604800;
           iam.role = cluster.iam.roles.client;
