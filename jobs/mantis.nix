@@ -72,14 +72,16 @@ let
     set -exuo pipefail
     export PATH=${lib.makeBinPath [ jq coreutils gnused mantis ]}
 
-    cd $NOMAD_TASK_DIR
-    mkdir -p  logs
+    export HOME="$NOMAD_TASK_DIR"
+    cd $HOME
+    mkdir -p logs
 
-    coinbase="$(tr -dc '0-9' < /dev/random | fold -w 40 | head -n 1)"
+    ls -la
+    id
+    chown --reference . --recursive .
 
     jq . < ${writeText "name.json" (builtins.toJSON nodeConfig)} \
-    | jq --arg var "$NOMAD_TASK_DIR/logs" '.logging."logs-dir" = $var' \
-    | jq --arg var "$coinbase" '.mantis.consensus.coinbase = $var' \
+    | jq --arg var "$HOME/logs" '.logging."logs-dir" = $var' \
     | head -c -2 \
     | tail -c +2 \
     | sed 's/^  //' \
@@ -94,15 +96,15 @@ let
 
     cat node.conf
 
-    exec mantis-core -Dconfig.file=$NOMAD_TASK_DIR/node.conf
+    exec mantis-core "-Duser.home=$HOME" "-Dconfig.file=$HOME/node.conf"
   '';
 in {
   mantis = mkNomadJob "mantis" {
-    datacenters = [ "us-east-2" ];
+    datacenters = [ "us-east-2" "eu-central-1" ];
     type = "service";
 
     taskGroups.mantis = {
-      count = 1;
+      count = 2;
 
       services.mantis = { };
 
@@ -111,13 +113,23 @@ in {
 
         command = run-mantis;
 
-        env = {
-          PATH = lib.makeBinPath [ coreutils ];
-        };
+        env = { PATH = lib.makeBinPath [ coreutils ]; };
 
         resources = {
           cpu = 100;
-          memoryMB = 1024;
+          memoryMB = 4 * 1024;
+          networks = [{
+            reservedPorts = [
+              {
+                label = "http";
+                value = 8546;
+              }
+              {
+                label = "discovery";
+                value = 30303;
+              }
+            ];
+          }];
         };
       };
     };
