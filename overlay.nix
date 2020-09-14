@@ -28,11 +28,10 @@ final: prev: {
       final.terraform-with-plugins
       prev.sops
       final.vault-bin
-      final.glibc
-      final.gawk
       final.openssl
       final.cfssl
       final.nixfmt
+      final.awscli
     ];
   };
 
