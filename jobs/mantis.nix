@@ -1,5 +1,6 @@
 { mkNomadJob, systemdSandbox, writeShellScript, writeText, coreutils, lib
-, cacert, jq, gnused, mantis }:
+, cacert, jq, gnused, mantis, dnsutils, gnugrep, iproute, lsof, netcat
+, nettools, procps }:
 let
   nodeConfig = {
     logging = {
@@ -108,21 +109,49 @@ in {
 
       services.mantis = { };
 
+      ephemeralDisk = {
+        # Std client disk size is set as gp2, 100 GB SSD in bitte at
+        # modules/terraform/clients.nix
+        sizeMB = 60 * 1000;
+      };
+
       tasks.mantis = systemdSandbox {
         name = "mantis";
 
         command = run-mantis;
 
-        env = { PATH = lib.makeBinPath [ coreutils ]; };
+        env = {
+          # Adds some extra commands to the store and path for debugging inside
+          # nomad jobs with `nomad alloc exec $ALLOC_ID /bin/sh`
+          PATH = lib.makeBinPath [
+            coreutils
+            dnsutils
+            gnugrep
+            iproute
+            jq
+            lsof
+            netcat
+            nettools
+            procps
+          ];
+        };
 
         resources = {
-          cpu = 100;
+          # For c5.2xlarge in clusters/mantis/testnet/default.nix, the url ref below
+          # provides 3.4 GHz * 8 vCPU = 27.2 GHz max.  80% is 21760 MHz.
+          # Allocating by vCPU or core quantity not yet available.
+          # Ref: https://github.com/hashicorp/nomad/blob/master/client/fingerprint/env_aws.go
+          cpu = 21760;
           memoryMB = 8 * 1024;
           networks = [{
             reservedPorts = [
               {
-                label = "http";
+                label = "rpc";
                 value = 8546;
+              }
+              {
+                label = "server";
+                value = 9079;
               }
               {
                 label = "discovery";
