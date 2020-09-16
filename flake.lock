@@ -11,11 +11,11 @@
         "utils": "utils_2"
       },
       "locked": {
-        "lastModified": 1600169761,
-        "narHash": "sha256-qDO8siDzuNTvSKcmsp9q5KQ7y0FTHLMyADmQKjimImY=",
+        "lastModified": 1600281631,
+        "narHash": "sha256-VK2YVQE3RWz9TqhlT7+bNlXCs2fAo78/r7Qg92EgR8o=",
         "owner": "input-output-hk",
         "repo": "bitte",
-        "rev": "4f5786a32b947b6f4555eaacb1451cc0c922b595",
+        "rev": "0d98825cc8d5ed422fdc2680d3da510cfca2584a",
         "type": "github"
       },
       "original": {
@@ -277,11 +277,11 @@
     },
     "utils_3": {
       "locked": {
-        "lastModified": 1598466101,
-        "narHash": "sha256-JPhv+Ay98KMWRVRFlLEK9+eLpvNjhTBGWdFKZsE97ck=",
+        "lastModified": 1600209923,
+        "narHash": "sha256-zoOWauTliFEjI++esk6Jzk7QO5EKpddWXQm9yQK24iM=",
         "owner": "numtide",
         "repo": "flake-utils",
-        "rev": "a586a6b966d59f53f45a04f8891fbc017dc09dbe",
+        "rev": "3cd06d3c1df6879c9e41cb2c33113df10566c760",
         "type": "github"
       },
       "original": {
