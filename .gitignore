@@ -1,2 +1,6 @@
 secrets/
 /.terraform
+.direnv/
+cert.config
+config.tf.json
+result/

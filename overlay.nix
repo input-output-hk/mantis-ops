@@ -32,6 +32,10 @@ final: prev: {
       final.cfssl
       final.nixfmt
       final.awscli
+      final.nomad
+      final.consul
+      final.consul-template
+      final.python38Packages.pyhcl
     ];
   };
 
@@ -59,5 +63,5 @@ final: prev: {
 
   inherit (self.inputs.bitte.legacyPackages.${system})
     vault-bin mkNomadJob mkNomadTaskSandbox terraform-with-plugins
-    systemdSandbox nixFlakes;
+    systemdSandbox nixFlakes nomad consul consul-template;
 }

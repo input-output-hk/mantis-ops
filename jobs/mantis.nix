@@ -1,6 +1,6 @@
 { mkNomadJob, systemdSandbox, writeShellScript, writeText, coreutils, lib
-, cacert, jq, gnused, mantis, dnsutils, gnugrep, iproute, lsof, netcat
-, nettools, procps }:
+, cacert, jq, gnused, mantis, dnsutils, gnugrep, iproute, lsof, netcat, nettools
+, procps }:
 let
   nodeConfig = {
     logging = {
