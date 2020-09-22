@@ -74,6 +74,7 @@ in {
             "${self.inputs.nixpkgs}/nixos/modules/profiles/headless.nix"
             "${self.inputs.nixpkgs}/nixos/modules/virtualisation/ec2-data.nix"
             "${extraConfig}"
+            ./secrets.nix
           ];
 
           securityGroupRules = {

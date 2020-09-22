@@ -77,12 +77,18 @@ let
     cd $HOME
     mkdir -p logs
 
+    # TODO: remove this debugging stuff
     ls -la
     id
+    env
+
     chown --reference . --recursive .
+
+    coinbase="$(echo "$ENODE_HASH" | sha256sum - | fold -w 40 | head -n 1)"
 
     jq . < ${writeText "name.json" (builtins.toJSON nodeConfig)} \
     | jq --arg var "$HOME/logs" '.logging."logs-dir" = $var' \
+    | jq --arg var "$coinbase" '.mantis.consensus.coinbase = $var' \
     | head -c -2 \
     | tail -c +2 \
     | sed 's/^  //' \
@@ -99,13 +105,54 @@ let
 
     exec mantis-core "-Duser.home=$HOME" "-Dconfig.file=$HOME/node.conf"
   '';
+
+  env = {
+    # Adds some extra commands to the store and path for debugging inside
+    # nomad jobs with `nomad alloc exec $ALLOC_ID /bin/sh`
+    PATH = lib.makeBinPath [
+      coreutils
+      dnsutils
+      gnugrep
+      iproute
+      jq
+      lsof
+      netcat
+      nettools
+      procps
+    ];
+  };
+
+  resources = {
+    # For c5.2xlarge in clusters/mantis/testnet/default.nix, the url ref below
+    # provides 3.4 GHz * 8 vCPU = 27.2 GHz max.  80% is 21760 MHz.
+    # Allocating by vCPU or core quantity not yet available.
+    # Ref: https://github.com/hashicorp/nomad/blob/master/client/fingerprint/env_aws.go
+    cpu = 21760;
+    memoryMB = 8 * 1024;
+    networks = [{
+      reservedPorts = [
+        {
+          label = "rpc";
+          value = 8546;
+        }
+        {
+          label = "server";
+          value = 9079;
+        }
+        {
+          label = "discovery";
+          value = 30303;
+        }
+      ];
+    }];
+  };
 in {
   mantis = mkNomadJob "mantis" {
     datacenters = [ "us-east-2" "eu-central-1" ];
     type = "service";
 
     taskGroups.mantis = {
-      count = 2;
+      count = 1;
 
       services.mantis = { };
 
@@ -115,52 +162,42 @@ in {
         sizeMB = 60 * 1000;
       };
 
-      tasks.mantis = systemdSandbox {
-        name = "mantis";
-
+      tasks.mantis-1 = systemdSandbox {
+        name = "mantis-1";
         command = run-mantis;
+        inherit env resources;
 
-        env = {
-          # Adds some extra commands to the store and path for debugging inside
-          # nomad jobs with `nomad alloc exec $ALLOC_ID /bin/sh`
-          PATH = lib.makeBinPath [
-            coreutils
-            dnsutils
-            gnugrep
-            iproute
-            jq
-            lsof
-            netcat
-            nettools
-            procps
-          ];
-        };
+        extraEnvironmentVariables = ["ENODE_HASH" "SECRET_KEY"];
 
-        resources = {
-          # For c5.2xlarge in clusters/mantis/testnet/default.nix, the url ref below
-          # provides 3.4 GHz * 8 vCPU = 27.2 GHz max.  80% is 21760 MHz.
-          # Allocating by vCPU or core quantity not yet available.
-          # Ref: https://github.com/hashicorp/nomad/blob/master/client/fingerprint/env_aws.go
-          cpu = 21760;
-          memoryMB = 8 * 1024;
-          networks = [{
-            reservedPorts = [
-              {
-                label = "rpc";
-                value = 8546;
-              }
-              {
-                label = "server";
-                value = 9079;
-              }
-              {
-                label = "discovery";
-                value = 30303;
-              }
-            ];
-          }];
-        };
+        vault.policies = [ "nomad-cluster" ];
+
+        templates = [{
+          data = ''
+            ENODE_HASH={{ with secret "kv/data/nomad-cluster/testnet/mantis-1/enode-hash" }}{{.Data.data.value}}{{end}}
+            SECRET_KEY={{ with secret "kv/data/nomad-cluster/testnet/mantis-1/secret-key" }}{{.Data.data.value}}{{end}}
+          '';
+          env = true;
+          destination = "secrets/env";
+        }];
       };
+
+      # tasks.mantis-2 = systemdSandbox {
+      #   name = "mantis-2";
+      #   command = run-mantis;
+      #   inherit env resources;
+      # };
+
+      # tasks.mantis-3 = systemdSandbox {
+      #   name = "mantis-3";
+      #   command = run-mantis;
+      #   inherit env resources;
+      # };
+
+      # tasks.mantis-4 = systemdSandbox {
+      #   name = "mantis-4";
+      #   command = run-mantis;
+      #   inherit env resources;
+      # };
     };
   };
 }
