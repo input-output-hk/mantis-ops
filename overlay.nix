@@ -8,14 +8,42 @@ final: prev: {
   # The branch was `chore/update-sbt-add-nix`, for future reference.
   mantis-source = builtins.fetchGit {
     url = "https://github.com/input-output-hk/mantis";
-    rev = "7d041c410d2afbd5dc3bfff4c98c6a2c515aacfc";
-    ref = "chore/update-sbt-add-nix";
+    rev = "12e6b6e8c70ee44c5e81971d0041ec8179fe3ada";
+    ref = "develop";
     submodules = true;
   };
 
   mantis = import final.mantis-source {
     inherit system;
   };
+
+  generate-mantis-keys = final.writeShellScriptBin "generate-mantis-keys" ''
+      set -euo pipefail
+
+      export PATH="${final.lib.makeBinPath (with final; [ coreutils mantis gawk vault-bin gnused ]) }"
+
+      if [ -s secrets/mantis-keys ]; then
+        echo "secrets/mantis-keys already exists, remove it if you want to regenerate"
+      else
+        set -x
+        eckeygen -Dconfig.file=${final.mantis}/conf/mantis.conf > secrets/mantis-keys
+        eckeygen -Dconfig.file=${final.mantis}/conf/mantis.conf >> secrets/mantis-keys
+        eckeygen -Dconfig.file=${final.mantis}/conf/mantis.conf >> secrets/mantis-keys
+        eckeygen -Dconfig.file=${final.mantis}/conf/mantis.conf >> secrets/mantis-keys
+
+        count=1
+        for sk in $(awk 'NR % 2 { print }' secrets/mantis-keys); do
+          vault kv put "kv/nomad-cluster/testnet/mantis-$count/secret-key" "value=$sk"
+          count="$((count + 1))"
+        done
+
+        count=1
+        for enode in $(awk '!(NR % 2) { print }' secrets/mantis-keys); do
+          vault kv put "kv/nomad-cluster/testnet/mantis-$count/enode-hash" "value=$enode"
+          count="$((count + 1))"
+        done
+      fi
+    '';
 
   nomadJobs = final.callPackage ./jobs/mantis.nix { };
 

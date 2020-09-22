@@ -27,7 +27,7 @@
       inherit (legacyPackages) devShell;
 
       packages = {
-        inherit (legacyPackages) bitte nixFlakes sops;
+        inherit (legacyPackages) bitte nixFlakes sops generate-mantis-keys;
         inherit (self.inputs.bitte.packages.${system})
           terraform-with-plugins cfssl consul;
       };
