@@ -64,6 +64,7 @@ final: prev: {
       final.consul
       final.consul-template
       final.python38Packages.pyhcl
+      final.direnv
     ];
   };
 
