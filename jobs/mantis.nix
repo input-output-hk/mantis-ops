@@ -3,10 +3,7 @@
 , procps }:
 let
   nodeConfig = {
-    logging = {
-      json-output = true;
-      logs-file = "$NOMAD_TASK_DIR/logs";
-    };
+    logging = { json-output = true; };
 
     # Sample configuration for a custom private testnet.
     mantis = {
@@ -40,7 +37,7 @@ let
           discovery-enabled = false;
 
           # Listening interface for discovery protocol
-          interface = "127.0.0.1";
+          interface = "0.0.0.0";
 
           # Listening port for discovery protocol
           # port = 30303
@@ -74,19 +71,16 @@ let
     export PATH=${lib.makeBinPath [ jq coreutils gnused mantis ]}
 
     export HOME="$NOMAD_TASK_DIR"
+    mkdir -p "$HOME/logs"
     cd $HOME
-    mkdir -p logs
 
-    # TODO: remove this debugging stuff
-    ls -la
-    id
-    env
+    ls -laR "$NOMAD_TASK_DIR"
 
-    chown --reference . --recursive .
+    chown --reference . --recursive . || true
 
     coinbase="$(echo "$ENODE_HASH" | sha256sum - | fold -w 40 | head -n 1)"
 
-    jq . < ${writeText "name.json" (builtins.toJSON nodeConfig)} \
+    jq . < ${writeText "mantis.json" (builtins.toJSON nodeConfig)} \
     | jq --arg var "$HOME/logs" '.logging."logs-dir" = $var' \
     | jq --arg var "$coinbase" '.mantis.consensus.coinbase = $var' \
     | head -c -2 \
@@ -96,6 +90,7 @@ let
 
     cat <<EOF > node.conf
     include "${mantis}/conf/mantis.conf"
+    include "bootstrap-nodes.conf"
     EOF
 
     cat node.conf.custom >> node.conf
@@ -103,7 +98,7 @@ let
 
     cat node.conf
 
-    exec mantis-core "-Duser.home=$HOME" "-Dconfig.file=$HOME/node.conf"
+    exec mantis "-Duser.home=$HOME" "-Dconfig.file=$HOME/node.conf"
   '';
 
   env = {
@@ -137,7 +132,7 @@ let
         }
         {
           label = "server";
-          value = 9079;
+          value = 9076;
         }
         {
           label = "discovery";
@@ -146,46 +141,76 @@ let
       ];
     }];
   };
+
+  ephemeralDisk = {
+    # Std client disk size is set as gp2, 100 GB SSD in bitte at
+    # modules/terraform/clients.nix
+    sizeMB = 60 * 1000;
+    # migrate = true;
+    # sticky = true;
+  };
+
 in {
   mantis = mkNomadJob "mantis" {
     datacenters = [ "us-east-2" "eu-central-1" ];
     type = "service";
 
-    taskGroups.mantis = {
+    taskGroups.mantis-1 = {
       count = 1;
 
-      services.mantis = { };
-
-      ephemeralDisk = {
-        # Std client disk size is set as gp2, 100 GB SSD in bitte at
-        # modules/terraform/clients.nix
-        sizeMB = 60 * 1000;
-      };
+      inherit ephemeralDisk;
 
       tasks.mantis-1 = systemdSandbox {
         name = "mantis-1";
         command = run-mantis;
         inherit env resources;
 
-        extraEnvironmentVariables = ["ENODE_HASH" "SECRET_KEY"];
+        services.mantis = {
+          tags = [ "mantis" "miner" ];
+          portLabel = "server";
+          meta.name = "mantis-1";
+          checks = [{
+            name = "rpc";
+            type = "http";
+            path = "/";
+            portLabel = "rpc";
+          }];
+        };
+
+        extraEnvironmentVariables = [ "ENODE_HASH" "SECRET_KEY" ];
 
         vault.policies = [ "nomad-cluster" ];
 
-        templates = [{
+        templates = let
+          secret = key:
+            ''{{ with secret "${key}" }}{{.Data.data.value}}{{end}}'';
+
+        in [{
           data = ''
-            ENODE_HASH={{ with secret "kv/data/nomad-cluster/testnet/mantis-1/enode-hash" }}{{.Data.data.value}}{{end}}
-            SECRET_KEY={{ with secret "kv/data/nomad-cluster/testnet/mantis-1/secret-key" }}{{.Data.data.value}}{{end}}
+            ENODE_HASH=${
+              secret "kv/data/nomad-cluster/testnet/mantis-1/enode-hash"
+            }
+            SECRET_KEY=${
+              secret "kv/data/nomad-cluster/testnet/mantis-1/secret-key"
+            }
           '';
           env = true;
           destination = "secrets/env";
-        }];
+        }
+        {
+          data = ''
+            bootstrap-nodes = [
+            {{ range service "mantis" -}}
+              "enode://  {{- with secret (printf "kv/data/nomad-cluster/testnet/%s/enode-hash" .ServiceMeta.Name) -}}
+                {{- .Data.data.value -}}
+                {{- end -}}@{{ .Address }}:{{ .Port }}",
+            {{ end -}}
+            ]
+          '';
+          destination = "local/bootstrap-nodes.conf";
+        }
+        ];
       };
-
-      # tasks.mantis-2 = systemdSandbox {
-      #   name = "mantis-2";
-      #   command = run-mantis;
-      #   inherit env resources;
-      # };
 
       # tasks.mantis-3 = systemdSandbox {
       #   name = "mantis-3";
@@ -198,6 +223,61 @@ in {
       #   command = run-mantis;
       #   inherit env resources;
       # };
+    };
+
+    taskGroups.mantis-2 = {
+      count = 1;
+
+      inherit ephemeralDisk;
+
+      tasks.mantis-2 = systemdSandbox {
+        name = "mantis-2";
+        command = run-mantis;
+        inherit env resources;
+
+        services.mantis = {
+          tags = [ "mantis" "miner" ];
+          meta.name = "mantis-2";
+          portLabel = "server";
+          # checks = [{ name = "rpc"; type = "tcp"; portLabel = "rpc"; }];
+        };
+
+        extraEnvironmentVariables = [ "ENODE_HASH" "SECRET_KEY" ];
+
+        vault.policies = [ "nomad-cluster" ];
+
+        templates = let
+          secret = key:
+            ''{{ with secret "${key}" }}{{.Data.data.value}}{{end}}'';
+
+        in [{
+          data = ''
+            ENODE_HASH=${
+              secret "kv/data/nomad-cluster/testnet/mantis-2/enode-hash"
+            }
+            SECRET_KEY=${
+              secret "kv/data/nomad-cluster/testnet/mantis-2/secret-key"
+            }
+          '';
+          env = true;
+          destination = "secrets/env";
+        }
+
+        # {
+        #   data = ''
+        #     bootstrap-nodes = [
+        #       {{ range service "mantis" }}
+        #         "enode://${secret "testnet/mantis-2/enode-hash"}@${}
+        #       {{ end }}
+        #     {{ with secret "kv/data/nomad-cluster/testnet/mantis-2/enode-hash" }}{{.Data.data.value}}{{end}}
+        #     {{ with secret "kv/data/nomad-cluster/testnet/mantis-2/enode-hash" }}{{.Data.data.value}}{{end}}
+        #     ]
+        #
+        #     '';
+        #     destination = "local/bootstrap-nodes.conf";
+        # }
+        ];
+      };
     };
   };
 }
