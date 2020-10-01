@@ -6,16 +6,17 @@
         "inclusive": "inclusive_2",
         "nixpkgs": "nixpkgs_2",
         "nixpkgs-crystal": "nixpkgs-crystal_2",
+        "nixpkgs-terraform": "nixpkgs-terraform",
         "ops-lib": "ops-lib",
         "terranix": "terranix",
         "utils": "utils_2"
       },
       "locked": {
-        "lastModified": 1600887101,
-        "narHash": "sha256-L3aUdsH6cGYl2Y7xsuYzuh7xhbKkKC/MRaftGDxDDKw=",
+        "lastModified": 1601566712,
+        "narHash": "sha256-qcHVzjYb/yv5z1wY3Xo20689rHDQjATfHMP7jmr97Tk=",
         "owner": "input-output-hk",
         "repo": "bitte",
-        "rev": "2fb5ee027c42df492f1cdeff87005bb2dc4b4952",
+        "rev": "3478c74048efdd6084f1b5fc30425a47e04bfea3",
         "type": "github"
       },
       "original": {
@@ -125,6 +126,22 @@
       "original": {
         "owner": "manveru",
         "ref": "crystal-0.35",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "nixpkgs-terraform": {
+      "locked": {
+        "lastModified": 1601377216,
+        "narHash": "sha256-tYwmPuCgibq72ReYrSTXND4RlZllsP9sVrpncggnBz0=",
+        "owner": "manveru",
+        "repo": "nixpkgs",
+        "rev": "e23f63315b452837bfd49b7f17a4fe9cba6e9094",
+        "type": "github"
+      },
+      "original": {
+        "owner": "manveru",
+        "ref": "terraform-providers",
         "repo": "nixpkgs",
         "type": "github"
       }

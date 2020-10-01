@@ -5,8 +5,7 @@ let
   vpcs = pkgs.terralib.vpcs config.cluster;
 
   global = [ "0.0.0.0/0" ];
-  internal = [ config.cluster.vpc.cidr ]
-    ++ (lib.forEach vpcs (vpc: vpc.cidr));
+  internal = [ config.cluster.vpc.cidr ] ++ (lib.forEach vpcs (vpc: vpc.cidr));
 in {
   # TODO: derive needed security groups from networking.firewall?
   securityGroupRules = {
@@ -87,6 +86,16 @@ in {
 
     nomad-http = {
       port = 4646;
+      cidrs = internal;
+    };
+
+    mantis-rpc = {
+      port = 8546;
+      cidrs = global;
+    };
+
+    mantis-server = {
+      port = 9076;
       cidrs = internal;
     };
   };

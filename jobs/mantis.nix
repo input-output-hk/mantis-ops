@@ -1,12 +1,24 @@
 { mkNomadJob, systemdSandbox, writeShellScript, writeText, coreutils, lib
 , cacert, jq, gnused, mantis, dnsutils, gnugrep, iproute, lsof, netcat, nettools
-, procps }:
+, procps, curl, gawk }:
 let
   nodeConfig = {
-    logging = { json-output = true; };
+    logging.json-output = true;
 
     # Sample configuration for a custom private testnet.
     mantis = {
+      blockchains.network = "testnet-internal";
+
+      metrics = {
+        # Set to `true` iff your deployment supports metrics collection.
+        # We expose metrics using a Prometheus server
+        # We default to `false` here because we do not expect all deployments to support metrics collection.
+        enabled = true;
+
+        # The port for setting up a Prometheus server over localhost.
+        port = 13798;
+      };
+
       sync = {
         # Whether to enable fast-sync
         do-fast-sync = false;
@@ -16,20 +28,12 @@ let
         # are controlled by a single party, eg. private networks)
         blacklist-duration = 0;
 
-        # Set to false to disable broadcasting the NewBlockHashes message, as its usefulness is debatable,
-        # especially in the context of private networks
-        broadcast-new-block-hashes = false;
-
         pruning.mode = "archive";
+
+        branch-resolution-request-size = 1000;
       };
 
-      blockchains.network = "private";
-
-      consensus = {
-        coinbase =
-          "0011223344556677889900112233445566778899"; # has to be changed for each node
-        mining-enabled = true;
-      };
+      consensus.mining-enabled = true;
 
       network = {
         discovery = {
@@ -40,7 +44,12 @@ let
           interface = "0.0.0.0";
 
           # Listening port for discovery protocol
-          # port = 30303
+          port = 30303;
+        };
+
+        peer = {
+          short-blacklist-duration = 0;
+          long-blacklist-duration = 0;
         };
 
         rpc = {
@@ -53,10 +62,10 @@ let
             mode = "http";
 
             # Listening address of JSON-RPC HTTP/HTTPS endpoint
-            interface = "127.0.0.1";
+            interface = "0.0.0.0";
 
             # Listening port of JSON-RPC HTTP/HTTPS endpoint
-            # port = 8546
+            port = 8546;
 
             # Domains allowed to query RPC endpoint. Use "*" to enable requests from any domain.
             cors-allowed-origins = "*";
@@ -64,57 +73,6 @@ let
         };
       };
     };
-  };
-
-  run-mantis = writeShellScript "mantis" ''
-    set -exuo pipefail
-    export PATH=${lib.makeBinPath [ jq coreutils gnused mantis ]}
-
-    export HOME="$NOMAD_TASK_DIR"
-    mkdir -p "$HOME/logs"
-    cd $HOME
-
-    ls -laR "$NOMAD_TASK_DIR"
-
-    chown --reference . --recursive . || true
-
-    coinbase="$(echo "$ENODE_HASH" | sha256sum - | fold -w 40 | head -n 1)"
-
-    jq . < ${writeText "mantis.json" (builtins.toJSON nodeConfig)} \
-    | jq --arg var "$HOME/logs" '.logging."logs-dir" = $var' \
-    | jq --arg var "$coinbase" '.mantis.consensus.coinbase = $var' \
-    | head -c -2 \
-    | tail -c +2 \
-    | sed 's/^  //' \
-    > node.conf.custom
-
-    cat <<EOF > node.conf
-    include "${mantis}/conf/mantis.conf"
-    include "bootstrap-nodes.conf"
-    EOF
-
-    cat node.conf.custom >> node.conf
-    ulimit -c unlimited
-
-    cat node.conf
-
-    exec mantis "-Duser.home=$HOME" "-Dconfig.file=$HOME/node.conf"
-  '';
-
-  env = {
-    # Adds some extra commands to the store and path for debugging inside
-    # nomad jobs with `nomad alloc exec $ALLOC_ID /bin/sh`
-    PATH = lib.makeBinPath [
-      coreutils
-      dnsutils
-      gnugrep
-      iproute
-      jq
-      lsof
-      netcat
-      nettools
-      procps
-    ];
   };
 
   resources = {
@@ -135,8 +93,8 @@ let
           value = 9076;
         }
         {
-          label = "discovery";
-          value = 30303;
+          label = "metrics";
+          value = 13798;
         }
       ];
     }];
@@ -150,134 +108,148 @@ let
     # sticky = true;
   };
 
+  run-mantis = baseConfig:
+    writeShellScript "mantis" ''
+      set -exuo pipefail
+      export PATH=${lib.makeBinPath [ jq coreutils gnused mantis ]}
+
+      mkdir -p "$NOMAD_TASK_DIR/mantis"
+      cd "$NOMAD_TASK_DIR"
+
+      ls -laR "$NOMAD_TASK_DIR"
+
+      chown --reference . --recursive . || true
+
+      coinbase="$(echo "$ENODE_HASH" | sha256sum - | fold -w 40 | head -n 1)"
+
+      jq . < ${writeText "mantis.json" (builtins.toJSON baseConfig)} \
+      | jq '.logging."logs-file" = "logs"' \
+      | jq --arg var "$NOMAD_TASK_DIR/ethash" '.mantis.ethash."ethash-dir" = $var' \
+      | jq --arg var "$coinbase" '.mantis.consensus.coinbase = $var' \
+      | jq --arg var "$NOMAD_TASK_DIR/mantis" '.mantis.datadir = $var' \
+      | jq --arg var "$NOMAD_SECRETS_DIR/secret-key" '.mantis."node-key-file" = $var' \
+      | head -c -2 \
+      | tail -c +2 \
+      | sed 's/^  //' \
+      > node.conf.custom
+
+      cat <<EOF > node.conf
+      include "${mantis}/conf/testnet-internal.conf"
+      EOF
+
+      cat node.conf.custom >> node.conf
+      echo 'include "bootstrap-nodes.conf"' >> node.conf
+
+      ulimit -c unlimited
+
+      ls -laR
+
+      exec mantis "-Duser.home=$NOMAD_TASK_DIR" "-Dconfig.file=$NOMAD_TASK_DIR/node.conf"
+    '';
+
+  env = {
+    # Adds some extra commands to the store and path for debugging inside
+    # nomad jobs with `nomad alloc exec $ALLOC_ID /bin/sh`
+    PATH = lib.makeBinPath [
+      coreutils
+      curl
+      dnsutils
+      gawk
+      gnugrep
+      iproute
+      jq
+      lsof
+      netcat
+      nettools
+      procps
+    ];
+  };
+
+  templatesFor = name:
+    let secret = key: ''{{ with secret "${key}" }}{{.Data.data.value}}{{end}}'';
+    in [
+      {
+        data = ''
+          ENODE_HASH=${
+            secret "kv/data/nomad-cluster/testnet/${name}/enode-hash"
+          }
+        '';
+        env = true;
+        destination = "secrets/env";
+        changeMode = "noop";
+      }
+      {
+        data = ''
+          ${secret "kv/data/nomad-cluster/testnet/${name}/secret-key"}
+          ${secret "kv/data/nomad-cluster/testnet/${name}/enode-hash"}
+        '';
+        destination = "secrets/secret-key";
+      }
+      {
+        data = ''
+          mantis.blockchains.testnet-internal.bootstrap-nodes = [
+          {{ range service "mantis" -}}
+            "enode://  {{- with secret (printf "kv/data/nomad-cluster/testnet/%s/enode-hash" .ServiceMeta.Name) -}}
+              {{- .Data.data.value -}}
+              {{- end -}}@{{ .Address }}:{{ .Port }}",
+          {{ end -}}
+          ]
+        '';
+        changeMode = "noop";
+        destination = "local/bootstrap-nodes.conf";
+      }
+    ];
+
+  mkMiner = name: {
+    count = 1;
+
+    inherit ephemeralDisk;
+
+    tasks.${name} = systemdSandbox {
+      inherit name env resources;
+      command = run-mantis nodeConfig;
+      extraEnvironmentVariables = [ "ENODE_HASH" ];
+      templates = templatesFor name;
+      vault.policies = [ "nomad-cluster" ];
+
+      services.mantis = {
+        tags = [ "mantis" "miner" ];
+        meta.name = name;
+        portLabel = "server";
+        checks = [{
+          type = "http";
+          path = "/healthcheck";
+          portLabel = "rpc";
+
+          checkRestart = {
+            limit = 3;
+            grace = "90s";
+            ignoreWarnings = false;
+          };
+        }];
+      };
+    };
+  };
 in {
   mantis = mkNomadJob "mantis" {
     datacenters = [ "us-east-2" "eu-central-1" ];
     type = "service";
 
-    taskGroups.mantis-1 = {
-      count = 1;
-
-      inherit ephemeralDisk;
-
-      tasks.mantis-1 = systemdSandbox {
-        name = "mantis-1";
-        command = run-mantis;
-        inherit env resources;
-
-        services.mantis = {
-          tags = [ "mantis" "miner" ];
-          portLabel = "server";
-          meta.name = "mantis-1";
-          checks = [{
-            name = "rpc";
-            type = "http";
-            path = "/";
-            portLabel = "rpc";
-          }];
-        };
-
-        extraEnvironmentVariables = [ "ENODE_HASH" "SECRET_KEY" ];
-
-        vault.policies = [ "nomad-cluster" ];
-
-        templates = let
-          secret = key:
-            ''{{ with secret "${key}" }}{{.Data.data.value}}{{end}}'';
-
-        in [{
-          data = ''
-            ENODE_HASH=${
-              secret "kv/data/nomad-cluster/testnet/mantis-1/enode-hash"
-            }
-            SECRET_KEY=${
-              secret "kv/data/nomad-cluster/testnet/mantis-1/secret-key"
-            }
-          '';
-          env = true;
-          destination = "secrets/env";
-        }
-        {
-          data = ''
-            bootstrap-nodes = [
-            {{ range service "mantis" -}}
-              "enode://  {{- with secret (printf "kv/data/nomad-cluster/testnet/%s/enode-hash" .ServiceMeta.Name) -}}
-                {{- .Data.data.value -}}
-                {{- end -}}@{{ .Address }}:{{ .Port }}",
-            {{ end -}}
-            ]
-          '';
-          destination = "local/bootstrap-nodes.conf";
-        }
-        ];
-      };
-
-      # tasks.mantis-3 = systemdSandbox {
-      #   name = "mantis-3";
-      #   command = run-mantis;
-      #   inherit env resources;
-      # };
-
-      # tasks.mantis-4 = systemdSandbox {
-      #   name = "mantis-4";
-      #   command = run-mantis;
-      #   inherit env resources;
-      # };
+    update = {
+      maxParallel = 1;
+      # healthCheck      = "checks"
+      minHealthyTime = "10s";
+      healthyDeadline = "5m";
+      progressDeadline = "10m";
+      autoRevert = true;
+      autoPromote = false;
+      canary = 0;
+      stagger = "30s";
     };
 
-    taskGroups.mantis-2 = {
-      count = 1;
-
-      inherit ephemeralDisk;
-
-      tasks.mantis-2 = systemdSandbox {
-        name = "mantis-2";
-        command = run-mantis;
-        inherit env resources;
-
-        services.mantis = {
-          tags = [ "mantis" "miner" ];
-          meta.name = "mantis-2";
-          portLabel = "server";
-          # checks = [{ name = "rpc"; type = "tcp"; portLabel = "rpc"; }];
-        };
-
-        extraEnvironmentVariables = [ "ENODE_HASH" "SECRET_KEY" ];
-
-        vault.policies = [ "nomad-cluster" ];
-
-        templates = let
-          secret = key:
-            ''{{ with secret "${key}" }}{{.Data.data.value}}{{end}}'';
-
-        in [{
-          data = ''
-            ENODE_HASH=${
-              secret "kv/data/nomad-cluster/testnet/mantis-2/enode-hash"
-            }
-            SECRET_KEY=${
-              secret "kv/data/nomad-cluster/testnet/mantis-2/secret-key"
-            }
-          '';
-          env = true;
-          destination = "secrets/env";
-        }
-
-        # {
-        #   data = ''
-        #     bootstrap-nodes = [
-        #       {{ range service "mantis" }}
-        #         "enode://${secret "testnet/mantis-2/enode-hash"}@${}
-        #       {{ end }}
-        #     {{ with secret "kv/data/nomad-cluster/testnet/mantis-2/enode-hash" }}{{.Data.data.value}}{{end}}
-        #     {{ with secret "kv/data/nomad-cluster/testnet/mantis-2/enode-hash" }}{{.Data.data.value}}{{end}}
-        #     ]
-        #
-        #     '';
-        #     destination = "local/bootstrap-nodes.conf";
-        # }
-        ];
-      };
-    };
+    taskGroups.mantis-1 = mkMiner "mantis-1";
+    taskGroups.mantis-2 = mkMiner "mantis-2";
+    taskGroups.mantis-3 = mkMiner "mantis-3";
+    taskGroups.mantis-4 = mkMiner "mantis-4";
   };
 }

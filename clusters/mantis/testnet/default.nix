@@ -20,7 +20,8 @@ in {
 
   cluster = {
     name = "mantis-testnet";
-    kms = "arn:aws:kms:eu-central-1:166923377823:key/745684e5-272e-49af-aad8-8b073b8d996a";
+    kms =
+      "arn:aws:kms:eu-central-1:166923377823:key/745684e5-272e-49af-aad8-8b073b8d996a";
     domain = "mantis.ws";
     s3Bucket = "iohk-mantis-bitte";
     s3CachePubKey = lib.fileContents ../../../encrypted/nix-public-key-file;
@@ -31,6 +32,7 @@ in {
       "samuel.evans-powell"
       "samuel.leathers"
       "shay.bergmann"
+      "nicolas.taller"
     ];
 
     terraformOrganization = "mantis";
@@ -40,11 +42,11 @@ in {
     autoscalingGroups = listToAttrs (forEach [
       {
         region = "eu-central-1";
-        desiredCapacity = 1;
+        desiredCapacity = 2;
       }
       {
         region = "us-east-2";
-        desiredCapacity = 1;
+        desiredCapacity = 2;
       }
     ] (args:
       let
@@ -75,10 +77,12 @@ in {
             "${self.inputs.nixpkgs}/nixos/modules/virtualisation/ec2-data.nix"
             "${extraConfig}"
             ./secrets.nix
+            ./monitoring.nix
           ];
 
           securityGroupRules = {
-            inherit (securityGroupRules) internet internal ssh;
+            inherit (securityGroupRules)
+              internet internal ssh mantis-rpc mantis-server;
           };
           ami = amis.${args.region};
           userData = ''
