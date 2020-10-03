@@ -5,6 +5,7 @@
     bitte-cli.follows = "bitte/bitte-cli";
     bitte.url = "github:input-output-hk/bitte";
     # bitte.url = "path:/home/manveru/github/input-output-hk/bitte";
+    # bitte.url = "path:/home/jlotoski/work/iohk/bitte-wt/bitte";
     nixpkgs.follows = "bitte/nixpkgs";
     terranix.follows = "bitte/terranix";
     utils.url = "github:numtide/flake-utils";
