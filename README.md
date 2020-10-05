@@ -22,7 +22,7 @@ $ sh <(curl -L https://nixos.org/nix/install) --no-daemon
 ```
 $ sh <(curl -L https://nixos.org/nix/install) --daemon
 ```
-* After performing a Nix single or multi-user install, the any shells should be exited and re-entered to ensure the new Nix settings take effect in the environment.
+* After performing a Nix single or multi-user install, any shells should be exited and re-entered to ensure the new Nix settings take effect in the environment.
 * Alternatively, the operating system [NixOS](https://nixos.org/manual/nixos/stable/#sec-installation) can be used which includes a Nix installation.
 
 
@@ -35,13 +35,12 @@ $ mkdir -p ~/.config/nix
 $ touch ~/.config/nix/nix.conf
 ```
 
-* For a Nix multi-user install, the Nix configuration file will be found at the following location.  Create this file with the above content if it does not yet exist (although it should!):
+* For a Nix multi-user install, the Nix configuration file will be found at the following location:
 ```
-$ sudo mkdir -p /etc/nix
-$ sudo touch /etc/nix/nix.conf
+$ ls -la /etc/nix/nix.conf
 ```
 
-* The following configuration lines should be added to the Nix configuration:
+* The following configuration lines need to be added to the Nix configuration:
 ```
 experimental-features = nix-command flakes ca-references
 substituters = https://cache.nixos.org https://mantis-ops.cachix.org
@@ -49,11 +48,11 @@ trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDS
 ```
 
 * Additionally, for a Nix multi-user install:
-  * The following additional line should also be added, where `<YOUR_USERNAME>` is substituted with your actual non-root username:
+  * The following line should also be added, where `<YOUR_USERNAME>` is substituted with your actual non-root username:
 ```
 trusted-users = <YOUR_USERNAME>
 ```
-  * Once these configuration lines have been added, the nix-daemon service needs to be restarted for the full Nix configuration changes to take effect:
+  * Once the new configuration lines have been added, the nix-daemon service needs to be restarted for the full Nix configuration changes to take effect:
 ```
 sudo systemctl restart nix-daemon.service
 ```
@@ -89,7 +88,7 @@ $ git clone https://github.com/input-output-hk/mantis-ops
 $ cd mantis-ops
 ```
 
-* After entering the repository directory, the following command needs to be run ONLY ONCE.  This will set up all the required dependencies for the nix-shell environment, including Nix flakes support:
+* After entering the repository directory, the following command needs to be run ONLY ONCE.  This will set up all the required dependencies for the nix-shell environment, including Nix flakes support and install them into the nix user profile:
 ```
 nix-shell --run '
 ( nix build .#nixFlakes -o devShell
@@ -99,7 +98,7 @@ nix-shell --run '
 '
 ```
 
-* Finally, enter the development environment with the following command.  This command should be entered whenever you have a new shell and you'd like the development enviroment available:
+* Finally, enter the development environment with the following command.  This command should be executed whenever you have a new shell and you'd like to enter the development enviroment:
 ```
 nix develop
 ```
