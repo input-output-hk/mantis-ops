@@ -78,6 +78,7 @@ final: prev: {
       final.consul-template
       final.python38Packages.pyhcl
       final.direnv
+      final.nixFlakes
     ];
   };
 
