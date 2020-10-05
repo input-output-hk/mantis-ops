@@ -9,12 +9,13 @@
 
 ## Getting Started for Developers
 
-
 ### Nix
 
 * Nix is a requirement for this project.
 * If you don't already have Nix installed, please install it by following the directions at: [Nix Installation](https://nixos.org/manual/nix/stable/#chap-installation).
 * Either a single-user nix install or a multi-user nix install is supported.
+nix-env -iA cachix -f https://cachix.org/api/v1/install
+cachix use mantis-ops
 
 
 ### Nix Shell
@@ -27,11 +28,14 @@ cd mantis-ops
 
 * Enter into a nix-shell with all required dependencies, including Nix flakes support and binary caches to improve initial set up time:
 ```
-nix-shell --run 'nix develop --experimental-features "nix-command flakes" \
-  --option substituters "https://cache.nixos.org https://manveru.cachix.org" \
-  --option trusted-public-keys "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= manveru.cachix.org-1:L5nJHSinfA2K5dDCG3KAEadwf/e3qqhuBr7yCwSksXo="' \
-  --option substituters "https://cache.nixos.org https://manveru.cachix.org" \
-  --option trusted-public-keys "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= manveru.cachix.org-1:L5nJHSinfA2K5dDCG3KAEadwf/e3qqhuBr7yCwSksXo="
+NIX_USER_CONF_FILES=./nix.conf nix-shell --run '
+( nix build .#nixFlakes -o devShell
+  nix-env -i ./devShell
+  rm devShell
+) || nix profile install github:input-output-hk/mantis-ops#nixFlakes
+'
+
+nix develop
 ```
 
 
