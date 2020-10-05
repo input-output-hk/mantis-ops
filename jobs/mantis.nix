@@ -96,10 +96,6 @@ let
           label = "metrics";
           value = 13798;
         }
-        {
-          label = "metrics";
-          value = 13798;
-        }
       ];
     }];
   };
@@ -216,6 +212,13 @@ let
       templates = templatesFor name;
       vault.policies = [ "nomad-cluster" ];
 
+      restart = {
+        interval = "1m";
+        attempts = 60;
+        delay    = "1m";
+        mode     = "fail";
+      };
+
       services.mantis = {
         tags = [ "mantis" "miner" ];
         meta.name = name;
@@ -226,8 +229,8 @@ let
           portLabel = "rpc";
 
           checkRestart = {
-            limit = 3;
-            grace = "90s";
+            limit = 5;
+            grace = "300s";
             ignoreWarnings = false;
           };
         }];
