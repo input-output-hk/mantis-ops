@@ -69,6 +69,12 @@ final: prev: {
     ];
   };
 
+  # Used for caching
+  devShellPath = prev.symlinkJoin {
+    paths = final.devShell.buildInputs ++ [ final.mantis final.nixFlakes ];
+    name = "devShell";
+  };
+
   # inject vault-bin into bitte wrapper
   bitte = let
     bitte-nixpkgs = import self.inputs.nixpkgs {
