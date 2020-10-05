@@ -48,9 +48,21 @@ final: prev: {
 
   nomadJobs = final.callPackage ./jobs/mantis.nix { };
 
-  devShell = prev.mkShell {
+  devShell = let 
+    cluster = "mantis-testnet";
+    domain = final.clusters.${cluster}.proto.config.cluster.domain;
+  in prev.mkShell {
     # for bitte-cli
     LOG_LEVEL = "debug";
+
+    BITTE_CLUSTER = cluster;
+    AWS_PROFILE = "mantis";
+    AWS_DEFAULT_REGION = final.clusters.${cluster}.proto.config.cluster.region;
+
+    VAULT_ADDR = "https://vault.${ domain }";
+    NOMAD_ADDR = "https://nomad.${ domain }";
+    CONSUL_HTTP_ADDR = "https://consul.${ domain }";
+    NIX_USER_CONF_FILES = ./nix.conf;
 
     buildInputs = [
       final.bitte
