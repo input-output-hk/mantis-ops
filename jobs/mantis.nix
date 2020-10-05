@@ -96,6 +96,10 @@ let
           label = "metrics";
           value = 13798;
         }
+        {
+          label = "metrics";
+          value = 13798;
+        }
       ];
     }];
   };
