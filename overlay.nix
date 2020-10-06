@@ -1,5 +1,7 @@
 { system, self }:
-final: prev: {
+final: prev:
+let lib = final.lib;
+in {
   # we cannot specify mantis as a flake input due to:
   # * the branch having a slash
   # * the submodules syntax is broken
@@ -19,8 +21,7 @@ final: prev: {
     set -euo pipefail
 
     export PATH="${
-      final.lib.makeBinPath
-      (with final; [ coreutils mantis gawk vault-bin gnused ])
+      lib.makeBinPath (with final; [ coreutils mantis gawk vault-bin gnused ])
     }"
 
     if [ -s secrets/mantis-keys ]; then
@@ -45,8 +46,6 @@ final: prev: {
       done
     fi
   '';
-
-  nomadJobs = final.callPackage ./jobs/mantis.nix { };
 
   devShell = let
     cluster = "mantis-testnet";
@@ -114,4 +113,13 @@ final: prev: {
   inherit (self.inputs.bitte.legacyPackages.${system})
     vault-bin mkNomadJob mkNomadTaskSandbox terraform-with-plugins
     systemdSandbox nixFlakes nomad consul consul-template bitte-tokens;
+
+  nomadJobs = let
+    jobsDir = ./jobs;
+    contents = builtins.readDir jobsDir;
+    toImport = name: type: type == "regular" && lib.hasSuffix ".nix" name;
+    fileNames = builtins.attrNames (lib.filterAttrs toImport contents);
+    imported = lib.forEach fileNames
+      (fileName: final.callPackage (jobsDir + "/${fileName}") { });
+  in lib.foldl' lib.recursiveUpdate { } imported;
 }
