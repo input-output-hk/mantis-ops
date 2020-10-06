@@ -48,7 +48,7 @@ final: prev: {
 
   nomadJobs = final.callPackage ./jobs/mantis.nix { };
 
-  devShell = let 
+  devShell = let
     cluster = "mantis-testnet";
     domain = final.clusters.${cluster}.proto.config.cluster.domain;
   in prev.mkShell {
@@ -59,9 +59,9 @@ final: prev: {
     AWS_PROFILE = "mantis";
     AWS_DEFAULT_REGION = final.clusters.${cluster}.proto.config.cluster.region;
 
-    VAULT_ADDR = "https://vault.${ domain }";
-    NOMAD_ADDR = "https://nomad.${ domain }";
-    CONSUL_HTTP_ADDR = "https://consul.${ domain }";
+    VAULT_ADDR = "https://vault.${domain}";
+    NOMAD_ADDR = "https://nomad.${domain}";
+    CONSUL_HTTP_ADDR = "https://consul.${domain}";
     NIX_USER_CONF_FILES = ./nix.conf;
 
     buildInputs = [
