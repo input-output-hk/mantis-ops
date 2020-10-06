@@ -25,6 +25,8 @@ in {
     domain = "mantis.ws";
     s3Bucket = "iohk-mantis-bitte";
     s3CachePubKey = lib.fileContents ../../../encrypted/nix-public-key-file;
+
+    # TODO: used for bootstrapping only
     adminNames = [
       "john.lotoski"
       "michael.bishop"
@@ -32,8 +34,11 @@ in {
       "samuel.evans-powell"
       "samuel.leathers"
       "shay.bergmann"
-      "nicolas.taller"
     ];
+
+    developerGithubTeamNames = [ "mantis-devs" ];
+
+    developerGithubNames = [ ];
 
     terraformOrganization = "mantis";
 
