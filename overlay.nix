@@ -79,6 +79,7 @@ final: prev: {
       final.python38Packages.pyhcl
       final.direnv
       final.nixFlakes
+      final.bitte-tokens
     ];
   };
 
@@ -112,5 +113,5 @@ final: prev: {
 
   inherit (self.inputs.bitte.legacyPackages.${system})
     vault-bin mkNomadJob mkNomadTaskSandbox terraform-with-plugins
-    systemdSandbox nixFlakes nomad consul consul-template;
+    systemdSandbox nixFlakes nomad consul consul-template bitte-tokens;
 }
