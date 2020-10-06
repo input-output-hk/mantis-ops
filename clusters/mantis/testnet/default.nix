@@ -175,6 +175,7 @@ in {
         instanceType = "t3a.large";
         privateIP = "172.16.0.20";
         subnet = subnets.core-1;
+        volumeSize = 40;
         route53.domains = [ "monitoring" ];
 
         modules = [ (bitte + /profiles/monitoring.nix) ./secrets.nix ];
