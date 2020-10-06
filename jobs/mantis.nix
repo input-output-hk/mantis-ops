@@ -1,6 +1,6 @@
 { mkNomadJob, systemdSandbox, writeShellScript, writeText, coreutils, lib
-, cacert, jq, gnused, mantis, dnsutils, gnugrep, iproute, lsof, netcat, nettools
-, procps, curl, gawk }:
+, cacert, jq, gnused, mantis, mantis-source, dnsutils, gnugrep, iproute, lsof
+, netcat, nettools, procps, curl, gawk }:
 let
   nodeConfig = {
     logging.json-output = true;
@@ -215,12 +215,12 @@ let
       restart = {
         interval = "1m";
         attempts = 60;
-        delay    = "1m";
-        mode     = "fail";
+        delay = "1m";
+        mode = "fail";
       };
 
       services.mantis = {
-        tags = [ "mantis" "miner" ];
+        tags = [ "mantis" "miner" mantis-source.rev ];
         meta.name = name;
         portLabel = "server";
         checks = [{
