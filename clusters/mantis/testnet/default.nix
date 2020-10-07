@@ -116,11 +116,6 @@ in {
         instanceType = "t3a.medium";
         privateIP = "172.16.0.10";
         subnet = cluster.vpc.subnets.core-1;
-        route53.domains = [
-          "consul.${cluster.domain}"
-          "vault.${cluster.domain}"
-          "nomad.${cluster.domain}"
-        ];
 
         modules = [
           (bitte + /profiles/core.nix)
@@ -179,7 +174,12 @@ in {
         privateIP = "172.16.0.20";
         subnet = cluster.vpc.subnets.core-1;
         volumeSize = 40;
-        route53.domains = [ "monitoring.${cluster.domain}" ];
+        route53.domains = [
+          "monitoring.${cluster.domain}"
+          "consul.${cluster.domain}"
+          "vault.${cluster.domain}"
+          "nomad.${cluster.domain}"
+        ];
 
         modules = [ (bitte + /profiles/monitoring.nix) ./secrets.nix ];
 
