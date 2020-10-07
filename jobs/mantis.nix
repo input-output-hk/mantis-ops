@@ -34,6 +34,8 @@ let
         blacklist-duration = 0;
 
         pruning.mode = "archive";
+
+        branch-resolution-request-size = 100;
       };
 
       consensus.mining-enabled = true;
@@ -271,6 +273,29 @@ let
       serviceName = "mantis-miner";
     };
 
+    mkPassive = count: mkMantis {
+      name = "mantis-passive";
+      serviceName = "mantis-passive";
+      config = passiveConfig;
+      resources = passiveResources;
+      tags = [ "passive" ];
+      inherit count;
+      ephemeralDisk = { sizeMB = 1000; };
+      templates = [{
+        data = ''
+          mantis.blockchains.testnet-internal.bootstrap-nodes = [
+          {{ range service "mantis-miner" -}}
+            "enode://  {{- with secret (printf "kv/data/nomad-cluster/testnet/%s/enode-hash" .ServiceMeta.Name) -}}
+              {{- .Data.data.value -}}
+              {{- end -}}@{{ .Address }}:{{ .Port }}",
+          {{ end -}}
+          ]
+        '';
+        changeMode = "noop";
+        destination = "local/bootstrap-nodes.conf";
+      }];
+    };
+
 in {
   mantis = mkNomadJob "mantis" {
     datacenters = [ "us-east-2" "eu-central-1" ];
@@ -292,28 +317,6 @@ in {
     taskGroups.mantis-2 = mkMiner "mantis-2";
     taskGroups.mantis-3 = mkMiner "mantis-3";
     taskGroups.mantis-4 = mkMiner "mantis-4";
-
-    taskGroups.mantis-passive = mkMantis {
-      name = "mantis-passive";
-      serviceName = "mantis-passive";
-      config = passiveConfig;
-      resources = passiveResources;
-      tags = [ "passive" ];
-      count = 2;
-      ephemeralDisk = { sizeMB = 1000; };
-      templates = [{
-        data = ''
-          mantis.blockchains.testnet-internal.bootstrap-nodes = [
-          {{ range service "mantis-miner" -}}
-            "enode://  {{- with secret (printf "kv/data/nomad-cluster/testnet/%s/enode-hash" .ServiceMeta.Name) -}}
-              {{- .Data.data.value -}}
-              {{- end -}}@{{ .Address }}:{{ .Port }}",
-          {{ end -}}
-          ]
-        '';
-        changeMode = "noop";
-        destination = "local/bootstrap-nodes.conf";
-      }];
-    };
+    # taskGroups.mantis-passive = mkPassive 2;
   };
 }
