@@ -2,7 +2,12 @@
 , cacert, jq, gnused, mantis, mantis-source, dnsutils, gnugrep, iproute, lsof
 , netcat, nettools, procps, curl, gawk }:
 let
-  nodeConfig = {
+
+  passiveConfig = lib.recursiveUpdate minerConfig {
+    mantis.consensus.mining-enabled = false;
+  };
+
+  minerConfig = {
     logging.json-output = true;
 
     # Sample configuration for a custom private testnet.
@@ -29,8 +34,6 @@ let
         blacklist-duration = 0;
 
         pruning.mode = "archive";
-
-        branch-resolution-request-size = 1000;
       };
 
       consensus.mining-enabled = true;
@@ -75,7 +78,7 @@ let
     };
   };
 
-  resources = {
+  minerResources = {
     # For c5.2xlarge in clusters/mantis/testnet/default.nix, the url ref below
     # provides 3.4 GHz * 8 vCPU = 27.2 GHz max.  80% is 21760 MHz.
     # Allocating by vCPU or core quantity not yet available.
@@ -100,10 +103,23 @@ let
     }];
   };
 
+  passiveResources = {
+    # For c5.2xlarge in clusters/mantis/testnet/default.nix, the url ref below
+    # provides 3.4 GHz * 8 vCPU = 27.2 GHz max.  80% is 21760 MHz.
+    # Allocating by vCPU or core quantity not yet available.
+    # Ref: https://github.com/hashicorp/nomad/blob/master/client/fingerprint/env_aws.go
+    cpu = 500;
+    memoryMB = 3 * 1024;
+    networks = [{
+      dynamicPorts =
+        [ { label = "rpc"; } { label = "server"; } { label = "metrics"; } ];
+    }];
+  };
+
   ephemeralDisk = {
     # Std client disk size is set as gp2, 100 GB SSD in bitte at
     # modules/terraform/clients.nix
-    sizeMB = 60 * 1000;
+    sizeMB = 10 * 1000;
     # migrate = true;
     # sticky = true;
   };
@@ -120,6 +136,13 @@ let
 
       chown --reference . --recursive . || true
 
+      env
+
+      echo "NOMAD_PORT_server  = $NOMAD_PORT_server"
+      echo "NOMAD_PORT_metrics = $NOMAD_PORT_metrics"
+      echo "NOMAD_PORT_rpc     = $NOMAD_PORT_rpc"
+      ENODE_HASH="''${ENODE_HASH:-}"
+
       coinbase="$(echo "$ENODE_HASH" | sha256sum - | fold -w 40 | head -n 1)"
 
       jq . < ${writeText "mantis.json" (builtins.toJSON baseConfig)} \
@@ -128,6 +151,9 @@ let
       | jq --arg var "$coinbase" '.mantis.consensus.coinbase = $var' \
       | jq --arg var "$NOMAD_TASK_DIR/mantis" '.mantis.datadir = $var' \
       | jq --arg var "$NOMAD_SECRETS_DIR/secret-key" '.mantis."node-key-file" = $var' \
+      | jq --arg var "$NOMAD_PORT_rpc" '.mantis.network.rpc.http.port = $var' \
+      | jq --arg var "$NOMAD_PORT_metrics" '.mantis.metrics.port = $var' \
+      | jq --arg var "$NOMAD_PORT_server" '.mantis.network."server-address".port = $var' \
       | head -c -2 \
       | tail -c +2 \
       | sed 's/^  //' \
@@ -165,7 +191,7 @@ let
     ];
   };
 
-  templatesFor = name:
+  templatesForMiner = name:
     let secret = key: ''{{ with secret "${key}" }}{{.Data.data.value}}{{end}}'';
     in [
       {
@@ -188,7 +214,7 @@ let
       {
         data = ''
           mantis.blockchains.testnet-internal.bootstrap-nodes = [
-          {{ range service "mantis" -}}
+          {{ range service "mantis-miner" -}}
             "enode://  {{- with secret (printf "kv/data/nomad-cluster/testnet/%s/enode-hash" .ServiceMeta.Name) -}}
               {{- .Data.data.value -}}
               {{- end -}}@{{ .Address }}:{{ .Port }}",
@@ -200,43 +226,51 @@ let
       }
     ];
 
-  mkMiner = name: {
-    count = 1;
+  mkMantis = { name, config, resources, ephemeralDisk, count ? 1, templates, serviceName, tags ? []
+    , extraEnvironmentVariables ? [ ] }: {
+      inherit ephemeralDisk count;
 
-    inherit ephemeralDisk;
+      tasks.${name} = systemdSandbox {
+        inherit name env resources templates;
+        command = run-mantis config;
+        vault.policies = [ "nomad-cluster" ];
 
-    tasks.${name} = systemdSandbox {
-      inherit name env resources;
-      command = run-mantis nodeConfig;
-      extraEnvironmentVariables = [ "ENODE_HASH" ];
-      templates = templatesFor name;
-      vault.policies = [ "nomad-cluster" ];
+        restart = {
+          interval = "1m";
+          attempts = 60;
+          delay = "1m";
+          mode = "fail";
+        };
 
-      restart = {
-        interval = "1m";
-        attempts = 60;
-        delay = "1m";
-        mode = "fail";
-      };
+        services.${serviceName} = {
+          tags = [ serviceName mantis-source.rev ] ++ tags;
+          meta.name = name;
+          portLabel = "server";
+          checks = [{
+            type = "http";
+            path = "/healthcheck";
+            portLabel = "rpc";
 
-      services.mantis = {
-        tags = [ "mantis" "miner" mantis-source.rev ];
-        meta.name = name;
-        portLabel = "server";
-        checks = [{
-          type = "http";
-          path = "/healthcheck";
-          portLabel = "rpc";
-
-          checkRestart = {
-            limit = 5;
-            grace = "300s";
-            ignoreWarnings = false;
-          };
-        }];
+            checkRestart = {
+              limit = 5;
+              grace = "300s";
+              ignoreWarnings = false;
+            };
+          }];
+        };
       };
     };
-  };
+
+  mkMiner = name:
+    mkMantis {
+      config = minerConfig;
+      resources = minerResources;
+      inherit ephemeralDisk name;
+      templates = templatesForMiner name;
+      extraEnvironmentVariables = [ "ENODE_HASH" ];
+      serviceName = "mantis-miner";
+    };
+
 in {
   mantis = mkNomadJob "mantis" {
     datacenters = [ "us-east-2" "eu-central-1" ];
@@ -244,7 +278,7 @@ in {
 
     update = {
       maxParallel = 1;
-      # healthCheck      = "checks"
+      # healthCheck = "checks"
       minHealthyTime = "10s";
       healthyDeadline = "5m";
       progressDeadline = "10m";
@@ -258,5 +292,28 @@ in {
     taskGroups.mantis-2 = mkMiner "mantis-2";
     taskGroups.mantis-3 = mkMiner "mantis-3";
     taskGroups.mantis-4 = mkMiner "mantis-4";
+
+    taskGroups.mantis-passive = mkMantis {
+      name = "mantis-passive";
+      serviceName = "mantis-passive";
+      config = passiveConfig;
+      resources = passiveResources;
+      tags = [ "passive" ];
+      count = 2;
+      ephemeralDisk = { sizeMB = 1000; };
+      templates = [{
+        data = ''
+          mantis.blockchains.testnet-internal.bootstrap-nodes = [
+          {{ range service "mantis-miner" -}}
+            "enode://  {{- with secret (printf "kv/data/nomad-cluster/testnet/%s/enode-hash" .ServiceMeta.Name) -}}
+              {{- .Data.data.value -}}
+              {{- end -}}@{{ .Address }}:{{ .Port }}",
+          {{ end -}}
+          ]
+        '';
+        changeMode = "noop";
+        destination = "local/bootstrap-nodes.conf";
+      }];
+    };
   };
 }
