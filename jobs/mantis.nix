@@ -226,8 +226,8 @@ let
       }
     ];
 
-  mkMantis = { name, config, resources, ephemeralDisk, count ? 1, templates, serviceName, tags ? []
-    , extraEnvironmentVariables ? [ ] }: {
+  mkMantis = { name, config, resources, ephemeralDisk, count ? 1, templates
+    , serviceName, tags ? [ ], extraEnvironmentVariables ? [ ] }: {
       inherit ephemeralDisk count;
 
       tasks.${name} = systemdSandbox {

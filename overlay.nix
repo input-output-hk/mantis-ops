@@ -10,7 +10,7 @@ in {
   # The branch was `chore/update-sbt-add-nix`, for future reference.
   mantis-source = builtins.fetchGit {
     url = "https://github.com/input-output-hk/mantis";
-    rev = "ba426525950f379ed5137c47e8f26851a4385a4d";
+    rev = "8e45269f6961066ad638ae14b6e84692c220f28b";
     ref = "develop";
     submodules = true;
   };
@@ -24,27 +24,46 @@ in {
       lib.makeBinPath (with final; [ coreutils mantis gawk vault-bin gnused ])
     }"
 
-    if [ -s secrets/mantis-keys ]; then
-      echo "secrets/mantis-keys already exists, remove it if you want to regenerate"
-    else
-      set -x
-      eckeygen -Dconfig.file=${final.mantis}/conf/mantis.conf > secrets/mantis-keys
-      eckeygen -Dconfig.file=${final.mantis}/conf/mantis.conf >> secrets/mantis-keys
-      eckeygen -Dconfig.file=${final.mantis}/conf/mantis.conf >> secrets/mantis-keys
-      eckeygen -Dconfig.file=${final.mantis}/conf/mantis.conf >> secrets/mantis-keys
+    [ $# -eq 1 ] || { echo "One argument is required. Pass the number of keys to generate."; exit 1; }
 
-      count=1
-      for sk in $(awk 'NR % 2 { print }' secrets/mantis-keys); do
-        vault kv put "kv/nomad-cluster/testnet/mantis-$count/secret-key" "value=$sk"
-        count="$((count + 1))"
-      done
+    desired="$1"
 
-      count=1
-      for enode in $(awk '!(NR % 2) { print }' secrets/mantis-keys); do
-        vault kv put "kv/nomad-cluster/testnet/mantis-$count/enode-hash" "value=$enode"
-        count="$((count + 1))"
-      done
-    fi
+    echo "generating $desired keys"
+
+    for count in $(seq "$desired"); do
+      keyFile="secrets/mantis-$count.key"
+      secretKeyPath="kv/nomad-cluster/testnet/mantis-$count/secret-key"
+      hashKeyPath="kv/nomad-cluster/testnet/mantis-$count/enode-hash"
+
+      hashKey="$(vault kv get -field value "$hashKeyPath" || true)"
+
+      if [ -z "$hashKey" ]; then
+        if [ -s "$keyFile" ]; then
+          echo "Uploading existing key from $keyFile to Vault"
+
+          hashKey="$(tail -1 "$keyFile")"
+          vault kv put "$hashKeyPath" "value=$hashKey"
+
+          secretKey="$(head -1 "$keyFile")"
+          vault kv put "$secretKeyPath" "value=$secretKey"
+        else
+          echo "Generating key in $keyFile and uploading to Vault"
+
+          eckeygen -Dconfig.file=${final.mantis}/conf/mantis.conf > "$keyFile"
+
+          hashKey="$(tail -1 "$keyFile")"
+          vault kv put "$hashKeyPath" "value=$hashKey"
+
+          secretKey="$(head -1 "$keyFile")"
+          vault kv put "$secretKeyPath" "value=$secretKey"
+        fi
+      else
+        echo "Downloading key for $keyFile from Vault"
+        secretKey="$(vault kv get -field value "$secretKeyPath")"
+        echo "$secretKey" > "$keyFile"
+        echo "$hashKey" >> "$keyFile"
+      fi
+    done
   '';
 
   devShell = let
