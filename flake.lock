@@ -12,13 +12,17 @@
         "utils": "utils_2"
       },
       "locked": {
-        "narHash": "sha256-K9zzBAexq//P+rDbH8WrF9UuBMCMlVW2sm2FTDQ3Kuk=",
-        "path": "/home/manveru/github/input-output-hk/bitte",
-        "type": "path"
+        "lastModified": 1602077799,
+        "narHash": "sha256-K3g79E4RtX7339kBYWbWi/P0VhnfN0B+hUtuELLD4Ts=",
+        "owner": "input-output-hk",
+        "repo": "bitte",
+        "rev": "d43d316d3fdbf51ec3ed232a330ef4f2ce7fc93b",
+        "type": "github"
       },
       "original": {
-        "path": "/home/manveru/github/input-output-hk/bitte",
-        "type": "path"
+        "owner": "input-output-hk",
+        "repo": "bitte",
+        "type": "github"
       }
     },
     "bitte-cli": {
