@@ -4,7 +4,6 @@ let
   inherit (builtins) readFile replaceStrings;
   inherit (lib) mapAttrs' nameValuePair flip attrValues listToAttrs forEach;
   inherit (config) cluster;
-  inherit (cluster.vpc) subnets;
   inherit (import ./security-group-rules.nix { inherit config pkgs lib; })
     securityGroupRules;
 
@@ -116,8 +115,12 @@ in {
       core-1 = {
         instanceType = "t3a.medium";
         privateIP = "172.16.0.10";
-        subnet = subnets.core-1;
-        route53.domains = [ "consul" "vault" "nomad" ];
+        subnet = cluster.vpc.subnets.core-1;
+        route53.domains = [
+          "consul.${cluster.domain}"
+          "vault.${cluster.domain}"
+          "nomad.${cluster.domain}"
+        ];
 
         modules = [
           (bitte + /profiles/core.nix)
@@ -150,7 +153,7 @@ in {
       core-2 = {
         instanceType = "t3a.medium";
         privateIP = "172.16.1.10";
-        subnet = subnets.core-2;
+        subnet = cluster.vpc.subnets.core-2;
 
         modules = [ (bitte + /profiles/core.nix) ./secrets.nix ];
 
@@ -162,7 +165,7 @@ in {
       core-3 = {
         instanceType = "t3a.medium";
         privateIP = "172.16.2.10";
-        subnet = subnets.core-3;
+        subnet = cluster.vpc.subnets.core-3;
 
         modules = [ (bitte + /profiles/core.nix) ./secrets.nix ];
 
@@ -174,9 +177,9 @@ in {
       monitoring = {
         instanceType = "t3a.large";
         privateIP = "172.16.0.20";
-        subnet = subnets.core-1;
+        subnet = cluster.vpc.subnets.core-1;
         volumeSize = 40;
-        route53.domains = [ "monitoring" ];
+        route53.domains = [ "monitoring.${cluster.domain}" ];
 
         modules = [ (bitte + /profiles/monitoring.nix) ./secrets.nix ];
 
