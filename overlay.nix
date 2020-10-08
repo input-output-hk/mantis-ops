@@ -98,6 +98,7 @@ in {
       final.direnv
       final.nixFlakes
       final.bitte-tokens
+      final.jq
     ];
   };
 
