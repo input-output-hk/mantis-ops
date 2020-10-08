@@ -17,11 +17,53 @@ in {
 
   mantis = import final.mantis-source { inherit system; };
 
-  generate-mantis-keys = final.writeShellScriptBin "generate-mantis-keys" ''
-    set -euo pipefail
+  generate-mantis-keys = let
+    mantisConfigJson = {
+      mantis = {
+        consensus.mining-enabled = false;
+        blockchains.network = "testnet-internal";
+
+        network.rpc = {
+          http = {
+            mode = "http";
+            interface = "0.0.0.0";
+            port = 8546;
+            cors-allowed-origins = "*";
+          };
+          apis = "eth,web3,net,personal,daedalus,debug,qa";
+        };
+      };
+    };
+
+    mantisConfigHocon =
+      prev.runCommand "mantis.conf" { buildInputs = [ prev.jq ]; } ''
+        cat <<EOF > $out
+        include "${final.mantis}/conf/testnet-internal.conf"
+        EOF
+
+        jq . < ${
+          prev.writeText "mantis.json" (builtins.toJSON mantisConfigJson)
+        } \
+        | head -c -2 \
+        | tail -c +2 \
+        | sed 's/^  //' \
+        >> $out
+      '';
+  in final.writeShellScriptBin "generate-mantis-keys" ''
+    set -xeuo pipefail
 
     export PATH="${
-      lib.makeBinPath (with final; [ coreutils mantis gawk vault-bin gnused ])
+      lib.makeBinPath (with final; [
+        final.coreutils
+        final.mantis
+        final.gawk
+        final.vault-bin
+        final.gnused
+        final.curl
+        final.jq
+        final.netcat
+        final.gnused
+      ])
     }"
 
     [ $# -eq 1 ] || { echo "One argument is required. Pass the number of keys to generate."; exit 1; }
@@ -30,10 +72,41 @@ in {
 
     echo "generating $desired keys"
 
+    tmpdir="$(mktemp -d)"
+
+    mantis "-Duser.home=$tmpdir" "-Dconfig.file=${mantisConfigHocon}" &
+    pid="$!"
+
+    on_exit() {
+      kill "$pid"
+      while kill -0 "$pid"; do
+        sleep 0.1
+      done
+      rm -rf "$tmpdir"
+    }
+    trap on_exit EXIT
+
+    while ! nc -z 127.0.0.1 8546; do
+      sleep 0.1 # wait for 1/10 of the second before check again
+    done
+
+    generateCoinbase() {
+      curl -s http://127.0.0.1:8546 -H 'Content-Type: application/json' -d @<(cat <<EOF
+        {
+          "jsonrpc": "2.0",
+          "method": "personal_importRawKey",
+          "params": ["$1", ""],
+          "id": 1
+        }
+    EOF
+      ) | jq -e -r .result | sed 's/^0x//'
+    }
+
     for count in $(seq "$desired"); do
       keyFile="secrets/mantis-$count.key"
       secretKeyPath="kv/nomad-cluster/testnet/mantis-$count/secret-key"
       hashKeyPath="kv/nomad-cluster/testnet/mantis-$count/enode-hash"
+      coinbasePath="kv/nomad-cluster/testnet/mantis-$count/coinbase"
 
       hashKey="$(vault kv get -field value "$hashKeyPath" || true)"
 
@@ -46,22 +119,35 @@ in {
 
           secretKey="$(head -1 "$keyFile")"
           vault kv put "$secretKeyPath" "value=$secretKey"
+
+          coinbase="$(generateCoinbase "$secretKey")"
+          vault kv put "$coinbasePath" "value=$coinbase"
         else
           echo "Generating key in $keyFile and uploading to Vault"
 
-          eckeygen -Dconfig.file=${final.mantis}/conf/mantis.conf > "$keyFile"
+          len=0
+          until [ $len -eq 194 ]; do
+            echo "generating key..."
+            len="$( eckeygen -Dconfig.file=${final.mantis}/conf/mantis.conf | tee "$keyFile" | wc -c )"
+          done
 
           hashKey="$(tail -1 "$keyFile")"
           vault kv put "$hashKeyPath" "value=$hashKey"
 
           secretKey="$(head -1 "$keyFile")"
           vault kv put "$secretKeyPath" "value=$secretKey"
+
+          coinbase="$(generateCoinbase "$secretKey")"
+          vault kv put "$coinbasePath" "value=$coinbase"
         fi
       else
         echo "Downloading key for $keyFile from Vault"
         secretKey="$(vault kv get -field value "$secretKeyPath")"
         echo "$secretKey" > "$keyFile"
         echo "$hashKey" >> "$keyFile"
+
+        coinbase="$(generateCoinbase "$secretKey")"
+        vault kv put "$coinbasePath" "value=$coinbase"
       fi
     done
   '';
