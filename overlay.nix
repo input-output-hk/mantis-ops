@@ -104,6 +104,7 @@ in {
 
     for count in $(seq "$desired"); do
       keyFile="secrets/mantis-$count.key"
+      coinbaseFile="secrets/mantis-$count.coinbase"
       secretKeyPath="kv/nomad-cluster/testnet/mantis-$count/secret-key"
       hashKeyPath="kv/nomad-cluster/testnet/mantis-$count/enode-hash"
       coinbasePath="kv/nomad-cluster/testnet/mantis-$count/coinbase"
@@ -146,8 +147,8 @@ in {
         echo "$secretKey" > "$keyFile"
         echo "$hashKey" >> "$keyFile"
 
-        coinbase="$(generateCoinbase "$secretKey")"
-        vault kv put "$coinbasePath" "value=$coinbase"
+        coinbase="$(vault kv get -field value "$coinbasePath")"
+        echo "$coinbase" > "$coinbaseFile"
       fi
     done
   '';
