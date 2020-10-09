@@ -179,12 +179,17 @@ in {
           "consul.${cluster.domain}"
           "vault.${cluster.domain}"
           "nomad.${cluster.domain}"
+          "mantis-1.${cluster.domain}"
+          "mantis-2.${cluster.domain}"
+          "mantis-3.${cluster.domain}"
+          "mantis-4.${cluster.domain}"
         ];
 
-        modules = [ (bitte + /profiles/monitoring.nix) ./secrets.nix ];
+        modules =
+          [ (bitte + /profiles/monitoring.nix) ./secrets.nix ./ingress.nix ];
 
         securityGroupRules = {
-          inherit (securityGroupRules) internet internal ssh http;
+          inherit (securityGroupRules) internet internal ssh http mantis-server;
         };
       };
     };

@@ -2,84 +2,6 @@
 , cacert, jq, gnused, mantis, mantis-source, dnsutils, gnugrep, iproute, lsof
 , netcat, nettools, procps, curl, gawk }:
 let
-
-  passiveConfig = lib.recursiveUpdate minerConfig {
-    mantis.consensus.mining-enabled = false;
-  };
-
-  minerConfig = {
-    logging.json-output = true;
-
-    # Sample configuration for a custom private testnet.
-    mantis = {
-      blockchains.network = "testnet-internal";
-
-      metrics = {
-        # Set to `true` iff your deployment supports metrics collection.
-        # We expose metrics using a Prometheus server
-        # We default to `false` here because we do not expect all deployments to support metrics collection.
-        enabled = true;
-
-        # The port for setting up a Prometheus server over localhost.
-        port = 13798;
-      };
-
-      sync = {
-        # Whether to enable fast-sync
-        do-fast-sync = false;
-
-        # Duration for blacklisting a peer. Blacklisting reason include: invalid response from peer, response time-out, etc.
-        # 0 value is a valid duration and it will disable blacklisting completely (which can be useful when all nodes are
-        # are controlled by a single party, eg. private networks)
-        blacklist-duration = 0;
-
-        pruning.mode = "archive";
-
-        branch-resolution-request-size = 100;
-      };
-
-      consensus.mining-enabled = true;
-
-      network = {
-        discovery = {
-          # We assume a fixed cluster, so `bootstrap-nodes` must not be empty
-          discovery-enabled = false;
-
-          # Listening interface for discovery protocol
-          interface = "0.0.0.0";
-
-          # Listening port for discovery protocol
-          port = 30303;
-        };
-
-        peer = {
-          short-blacklist-duration = 0;
-          long-blacklist-duration = 0;
-        };
-
-        rpc = {
-          http = {
-            # JSON-RPC mode
-            # Available modes are: http, https
-            # Choosing https requires creating a certificate and setting up 'certificate-keystore-path' and
-            # 'certificate-password-file'
-            # See: https://github.com/input-output-hk/mantis/wiki/Creating-self-signed-certificate-for-using-JSON-RPC-with-HTTPS
-            mode = "http";
-
-            # Listening address of JSON-RPC HTTP/HTTPS endpoint
-            interface = "0.0.0.0";
-
-            # Listening port of JSON-RPC HTTP/HTTPS endpoint
-            port = 8546;
-
-            # Domains allowed to query RPC endpoint. Use "*" to enable requests from any domain.
-            cors-allowed-origins = "*";
-          };
-        };
-      };
-    };
-  };
-
   minerResources = {
     # For c5.2xlarge in clusters/mantis/testnet/default.nix, the url ref below
     # provides 3.4 GHz * 8 vCPU = 27.2 GHz max.  80% is 21760 MHz.
@@ -113,8 +35,11 @@ let
     cpu = 500;
     memoryMB = 3 * 1024;
     networks = [{
-      dynamicPorts =
-        [ { label = "rpc"; } { label = "server"; } { label = "metrics"; } ];
+      dynamicPorts = [ { label = "rpc"; } { label = "server"; } ];
+      reservedPorts = [{
+        label = "metrics";
+        value = 13798;
+      }];
     }];
   };
 
@@ -126,13 +51,24 @@ let
     # sticky = true;
   };
 
-  run-mantis = baseConfig:
+  run-mantis = { requiredPeerCount }:
     writeShellScript "mantis" ''
       set -exuo pipefail
-      export PATH=${lib.makeBinPath [ jq coreutils gnused mantis ]}
+      export PATH=${lib.makeBinPath [ jq coreutils gnused gnugrep mantis ]}
 
       mkdir -p "$NOMAD_TASK_DIR"/{mantis,rocksdb,logs}
       cd "$NOMAD_TASK_DIR"
+
+      set +x
+      echo "waiting for ${toString requiredPeerCount} peers"
+      until [ "$(grep -c enode mantis.conf)" -ge ${
+        toString requiredPeerCount
+      } ]; do
+        sleep 0.1
+      done
+      set -x
+
+      cp "mantis.conf" running.conf
 
       chown --reference . --recursive . || true
 
@@ -140,9 +76,7 @@ let
 
       ulimit -c unlimited
 
-      ls -laR $NOMAD_TASK_DIR
-
-      exec mantis "-Duser.home=$NOMAD_TASK_DIR" "-Dconfig.file=$NOMAD_TASK_DIR/mantis.conf"
+      exec mantis "-Duser.home=$NOMAD_TASK_DIR" "-Dconfig.file=$NOMAD_TASK_DIR/running.conf"
     '';
 
   env = {
@@ -163,105 +97,71 @@ let
     ];
   };
 
-  templatesForMiner = name:
+  templatesFor = { name ? null, mining-enabled ? false }:
     let secret = key: ''{{ with secret "${key}" }}{{.Data.data.value}}{{end}}'';
-    in [
-      {
-        data = ''
-          include "${mantis}/conf/testnet-internal.conf"
+    in [{
+      data = ''
+        include "${mantis}/conf/testnet-internal.conf"
 
-          logging {
-            json-output = true
-            logs-file = "logs"
-          }
+        logging.json-output = true
+        logging.logs-file = "logs"
 
-          mantis {
-            ethash.ethash-dir = "{{ env "NOMAD_TASK_DIR" }}/ethash"
-            datadir = "{{ env "NOMAD_TASK_DIR" }}/mantis"
-            node-key-file = "{{ env "NOMAD_SECRETS_DIR" }}/secret-key"
+        mantis.blockchains.testnet-internal.bootstrap-nodes = [
+          {{ range service "mantis-miner" -}}
+            "enode://  {{- with secret (printf "kv/data/nomad-cluster/testnet/%s/enode-hash" .ServiceMeta.Name) -}}
+              {{- .Data.data.value -}}
+              {{- end -}}@{{ .Address }}:{{ .Port }}",
+          {{ end -}}
+        ]
 
-            blockchains {
-              network = "testnet-internal"
-              testnet-internal.bootstrap-nodes = [
-                {{ range service "mantis-miner" -}}
-                  "enode://  {{- with secret (printf "kv/data/nomad-cluster/testnet/%s/enode-hash" .ServiceMeta.Name) -}}
-                    {{- .Data.data.value -}}
-                    {{- end -}}@{{ .Address }}:{{ .Port }}",
-                {{ end -}}
-              ]
-            }
+        mantis.consensus.coinbase = "{{ with secret "kv/data/nomad-cluster/testnet/${name}/coinbase" }}{{ .Data.data.value }}{{ end }}"
+        mantis.node-key-file = "{{ env "NOMAD_SECRETS_DIR" }}/secret-key"
+        mantis.datadir = "{{ env "NOMAD_TASK_DIR" }}/mantis"
+        mantis.ethash.ethash-dir = "{{ env "NOMAD_TASK_DIR" }}/ethash"
+        mantis.metrics.enabled = true
+        mantis.metrics.port = {{ env "NOMAD_PORT_metrics" }}
+        mantis.network.rpc.http.interface = "0.0.0.0"
+        mantis.network.rpc.http.port = {{ env "NOMAD_PORT_rpc" }}
+        mantis.network.server-address.port = {{ env "NOMAD_PORT_server" }}
+      '';
+      destination = "local/mantis.conf";
+      changeMode = "noop";
+    }] ++ (lib.optional mining-enabled {
+      data = ''
+        ${secret "kv/data/nomad-cluster/testnet/${name}/secret-key"}
+        ${secret "kv/data/nomad-cluster/testnet/${name}/enode-hash"}
+      '';
+      destination = "secrets/secret-key";
+    });
 
-            metrics {
-              enabled = true
-              port = {{ env "NOMAD_PORT_metrics" }}
-            }
+  mkMantis = { name, resources, ephemeralDisk, count ? 1, templates, serviceName
+    , tags ? [ ], extraEnvironmentVariables ? [ ], meta ? { }, constraints ? [ ]
+    , requiredPeerCount }: {
+      inherit ephemeralDisk count constraints;
 
-            sync {
-              do-fast-sync = false
-              blacklist-duration = 0
-              pruning.mode = "archive"
-              branch-resolution-request-size = 100
-            }
-
-            consensus {
-              mining-enabled = true
-              coinbase = "{{ with secret "kv/data/nomad-cluster/testnet/${name}/coinbase" }}{{ .Data.data.value }}{{ end }}"
-            }
-
-            network {
-              server-address.port = {{ env "NOMAD_PORT_server" }}
-
-              discovery {
-                discovery-enabled = false
-              }
-
-              peer {
-                short-blacklist-duration = 0
-                long-blacklist-duration = 0
-              }
-
-              rpc {
-                http = {
-                  mode = "http"
-                  interface = "0.0.0.0"
-                  port = {{ env "NOMAD_PORT_rpc" }}
-                  cors-allowed-origins = "*"
-                }
-              }
-            }
-          }
-        '';
-        destination = "local/mantis.conf";
-        changeMode = "noop";
-      }
-      {
-        data = ''
-          ${secret "kv/data/nomad-cluster/testnet/${name}/secret-key"}
-          ${secret "kv/data/nomad-cluster/testnet/${name}/enode-hash"}
-        '';
-        destination = "secrets/secret-key";
-      }
-    ];
-
-  mkMantis = { name, config, resources, ephemeralDisk, count ? 1, templates
-    , serviceName, tags ? [ ], extraEnvironmentVariables ? [ ], meta ? { } }: {
-      inherit ephemeralDisk count;
+      reschedulePolicy = {
+        attempts = 0;
+        unlimited = false;
+      };
 
       tasks.${name} = systemdSandbox {
-        inherit name env resources templates;
-        command = run-mantis config;
+        inherit name env resources templates extraEnvironmentVariables;
+        command = run-mantis { inherit requiredPeerCount; };
         vault.policies = [ "nomad-cluster" ];
 
-        restart = {
-          interval = "1m";
-          attempts = 60;
+        restartPolicy = {
+          interval = "30m";
+          attempts = 1;
           delay = "1m";
           mode = "fail";
         };
 
         services.${serviceName} = {
           tags = [ serviceName mantis-source.rev ] ++ tags;
-          meta = { inherit name; } // meta;
+          meta = {
+            inherit name;
+            publicIp = "\${attr.unique.platform.aws.public-ipv4}";
+          } // meta;
           portLabel = "server";
           checks = [{
             type = "http";
@@ -278,44 +178,97 @@ let
       };
     };
 
-  mkMiner = name:
-    mkMantis {
-      config = minerConfig;
+  mkMiner = { name, publicPort, requiredPeerCount ? 0, instanceId ? null }:
+    lib.nameValuePair name (mkMantis {
       resources = minerResources;
-      inherit ephemeralDisk name;
-      templates = templatesForMiner name;
-      extraEnvironmentVariables = [ "ENODE_HASH" ];
+      inherit ephemeralDisk name requiredPeerCount;
+      templates = templatesFor {
+        inherit name;
+        mining-enabled = true;
+      };
       serviceName = "mantis-miner";
+      tags = [ "public" ];
       meta = {
         path = "/";
         domain = "${name}.mantis.ws";
+        port = toString publicPort;
       };
-    };
+      constraints = if instanceId != null then [{
+        attribute = "\${attr.unique.platform.aws.instance-id}";
+        value = instanceId;
+      }] else
+        [ ];
+    });
 
   mkPassive = count:
     mkMantis {
       name = "mantis-passive";
       serviceName = "mantis-passive";
-      config = passiveConfig;
       resources = passiveResources;
       tags = [ "passive" ];
       inherit count;
+      requiredPeerCount = builtins.length miners;
       ephemeralDisk = { sizeMB = 1000; };
       templates = [{
         data = ''
+          include "${mantis}/conf/testnet-internal.conf"
+
+          logging.json-output = true
+          logging.logs-file = "logs"
+
           mantis.blockchains.testnet-internal.bootstrap-nodes = [
-          {{ range service "mantis-miner" -}}
-            "enode://  {{- with secret (printf "kv/data/nomad-cluster/testnet/%s/enode-hash" .ServiceMeta.Name) -}}
-              {{- .Data.data.value -}}
-              {{- end -}}@{{ .Address }}:{{ .Port }}",
-          {{ end -}}
+            {{ range service "mantis-miner" -}}
+              "enode://  {{- with secret (printf "kv/data/nomad-cluster/testnet/%s/enode-hash" .ServiceMeta.Name) -}}
+                {{- .Data.data.value -}}
+                {{- end -}}@{{ .Address }}:{{ .Port }}",
+            {{ end -}}
           ]
+
+          mantis.consensus.mining-enabled = false
+          mantis.datadir = "{{ env "NOMAD_TASK_DIR" }}/mantis"
+          mantis.ethash.ethash-dir = "{{ env "NOMAD_TASK_DIR" }}/ethash"
+          mantis.metrics.enabled = true
+          mantis.metrics.port = {{ env "NOMAD_PORT_metrics" }}
+          mantis.network.rpc.http.interface = "0.0.0.0"
+          mantis.network.rpc.http.port = {{ env "NOMAD_PORT_rpc" }}
+          mantis.network.server-address.port = {{ env "NOMAD_PORT_server" }}
         '';
         changeMode = "noop";
-        destination = "local/bootstrap-nodes.conf";
+        destination = "local/mantis.conf";
       }];
+
+      constraints = lib.forEach miners (miner: {
+        attribute = "\${attr.unique.platform.aws.instance-id}";
+        operator = "!=";
+        value = miner.instanceId;
+      });
     };
 
+  miners = [{
+    name = "mantis-1";
+    requiredPeerCount = 0;
+    publicPort = 9001;
+    instanceId = "i-0f85d80501cd0dceb";
+  }
+  # {
+  #   name = "mantis-2";
+  #   requiredPeerCount = 1;
+  #   publicPort = 9002;
+  #   instanceId = "i-0297e484326eca1ac";
+  # }
+  # {
+  #   name = "mantis-3";
+  #   requiredPeerCount = 2;
+  #   publicPort = 9003;
+  #   instanceId = "i-0917601141a6187fc";
+  # }
+  # {
+  #   name = "mantis-4";
+  #   requiredPeerCount = 3;
+  #   publicPort = 9004;
+  #   instanceId = "i-0b5ad95503d6208e2";
+  # }
+    ];
 in {
   mantis = mkNomadJob "mantis" {
     datacenters = [ "us-east-2" "eu-central-1" ];
@@ -333,43 +286,8 @@ in {
       stagger = "30s";
     };
 
-    taskGroups.mantis-1 = mkMiner "mantis-1";
-    taskGroups.mantis-2 = mkMiner "mantis-2";
-    taskGroups.mantis-3 = mkMiner "mantis-3";
-    taskGroups.mantis-4 = mkMiner "mantis-4";
-    # taskGroups.mantis-passive = mkPassive 2;
-
-    # taskGroups.explorer = {
-    #   tasks.explorer = systemdSandbox {
-    #     name = "explorer";
-    #     resources = {
-    #       cpu = 100;
-    #       memoryMB = 512;
-    #       networks = [{ dynamicPorts = [{ label = "http"; }]; }];
-    #     };
-    #
-    #     command = writeShellScript "explorer" ''
-    #       set -exuo pipefail
-    #     '';
-    #   };
-    #
-    #   services.explorer = {
-    #     tags = [ mantis-source.rev ];
-    #     meta = { route = "/explorer"; };
-    #     portLabel = "http";
-    #
-    #     checks = [{
-    #       type = "http";
-    #       path = "/";
-    #       portLabel = "http";
-    #
-    #       checkRestart = {
-    #         limit = 5;
-    #         grace = "300s";
-    #         ignoreWarnings = false;
-    #       };
-    #     }];
-    #   };
-    # };
+    taskGroups = (lib.listToAttrs (map mkMiner miners)) // {
+      mantis-passive = mkPassive 2;
+    };
   };
 }
