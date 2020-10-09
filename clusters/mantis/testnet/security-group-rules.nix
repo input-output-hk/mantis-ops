@@ -91,12 +91,18 @@ in {
 
     mantis-rpc = {
       port = 8546;
-      cidrs = global;
+      cidrs = internal;
     };
 
     mantis-server = {
       port = 9076;
-      cidrs = internal;
+      cidrs = global;
+    };
+
+    mantis-server-public = {
+      from = 9000;
+      to = 9010;
+      cidrs = global;
     };
   };
 }
