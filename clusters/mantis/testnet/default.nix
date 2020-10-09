@@ -185,8 +185,19 @@ in {
           "mantis-4.${cluster.domain}"
         ];
 
-        modules =
-          [ (bitte + /profiles/monitoring.nix) ./secrets.nix ./ingress.nix ];
+        modules = let
+          extraConfig = pkgs.writeText "extra-config.nix" ''
+            { ... }: {
+              services.vault-agent-core.vaultAddress =
+                "https://${cluster.instances.core-1.privateIP}:8200";
+            }
+          '';
+        in [
+          (bitte + /profiles/monitoring.nix)
+          ./secrets.nix
+          ./ingress.nix
+          "${extraConfig}"
+        ];
 
         securityGroupRules = {
           inherit (securityGroupRules) internet internal ssh http mantis-server;

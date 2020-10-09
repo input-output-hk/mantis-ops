@@ -187,7 +187,7 @@ let
         mining-enabled = true;
       };
       serviceName = "mantis-miner";
-      tags = [ "public" ];
+      tags = [ "public" name ];
       meta = {
         path = "/";
         domain = "${name}.mantis.ws";
@@ -247,7 +247,7 @@ let
   miners = [{
     name = "mantis-1";
     requiredPeerCount = 0;
-    publicPort = 9001;
+    publicPort = 9001; # Make sure to also change it in ingress.nix
     instanceId = "i-0f85d80501cd0dceb";
   }
   # {
