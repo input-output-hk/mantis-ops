@@ -1,0 +1,11 @@
+include "./mantis-node/conf/testnet-internal.conf"
+
+mantis.consensus.mining-enabled = false
+
+mantis.blockchains.testnet-internal.bootstrap-nodes = [
+{{ range service "mantis-miner" -}}
+  "enode://  {{- with secret (printf "kv/data/nomad-cluster/testnet/%s/enode-hash" .ServiceMeta.Name) -}}
+    {{- .Data.data.value -}}
+    {{- end -}}@{{ .ServiceMeta.PublicIp }}:{{ .Port }}",
+{{ end -}}
+]

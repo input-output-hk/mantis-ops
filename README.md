@@ -163,7 +163,47 @@ $ nomad job stop mantis
   * You will now have access to the full Nomad web UI.
 
 
-### Running a Mantis Job
+### Consul Authentication
+
+* Optionally, a Consul token can be exported in order to use Consul templates, described below:
+```
+export CONSUL_HTTP_TOKEN="$(vault read -field token consul/creds/developer)"
+```
+
+
+### Mantis Ops Web UI Resources
+
+* The following resources are available in the mantis-ops ecosystem, all behind oauth2 proxy authentication.
+  * [Monitoring webpage](https://monitoring.mantis.ws)
+    * Used to review and query metrics and logs for mantis processes and nodes.
+  * [Nomad webpage](https://nomad.mantis.ws)
+    * Used to review Nomad job status and related information.
+    * Requires ACL token [authentication](https://nomad.mantis.ws/ui/settings/tokens) by providing the Nomad token generated in the steps above.
+    * Provides UI capability to control Nomad job lifecycle (`Stop`, `Restart`) and interactive inspection (`Exec`) for specific allocations and/or jobs.
+  * [Consul webpage](https://consul.mantis.ws)
+    * Used to review mantis-ops cluster and service status.
+  * [Vault webpage](https://vault.mantis.ws)
+    * Used to review key-value paths utilized in ops configuration.
+    * Requires a vault token for sign-in by providing the Vault token generated in the steps above.
+
+
+### Metrics and Logs
+
+* Metrics and logs can be found from the Grafana web UI at: https://monitoring.mantis.ws
+* Querying logs by job identifier can be done through the "Explore" icon in the left vertical panel.
+* If you don't see this "Explore" icon which looks like a compass, request "Editor" access from DevOps.
+* Examples of log queries to the `Loki` log datasource in Grafana are:
+```
+# In the "Log labels" field enter the following to search for all logs related to the `mantis-1` taskgroup:
+{syslog_identifier="mantis-1"}
+
+# In the "Log labels" field enter the following to search for all logs related to the `mantis-1` taskgroup
+# and filter for DAG events:
+{syslog_identifier="mantis-1"} |~ "DAG"
+```
+
+
+### Updating the Mantis source used for Deployments
 
 * Near the top of the `./overlay.nix` file of the mantis-ops repository, the mantis commit ref is seen, where $COMMIT represents the actual commit revision and $BRANCH represents the branch of the commit, typically `develop`:
 ```
@@ -176,14 +216,87 @@ $ nomad job stop mantis
 
 ```
 * To update the commit that a mantis job will be run with, update the `rev` and `ref` fields with the appropriate git commit revision and git commit branch.
-* To run a mantis job, execute the following command:
+* It is a good idea to commit mantis-source updates since a github action will automatically push the build product to cachix for faster job deployments for everyone on the team.
+
+
+### Deployment: Running a Mantis Job
+
+* Presently, there is no requirement to commit changes from a mantis job definition to the repository in order to deploy the job.
+* To minimize confusion in the team about what job definition is running on the testnet, any changes to the mantis job made and deployed should be committed.
+* To run a mantis job by deploying it to the testnet, execute the following command:
 ```
 $ nix run .#nomadJobs.mantis.run
 ```
+* Versioning information about the deployment, including changes from the last version deployed, can be viewed in the Nomad UI in the [Versions](https://nomad.mantis.ws/ui/jobs/mantis/versions) section.
 
 
-### Metrics and Logs
+### The Mantis Job Definition File
 
-* Metrics and logs can be found from the Grafana web UI at: https://monitoring.mantis.ws
-* A user ID and password will be provided.
-* Oauth or another authentication method will be added in the near future.
+* The mantis job definition is stored in file: `jobs/mantis.nix`
+* Mantis miner and passive nodes are defined in this file, each with definitions of resource requirements, mantis configuration, lifecycle policy and quantity.
+* This file can be edited to reflect the desired definition and then deployed with the command above.
+* A job deployment can be done in a few ways:
+  * In a single deployment where all taskgroups are deployed at once.
+    * An example would be to deploy all bootstrap nodes and passive nodes at the same time so they all start at once.
+  * In partial deployments where a subset of the full taskgroups in the job definition are deployed incrementally by changing the job definition slightly between each deployment, for example by editing passive node quantity or uncommenting pre-defined miners.
+    * An example would be to deploy bootstrap miners first and then once they are running successfully to deploy passive nodes.
+    * In the case of partial deployments, be aware that if the definition of taskgroups already deployed in an earlier step are modified, those particular taskgroup jobs will be restarted with the next deployment.
+* Job definition information for the currently deployed job can be viewed in the Nomad UI in the [Definition](https://nomad.mantis.ws/ui/jobs/mantis/definition) section.
+
+
+### Lifecycle Definitions: Healthchecks, Restarts and Reschedules
+
+* In the mantis job definition file, a `checks` section and `checkRestart` sub-section define how to determine mantis job health.
+  * Presently, mantis health is determined by an http call the `/healthcheck` endpoint.
+  * See the [Check](https://www.nomadproject.io/api-docs/json-jobs#checks) and [CheckRestart](https://www.nomadproject.io/api-docs/json-jobs#checkrestart) reference urls for details.
+
+* Job definitions of `restartPolicy` and `reschedulePolicy` are defined.
+  * `restartPolicy` declares how an unhealthy mantis taskgroup should be restarted.  A restarted taskgroup will re-use its pre-existing state.
+  * `reschedulePolicy` declares how an unhealthy mantis taskgroup which has failed to restart through its `restartPolicy` should be rescheduled.  A rescheduled taskgroup will be restarted from clean state.
+  * See the [Restart Policy](https://www.nomadproject.io/api-docs/json-jobs#restart-policy) and [Reschedule Policy](https://www.nomadproject.io/api-docs/json-jobs#reschedule-policy) reference urls for details.
+
+
+### Scaling For Performance Testing
+
+* The job definition file can easily be used to scale the number of passive nodes by adjusting the number following the `mkPassive` function call.
+* The job definition file can also be used to scale the number of bootstrap nodes by defining more miners in the `miners` list.
+  * Pre-existing `enode-hash`, `key` and `coinbase` state needs to be created prior to deploying bootstrap nodes.
+  * This state will be re-used across deployments and persists in the Vault `kv` store.
+  * Additional bootstrap miner state only needs to be generated if the total number to be scaled to exceeds the number which currently exists (6 at the time of writing).
+  * Pre-existing bootstrap node state can be viewed at the [testnet Vault kv](https://vault.mantis.ws/ui/vault/secrets/kv/list/nomad-cluster/testnet/) path.
+  * This state pre-generation is done with the following command:
+```
+nix run .#generate-mantis-keys $TOTAL_NUM_BOOTSTRAP_NODES
+```
+
+
+### Scaling Infrastructure Requirements
+
+* If the mantis job definition is changed to require more Nomad client server infrastructure than is currently available, DevOps will deploy more infrastructure to host the additional Mantis taskgroups.
+
+
+### Consul Templating
+
+* Consul templates provide a powerful manner to extract real-time information about the mantis-ops cluster and services.
+* Consul templates are described at their github repository [README.md](https://github.com/hashicorp/consul-template/blob/master/README.md) and utilize the [Go Template Format](https://golang.org/pkg/text/template/).
+
+
+### Mapping Taskgoups to IPs
+
+* For debugging purposes, it can be helpful to generate a real time map of running taskgroups and the associated public IP and node hostname (containing internal IP).
+* To do this we can use a Consul template:
+```
+$ consul-template -template templates/map.tmpl -once -dry -log-level err
+```
+
+
+### Starting a Mantis Local Node Connected to Testnet
+
+* A local mantis node can be build and run connected to the testnet:
+```
+# Build the mantis executables and configuration files
+$ nix build .#mantis -o mantis-node
+
+# Run a local mantis node against the testnet bootstrap cluster
+$ consul-template -template templates/mantis.tmpl:mantis-local.conf -exec './mantis-node/bin/mantis -Dconfig.file=./mantis-local.conf'
+```

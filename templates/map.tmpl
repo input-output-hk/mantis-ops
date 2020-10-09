@@ -1,0 +1,11 @@
+{{ range service "mantis-miner" -}}
+  {{.ServiceMeta.Name}}:
+  Public IP: {{ .ServiceMeta.PublicIp }}
+  Node Name: {{ .Node }}
+{{ end -}}
+
+{{ range service "mantis-passive" -}}
+  {{.ServiceMeta.Name}}:
+  Public IP: {{ .ServiceMeta.PublicIp }}
+  Node Name: {{ .Node }}
+{{ end -}}
