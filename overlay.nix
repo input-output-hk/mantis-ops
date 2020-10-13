@@ -10,7 +10,7 @@ in {
   # The branch was `chore/update-sbt-add-nix`, for future reference.
   mantis-source = builtins.fetchGit {
     url = "https://github.com/input-output-hk/mantis";
-    rev = "8e45269f6961066ad638ae14b6e84692c220f28b";
+    rev = "946b71179e4f7cd76cde0973669751f18fe7c27e";
     ref = "develop";
     submodules = true;
   };
