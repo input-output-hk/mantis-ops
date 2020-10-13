@@ -244,31 +244,68 @@ let
       });
     };
 
-  miners = [{
-    name = "mantis-1";
-    requiredPeerCount = 0;
-    publicPort = 9001; # Make sure to also change it in ingress.nix
-    instanceId = "i-0f85d80501cd0dceb";
-  }
-  # {
-  #   name = "mantis-2";
-  #   requiredPeerCount = 1;
-  #   publicPort = 9002;
-  #   instanceId = "i-0297e484326eca1ac";
-  # }
-  # {
-  #   name = "mantis-3";
-  #   requiredPeerCount = 2;
-  #   publicPort = 9003;
-  #   instanceId = "i-0917601141a6187fc";
-  # }
-  # {
-  #   name = "mantis-4";
-  #   requiredPeerCount = 3;
-  #   publicPort = 9004;
-  #   instanceId = "i-0b5ad95503d6208e2";
-  # }
-    ];
+  miners = [
+    {
+      name = "mantis-1";
+      requiredPeerCount = 0;
+      publicPort = 9001; # Make sure to also change it in ingress.nix
+      instanceId = "i-016b85976830d3010";
+    }
+    {
+      name = "mantis-2";
+      requiredPeerCount = 1;
+      publicPort = 9002;
+      instanceId = "i-016ff18ce9d37055d";
+    }
+    {
+      name = "mantis-3";
+      requiredPeerCount = 2;
+      publicPort = 9003;
+      instanceId = "i-027fdf934cd365575";
+    }
+    {
+      name = "mantis-4";
+      requiredPeerCount = 3;
+      publicPort = 9004;
+      instanceId = "i-04832eb69076aef14";
+    }
+    {
+      name = "mantis-5";
+      requiredPeerCount = 4;
+      publicPort = 9005;
+      instanceId = "i-0917601141a6187fc";
+    }
+    {
+      name = "mantis-6";
+      requiredPeerCount = 5;
+      publicPort = 9006;
+      instanceId = "i-0bda1c2cb52b9ac3e";
+    }
+    {
+      name = "mantis-7";
+      requiredPeerCount = 6;
+      publicPort = 9007;
+      instanceId = "i-0d250b307a248218e";
+    }
+    {
+      name = "mantis-8";
+      requiredPeerCount = 7;
+      publicPort = 9008;
+      instanceId = "i-0df761c9a86cd3df3";
+    }
+    {
+      name = "mantis-9";
+      requiredPeerCount = 8;
+      publicPort = 9009;
+      instanceId = "i-0f85d80501cd0dceb";
+    }
+    {
+      name = "mantis-10";
+      requiredPeerCount = 9;
+      publicPort = 9010;
+      instanceId = "i-0fe5414a46df1d268";
+    }
+  ];
 in {
   mantis = mkNomadJob "mantis" {
     datacenters = [ "us-east-2" "eu-central-1" ];
