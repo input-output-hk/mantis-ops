@@ -1,6 +1,6 @@
 { mkNomadJob, systemdSandbox, writeShellScript, writeText, coreutils, lib
 , cacert, jq, gnused, mantis, mantis-source, dnsutils, gnugrep, iproute, lsof
-, netcat, nettools, procps, curl, gawk }:
+, netcat, nettools, procps, curl, gawk, telegraf }:
 let
   # NOTE: Copy this file and change the next line if you want to start your own cluster!
   prefix = "testnet";
@@ -131,6 +131,39 @@ let
       reschedulePolicy = {
         attempts = 0;
         unlimited = false;
+      };
+
+      tasks."${name}-telegraf" = systemdSandbox {
+        name = "${name}-telegraf";
+
+        command = writeShellScript "telegraf" ''
+          set -exuo pipefail
+
+          ${coreutils}/bin/env
+
+          exec ${telegraf}/bin/telegraf -config $NOMAD_TASK_DIR/telegraf.config
+        '';
+
+        templates = [{
+          data = ''
+            [agent]
+            flush_interval = "10s"
+            interval = "10s"
+            omit_hostname = false
+
+            [global_tags]
+            client_id = "${name}"
+
+            [inputs.prometheus]
+            metric_version = 1
+            urls = [ "http://{{ env "NOMAD_ADDR_${lib.replaceStrings ["-"] ["_"] name}_metrics" }}" ]
+
+            [outputs.influxdb]
+            database = "telegraf"
+            urls = ["http://monitoring.node.consul:8428"]
+          '';
+          destination = "local/telegraf.config";
+        }];
       };
 
       tasks.${name} = systemdSandbox {
