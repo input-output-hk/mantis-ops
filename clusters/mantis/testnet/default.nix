@@ -19,13 +19,7 @@ in {
 
   cluster = {
     name = "mantis-testnet";
-    kms =
-      "arn:aws:kms:eu-central-1:166923377823:key/745684e5-272e-49af-aad8-8b073b8d996a";
-    domain = "mantis.ws";
-    s3Bucket = "iohk-mantis-bitte";
-    s3CachePubKey = lib.fileContents ../../../encrypted/nix-public-key-file;
 
-    # TODO: used for bootstrapping only
     adminNames = [
       "john.lotoski"
       "michael.bishop"
@@ -34,19 +28,21 @@ in {
       "samuel.leathers"
       "shay.bergmann"
     ];
-
-    developerGithubTeamNames = [ "mantis-devs" ];
-
     developerGithubNames = [ ];
-
+    developerGithubTeamNames = [ "mantis-devs" ];
+    domain = "mantis.ws";
+    kms =
+      "arn:aws:kms:eu-central-1:166923377823:key/745684e5-272e-49af-aad8-8b073b8d996a";
+    s3Bucket = "iohk-mantis-bitte";
     terraformOrganization = "mantis";
 
+    s3CachePubKey = lib.fileContents ../../../encrypted/nix-public-key-file;
     flakePath = ../../..;
 
     autoscalingGroups = listToAttrs (forEach [
       {
         region = "eu-central-1";
-        desiredCapacity = 10;
+        desiredCapacity = 2;
       }
       {
         region = "us-east-2";
