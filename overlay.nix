@@ -105,9 +105,9 @@ in {
     for count in $(seq "$desired"); do
       keyFile="secrets/mantis-$count.key"
       coinbaseFile="secrets/mantis-$count.coinbase"
-      secretKeyPath="kv/nomad-cluster/testnet/mantis-$count/secret-key"
-      hashKeyPath="kv/nomad-cluster/testnet/mantis-$count/enode-hash"
-      coinbasePath="kv/nomad-cluster/testnet/mantis-$count/coinbase"
+      secretKeyPath="kv/nomad-cluster/testnet/testnet-mantis-$count/secret-key"
+      hashKeyPath="kv/nomad-cluster/testnet/testnet-mantis-$count/enode-hash"
+      coinbasePath="kv/nomad-cluster/testnet/testnet-mantis-$count/coinbase"
 
       hashKey="$(vault kv get -field value "$hashKeyPath" || true)"
 

@@ -2,6 +2,9 @@
 , cacert, jq, gnused, mantis, mantis-source, dnsutils, gnugrep, iproute, lsof
 , netcat, nettools, procps, curl, gawk }:
 let
+  # NOTE: Copy this file and change the next line if you want to start your own cluster!
+  prefix = "testnet";
+
   minerResources = {
     # For c5.2xlarge in clusters/mantis/testnet/default.nix, the url ref below
     # provides 3.4 GHz * 8 vCPU = 27.2 GHz max.  80% is 21760 MHz.
@@ -10,20 +13,8 @@ let
     cpu = 21760;
     memoryMB = 8 * 1024;
     networks = [{
-      reservedPorts = [
-        {
-          label = "rpc";
-          value = 8546;
-        }
-        {
-          label = "server";
-          value = 9076;
-        }
-        {
-          label = "metrics";
-          value = 13798;
-        }
-      ];
+      dynamicPorts =
+        [ { label = "rpc"; } { label = "server"; } { label = "metrics"; } ];
     }];
   };
 
@@ -35,11 +26,8 @@ let
     cpu = 500;
     memoryMB = 3 * 1024;
     networks = [{
-      dynamicPorts = [ { label = "rpc"; } { label = "server"; } ];
-      reservedPorts = [{
-        label = "metrics";
-        value = 13798;
-      }];
+      dynamicPorts =
+        [ { label = "rpc"; } { label = "server"; } { label = "metrics"; } ];
     }];
   };
 
@@ -107,14 +95,15 @@ let
         logging.logs-file = "logs"
 
         mantis.blockchains.testnet-internal.bootstrap-nodes = [
-          {{ range service "mantis-miner" -}}
-            "enode://  {{- with secret (printf "kv/data/nomad-cluster/testnet/%s/enode-hash" .ServiceMeta.Name) -}}
+          {{ range service "${prefix}-mantis-miner" -}}
+            "enode://  {{- with secret (printf "kv/data/nomad-cluster/${prefix}/%s/enode-hash" .ServiceMeta.Name) -}}
               {{- .Data.data.value -}}
               {{- end -}}@{{ .Address }}:{{ .Port }}",
           {{ end -}}
         ]
 
-        mantis.consensus.coinbase = "{{ with secret "kv/data/nomad-cluster/testnet/${name}/coinbase" }}{{ .Data.data.value }}{{ end }}"
+        mantis.client-id = "${name}"
+        mantis.consensus.coinbase = "{{ with secret "kv/data/nomad-cluster/${prefix}/${name}/coinbase" }}{{ .Data.data.value }}{{ end }}"
         mantis.node-key-file = "{{ env "NOMAD_SECRETS_DIR" }}/secret-key"
         mantis.datadir = "{{ env "NOMAD_TASK_DIR" }}/mantis"
         mantis.ethash.ethash-dir = "{{ env "NOMAD_TASK_DIR" }}/ethash"
@@ -128,8 +117,8 @@ let
       changeMode = "noop";
     }] ++ (lib.optional mining-enabled {
       data = ''
-        ${secret "kv/data/nomad-cluster/testnet/${name}/secret-key"}
-        ${secret "kv/data/nomad-cluster/testnet/${name}/enode-hash"}
+        ${secret "kv/data/nomad-cluster/${prefix}/${name}/secret-key"}
+        ${secret "kv/data/nomad-cluster/${prefix}/${name}/enode-hash"}
       '';
       destination = "secrets/secret-key";
     });
@@ -154,6 +143,11 @@ let
           attempts = 1;
           delay = "1m";
           mode = "fail";
+        };
+
+        services."${serviceName}-prometheus" = {
+          tags = [ prefix "prometheus" ];
+          portLabel = "metrics";
         };
 
         services.${serviceName} = {
@@ -186,26 +180,21 @@ let
         inherit name;
         mining-enabled = true;
       };
-      serviceName = "mantis-miner";
-      tags = [ "public" name ];
+      serviceName = "${prefix}-mantis-miner";
+      tags = [ prefix "public" name ];
       meta = {
         path = "/";
         domain = "${name}.mantis.ws";
         port = toString publicPort;
       };
-      constraints = if instanceId != null then [{
-        attribute = "\${attr.unique.platform.aws.instance-id}";
-        value = instanceId;
-      }] else
-        [ ];
     });
 
   mkPassive = count:
     mkMantis {
-      name = "mantis-passive";
-      serviceName = "mantis-passive";
+      name = "${prefix}-mantis-passive";
+      serviceName = "${prefix}-mantis-passive";
       resources = passiveResources;
-      tags = [ "passive" ];
+      tags = [ prefix "passive" ];
       inherit count;
       requiredPeerCount = builtins.length miners;
       ephemeralDisk = { sizeMB = 1000; };
@@ -217,13 +206,14 @@ let
           logging.logs-file = "logs"
 
           mantis.blockchains.testnet-internal.bootstrap-nodes = [
-            {{ range service "mantis-miner" -}}
-              "enode://  {{- with secret (printf "kv/data/nomad-cluster/testnet/%s/enode-hash" .ServiceMeta.Name) -}}
+            {{ range service "${prefix}-mantis-miner" -}}
+              "enode://  {{- with secret (printf "kv/data/nomad-cluster/${prefix}/%s/enode-hash" .ServiceMeta.Name) -}}
                 {{- .Data.data.value -}}
                 {{- end -}}@{{ .Address }}:{{ .Port }}",
             {{ end -}}
           ]
 
+          mantis.client-id = "${prefix}-mantis-passive"
           mantis.consensus.mining-enabled = false
           mantis.datadir = "{{ env "NOMAD_TASK_DIR" }}/mantis"
           mantis.ethash.ethash-dir = "{{ env "NOMAD_TASK_DIR" }}/ethash"
@@ -236,79 +226,17 @@ let
         changeMode = "noop";
         destination = "local/mantis.conf";
       }];
-
-      constraints = lib.forEach miners (miner: {
-        attribute = "\${attr.unique.platform.aws.instance-id}";
-        operator = "!=";
-        value = miner.instanceId;
-      });
     };
 
-  miners = [
-    {
-      name = "mantis-1";
-      requiredPeerCount = 0;
-      publicPort = 9001; # Make sure to also change it in ingress.nix
-      instanceId = "i-016b85976830d3010";
-    }
-# For testing purposes we want just the dummy scenario (1 miner, 2 passives nodes)    
-#    {
-#      name = "mantis-2";
-#      requiredPeerCount = 1;
-#      publicPort = 9002;
-#      instanceId = "i-016ff18ce9d37055d";
-#    }
-#    {
-#      name = "mantis-3";
-#      requiredPeerCount = 2;
-#      publicPort = 9003;
-#      instanceId = "i-027fdf934cd365575";
-#    }
-#    {
-#      name = "mantis-4";
-#      requiredPeerCount = 3;
-#      publicPort = 9004;
-#      instanceId = "i-04832eb69076aef14";
-#    }
-#    {
-#      name = "mantis-5";
-#      requiredPeerCount = 4;
-#      publicPort = 9005;
-#      instanceId = "i-0917601141a6187fc";
-#    }
-#    {
-#      name = "mantis-6";
-#      requiredPeerCount = 5;
-#      publicPort = 9006;
-#      instanceId = "i-0bda1c2cb52b9ac3e";
-#    }
-#    {
-#      name = "mantis-7";
-#      requiredPeerCount = 6;
-#      publicPort = 9007;
-#      instanceId = "i-0d250b307a248218e";
-#    }
-#    {
-#      name = "mantis-8";
-#      requiredPeerCount = 7;
-#      publicPort = 9008;
-#      instanceId = "i-0df761c9a86cd3df3";
-#    }
-#    {
-#      name = "mantis-9";
-#      requiredPeerCount = 8;
-#      publicPort = 9009;
-#      instanceId = "i-0f85d80501cd0dceb";
-#    }
-#    {
-#      name = "mantis-10";
-#      requiredPeerCount = 9;
-#      publicPort = 9010;
-#      instanceId = "i-0fe5414a46df1d268";
-#    }
-  ];
+  amountOfMiners = 1;
+
+  miners = lib.forEach (lib.range 1 amountOfMiners) (num: {
+    name = "${prefix}-mantis-${toString num}";
+    requiredPeerCount = num - 1;
+    publicPort = 9000 + num; # routed through haproxy/ingress
+  });
 in {
-  mantis = mkNomadJob "mantis" {
+  "${prefix}-mantis" = mkNomadJob "${prefix}-mantis" {
     datacenters = [ "us-east-2" "eu-central-1" ];
     type = "service";
 
@@ -325,7 +253,7 @@ in {
     };
 
     taskGroups = (lib.listToAttrs (map mkMiner miners)) // {
-      mantis-passive = mkPassive 2;
+      "${prefix}-mantis-passive" = mkPassive 2;
     };
   };
 }
