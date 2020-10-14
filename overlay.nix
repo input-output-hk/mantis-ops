@@ -218,8 +218,8 @@ in {
   };
 
   inherit (self.inputs.bitte.legacyPackages.${system})
-    vault-bin mkNomadJob mkNomadTaskSandbox terraform-with-plugins
-    systemdSandbox nixFlakes nomad consul consul-template bitte-tokens;
+    vault-bin mkNomadJob terraform-with-plugins systemdSandbox nixFlakes nomad
+    consul consul-template bitte-tokens;
 
   nomadJobs = let
     jobsDir = ./jobs;
