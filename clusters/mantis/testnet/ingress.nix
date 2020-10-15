@@ -1,16 +1,24 @@
 { config, ... }: {
   services.ingress.extraHttpsAcls = ''
-    acl is_explorer hdr(host) -i explorer.${config.cluster.domain}
+    acl is_explorer_web hdr(host) -i explorer.${config.cluster.domain}
+    acl is_explorer_rpc path_beg -i /rpc/node
   '';
 
   services.ingress.extraHttpsBackends = ''
-    use_backend explorer if is_explorer
+    use_backend explorer_rpc if is_explorer_web is_explorer_rpc
+    use_backend explorer_web if is_explorer_web
   '';
 
   services.ingress.extraConfig = ''
-    backend explorer
+    backend explorer_web
       default-server resolve-prefer ipv4 resolvers consul resolve-opts allow-dup-ip check maxconn 2000
-      server explorer _testnet-explorer._tcp.service.consul
+      server explorer-web _testnet-explorer._tcp.service.consul
+
+    backend explorer_rpc
+      mode http
+      default-server resolve-prefer ipv4 resolvers consul resolve-opts allow-dup-ip check maxconn 2000
+      http-request set-path /
+      server-template explorer-rpc 2 _testnet-mantis-passive-rpc._tcp.service.consul
 
     backend mantis_1
       default-server resolve-prefer ipv4 resolvers consul resolve-opts allow-dup-ip

@@ -208,9 +208,8 @@ in {
     };
   in bitte-nixpkgs.bitte;
 
-  mantis-explorer = import self.inputs.mantis-explorer {
-    inherit system;
-  };
+  mantis-explorer =
+    final.callPackage ./pkgs/mantis-explorer.nix { src = self.inputs.mantis-explorer; };
 
   nixosConfigurations =
     self.inputs.bitte.legacyPackages.${system}.mkNixosConfigurations
