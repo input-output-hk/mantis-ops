@@ -1,5 +1,17 @@
-{ ... }: {
+{ config, ... }: {
+  services.ingress.extraHttpsAcls = ''
+    acl is_explorer hdr(host) -i explorer.${config.cluster.domain}
+  '';
+
+  services.ingress.extraHttpsBackends = ''
+    use_backend explorer if is_explorer
+  '';
+
   services.ingress.extraConfig = ''
+    backend explorer
+      default-server resolve-prefer ipv4 resolvers consul resolve-opts allow-dup-ip check maxconn 2000
+      server explorer _testnet-explorer._tcp.service.consul
+
     backend mantis_1
       default-server resolve-prefer ipv4 resolvers consul resolve-opts allow-dup-ip
       server mantis-1 mantis-1.mantis-miner.service.consul

@@ -208,6 +208,10 @@ in {
     };
   in bitte-nixpkgs.bitte;
 
+  mantis-explorer = import self.inputs.mantis-explorer {
+    inherit system;
+  };
+
   nixosConfigurations =
     self.inputs.bitte.legacyPackages.${system}.mkNixosConfigurations
     final.clusters;
