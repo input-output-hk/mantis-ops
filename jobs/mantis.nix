@@ -156,7 +156,9 @@ let
 
             [inputs.prometheus]
             metric_version = 1
-            urls = [ "http://{{ env "NOMAD_ADDR_${lib.replaceStrings ["-"] ["_"] name}_metrics" }}" ]
+            urls = [ "http://{{ env "NOMAD_ADDR_${
+              lib.replaceStrings [ "-" ] [ "_" ] name
+            }_metrics" }}" ]
 
             [outputs.influxdb]
             database = "telegraf"
@@ -274,52 +276,46 @@ let
     publicPort = 9000 + num; # routed through haproxy/ingress
   });
 
-  explorer =
-    let
-      name = "${prefix}-explorer";
-    in {
-        tasks.${name} = systemdSandbox {
+  explorer = let name = "${prefix}-explorer";
+  in {
+    tasks.${name} = systemdSandbox {
+      inherit name;
+      env = {
+        PATH = lib.makeBinPath [
+          coreutils
+          # nginx
+          webfs
+        ];
+      };
+
+      resources = { networks = [{ dynamicPorts = [{ label = "http"; }]; }]; };
+
+      command = writeShellScript "mantis-explorer-server" ''
+        set -euxo pipefail
+        exec webfsd -F -j -p $NOMAD_PORT_http -r ${mantis-explorer} -f index.html
+      '';
+
+      services."${name}" = {
+        tags = [ "${name}" ];
+        meta = {
           inherit name;
-          env = {
-            PATH = lib.makeBinPath [
-              coreutils
-              # nginx
-              webfs
-            ];
-          };
-
-          resources = {
-            networks = [{
-              dynamicPorts = [ { label = "http"; } ];
-            }];
-          };
-
-          command = writeShellScript "mantis-explorer-server" ''
-            set -euxo pipefail
-            exec webfsd -F -j -p $NOMAD_PORT_http -r ${mantis-explorer} -f index.html
-          '';
-
-          services."${name}" = {
-            tags = [ "${name}" ];
-            meta = {
-              inherit name;
-              publicIp = "\${attr.unique.platform.aws.public-ipv4}";
-            };
-            portLabel = "http";
-            checks = [{
-              type = "http";
-              path = "/";
-              portLabel = "http";
-
-              checkRestart = {
-                limit = 5;
-                grace = "300s";
-                ignoreWarnings = false;
-              };
-            }];
-          };
+          publicIp = "\${attr.unique.platform.aws.public-ipv4}";
         };
+        portLabel = "http";
+        checks = [{
+          type = "http";
+          path = "/";
+          portLabel = "http";
+
+          checkRestart = {
+            limit = 5;
+            grace = "300s";
+            ignoreWarnings = false;
+          };
+        }];
+      };
     };
+  };
 in {
   "${prefix}-mantis" = mkNomadJob "${prefix}-mantis" {
     datacenters = [ "us-east-2" "eu-central-1" ];
