@@ -1,6 +1,6 @@
 { mkNomadJob, systemdSandbox, writeShellScript, writeText, coreutils, lib
 , cacert, jq, gnused, mantis, mantis-source, dnsutils, gnugrep, iproute, lsof
-, netcat, nettools, procps, curl, gawk, telegraf }:
+, netcat, nettools, procps, curl, gawk, telegraf, webfs, mantis-explorer }:
 let
   # NOTE: Copy this file and change the next line if you want to start your own cluster!
   prefix = "testnet";
@@ -268,6 +268,54 @@ let
     requiredPeerCount = num - 1;
     publicPort = 9000 + num; # routed through haproxy/ingress
   });
+
+  explorer =
+    let
+      name = "${prefix}-explorer";
+    in {
+        tasks.${name} = systemdSandbox {
+          inherit name;
+          env = {
+            PATH = lib.makeBinPath [
+              coreutils
+              # nginx
+              webfs
+            ];
+          };
+
+          resources = {
+            networks = [{
+              dynamicPorts = [ { label = "http"; } ];
+            }];
+          };
+
+          command = writeShellScript "mantis-explorer-server" ''
+            set -euxo pipefail
+            exec webfsd -F -j -p $NOMAD_PORT_http -r ${mantis-explorer} -f index.html
+          '';
+
+          services."${name}" = {
+            tags = [ "${name}" ];
+            meta = {
+              inherit name;
+              publicIp = "\${attr.unique.platform.aws.public-ipv4}";
+            };
+            portLabel = "http";
+            checks = [{
+              type = "http";
+              path = "/";
+              portLabel = "http";
+
+              checkRestart = {
+                limit = 5;
+                grace = "300s";
+                ignoreWarnings = false;
+              };
+            }];
+          };
+        };
+
+      };
 in {
   "${prefix}-mantis" = mkNomadJob "${prefix}-mantis" {
     datacenters = [ "us-east-2" "eu-central-1" ];
@@ -288,5 +336,12 @@ in {
     taskGroups = (lib.listToAttrs (map mkMiner miners)) // {
       "${prefix}-mantis-passive" = mkPassive 2;
     };
+  };
+
+  "${prefix}-mantis-explorer" = mkNomadJob "${prefix}-mantis-explorer" {
+    datacenters = [ "us-east-2" "eu-central-1" ];
+    type = "service";
+
+    taskGroups."${prefix}-explorer" = explorer;
   };
 }

@@ -175,6 +175,8 @@ in {
           "consul.${cluster.domain}"
           "vault.${cluster.domain}"
           "nomad.${cluster.domain}"
+          "explorer.${cluster.domain}"
+          "faucet.${cluster.domain}"
           "mantis-1.${cluster.domain}"
           "mantis-2.${cluster.domain}"
           "mantis-3.${cluster.domain}"
