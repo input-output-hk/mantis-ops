@@ -86,6 +86,22 @@
         "type": "github"
       }
     },
+    "mantis-explorer": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1599839881,
+        "narHash": "sha256-aFcn1iK4DY8jshADGoVLnBjaX/vlVLCfetq20dGYfsQ=",
+        "owner": "input-output-hk",
+        "repo": "mantis-explorer",
+        "rev": "008b8186b02d8083431dc407c0795e81f103c93b",
+        "type": "github"
+      },
+      "original": {
+        "owner": "input-output-hk",
+        "repo": "mantis-explorer",
+        "type": "github"
+      }
+    },
     "nixpkgs": {
       "locked": {
         "lastModified": 1595425804,
@@ -191,6 +207,7 @@
           "bitte",
           "bitte-cli"
         ],
+        "mantis-explorer": "mantis-explorer",
         "nixpkgs": [
           "bitte",
           "nixpkgs"

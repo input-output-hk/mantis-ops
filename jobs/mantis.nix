@@ -183,6 +183,11 @@ let
           portLabel = "metrics";
         };
 
+        services."${serviceName}-rpc" = {
+          tags = [ prefix "rpc" ];
+          portLabel = "rpc";
+        };
+
         services.${serviceName} = {
           tags = [ serviceName mantis-source.rev ] ++ tags;
           meta = {
@@ -314,8 +319,7 @@ let
             }];
           };
         };
-
-      };
+    };
 in {
   "${prefix}-mantis" = mkNomadJob "${prefix}-mantis" {
     datacenters = [ "us-east-2" "eu-central-1" ];
