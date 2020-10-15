@@ -37,6 +37,8 @@
           terraform-with-plugins cfssl consul;
       };
 
+      hydraJobs = packages;
+
       apps.bitte = utils.lib.mkApp { drv = legacyPackages.bitte; };
     })) // (let
       pkgs = import nixpkgs {
