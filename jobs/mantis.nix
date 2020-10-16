@@ -56,7 +56,7 @@ let
       done
       set -x
 
-      cp "mantis.conf" running.conf
+      cp "faucet.conf" running.conf
 
       chown --reference . --recursive . || true
 
@@ -72,10 +72,11 @@ let
       set -exuo pipefail
       export PATH=${lib.makeBinPath [ jq coreutils gnused gnugrep mantis ]}
 
-      mkdir -p "$NOMAD_TASK_DIR"/{mantis,rocksdb,logs}
+      mkdir -p "$NOMAD_TASK_DIR"/{mantis-faucet,keystore,logs}
       cd "$NOMAD_TASK_DIR"
 
       cp "mantis.conf" running.conf
+      cp "{{ env "NOMAD_SECRETS_DIR" }}/faucet-key" keystore/
 
       chown --reference . --recursive . || true
 
@@ -83,7 +84,7 @@ let
 
       ulimit -c unlimited
 
-      exec mantis "-Duser.home=$NOMAD_TASK_DIR" "-Dconfig.file=$NOMAD_TASK_DIR/running.conf"
+      exec faucet-server "-Duser.home=$NOMAD_TASK_DIR" "-Dconfig.file=$NOMAD_TASK_DIR/running.conf"
     '';
 
   env = {
@@ -349,34 +350,71 @@ let
 
       resources = { networks = [{ dynamicPorts = [{ label = "rpc"; } { label = "server"; } { label = "metrics"; }]; }]; };
 
-      templates = [{
+      templates = let 
+        secret = key: ''{{ with secret "${key}" }}{{.Data.data.value}}{{end}}'';
+      in [{
         data = ''
-          include "${mantis}/conf/testnet-internal.conf"
-
-          logging.json-output = true
-          logging.logs-file = "logs"
-
-          mantis.blockchains.testnet-internal.bootstrap-nodes = [
-            {{ range service "${prefix}-mantis-miner" -}}
-              "enode://  {{- with secret (printf "kv/data/nomad-cluster/${prefix}/%s/enode-hash" .ServiceMeta.Name) -}}
-                {{- .Data.data.value -}}
-                {{- end -}}@{{ .Address }}:{{ .Port }}",
-            {{ end -}}
-          ]
-
-          mantis.client-id = "${prefix}-mantis-faucet"
-          mantis.consensus.mining-enabled = false
-          mantis.datadir = "{{ env "NOMAD_TASK_DIR" }}/mantis"
-          mantis.ethash.ethash-dir = "{{ env "NOMAD_TASK_DIR" }}/ethash"
-          mantis.metrics.enabled = true
-          mantis.metrics.port = {{ env "NOMAD_PORT_metrics" }}
-          mantis.network.rpc.http.interface = "0.0.0.0"
-          mantis.network.rpc.http.port = {{ env "NOMAD_PORT_rpc" }}
-          mantis.network.server-address.port = {{ env "NOMAD_PORT_server" }}
+          faucet {
+          
+            # Base directory where all the data used by the faucet is stored
+            datadir = {{ env "NOMAD_TASK_DIR" }}/mantis-faucet
+          
+            # Wallet address used to send transactions from
+            wallet-address = "0x00"
+          
+            # Password to unlock faucet wallet
+            wallet-password = ""
+          
+            # Path to directory where wallet key is stored
+            keystore-dir = {{ env "NOMAD_TASK_DIR" }}/mantis-faucet/keystore
+          
+            # Transaction gas price
+            tx-gas-price = 20000000000
+          
+            # Transaction gas limit
+            tx-gas-limit = 90000
+          
+            # Transaction value
+            tx-value = 1000000000000000000
+          
+            # Faucet listen interface
+            listen-interface = "0.0.0.0"
+          
+            # Faucet listen port
+            listen-port = {{ env "NOMAD_PORT_server" }}
+          
+            # Faucet cors config
+            cors-allowed-origins = "*"
+          
+            # Address of Ethereum node used to send the transaction
+            rpc-address = "http://0.0.0.0:{{ env "NOMAD_PART_rpc" }}/"
+          
+            # How often can a single IP address send a request
+            min-request-interval = 1.minute
+          
+            # How many ip addr -> timestamp entries to store
+            latest-timestamp-cache-size = 1024
+          }
+          
+          logging {
+            # Flag used to switch logs to the JSON format
+            json-output = false
+          
+            # Logs directory
+            logs-dir = {{ env "NOMAD_TASK_DIR" }}/mantis-faucet/logs
+          
+            # Logs filename
+            logs-file = "logs"
+          }
         '';
         changeMode = "noop";
-        destination = "local/mantis.conf";
-      }];
+        destination = "local/faucet.conf";
+      }] ++ ([{
+        data = ''
+          ${secret "kv/nomad-cluster/${prefix}/faucet/faucet-key"}
+        '';
+        destination = "secrets/faucet-key";
+      }]);
 
       command = run-mantis-faucet;
 
