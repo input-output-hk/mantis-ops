@@ -21,6 +21,7 @@ in {
     name = "mantis-testnet";
 
     adminNames = [
+      "craige.mcwhirter"
       "john.lotoski"
       "michael.bishop"
       "michael.fellinger"
