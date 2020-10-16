@@ -39,6 +39,16 @@ let
     # sticky = true;
   };
 
+  genesisJson = {
+    data = ''
+      {{- with secret "kv/nomad-cluster/${prefix}/genesis" -}}
+      {{.Data.data | toJSON }}
+      {{- end -}}
+    '';
+    changeMode = "restart";
+    destination = "local/genesis.json";
+  };
+
   run-mantis = { requiredPeerCount }:
     writeShellScript "mantis" ''
       set -exuo pipefail
@@ -56,35 +66,17 @@ let
       done
       set -x
 
-      cp "faucet.conf" running.conf
+      cp "mantis.conf" running.conf
 
       chown --reference . --recursive . || true
 
       env
+
+      cat "$NOMAD_TASK_DIR/genesis.json"
 
       ulimit -c unlimited
 
       exec mantis "-Duser.home=$NOMAD_TASK_DIR" "-Dconfig.file=$NOMAD_TASK_DIR/running.conf"
-    '';
-
-  run-mantis-faucet =
-    writeShellScript "mantis-faucet" ''
-      set -exuo pipefail
-      export PATH=${lib.makeBinPath [ jq coreutils gnused gnugrep mantis ]}
-
-      mkdir -p "$NOMAD_TASK_DIR"/{mantis-faucet,keystore,logs}
-      cd "$NOMAD_TASK_DIR"
-
-      cp "mantis.conf" running.conf
-      cp "{{ env "NOMAD_SECRETS_DIR" }}/faucet-key" keystore/
-
-      chown --reference . --recursive . || true
-
-      env
-
-      ulimit -c unlimited
-
-      exec faucet-server "-Duser.home=$NOMAD_TASK_DIR" "-Dconfig.file=$NOMAD_TASK_DIR/running.conf"
     '';
 
   env = {
@@ -107,35 +99,39 @@ let
 
   templatesFor = { name ? null, mining-enabled ? false }:
     let secret = key: ''{{ with secret "${key}" }}{{.Data.data.value}}{{end}}'';
-    in [{
-      data = ''
-        include "${mantis}/conf/testnet-internal.conf"
+    in [
+      {
+        data = ''
+          include "${mantis}/conf/testnet-internal.conf"
 
-        logging.json-output = true
-        logging.logs-file = "logs"
+          logging.json-output = true
+          logging.logs-file = "logs"
 
-        mantis.blockchains.testnet-internal.bootstrap-nodes = [
-          {{ range service "${prefix}-mantis-miner" -}}
-            "enode://  {{- with secret (printf "kv/data/nomad-cluster/${prefix}/%s/enode-hash" .ServiceMeta.Name) -}}
-              {{- .Data.data.value -}}
-              {{- end -}}@{{ .Address }}:{{ .Port }}",
-          {{ end -}}
-        ]
+          mantis.blockchains.testnet-internal.bootstrap-nodes = [
+            {{ range service "${prefix}-mantis-miner" -}}
+              "enode://  {{- with secret (printf "kv/data/nomad-cluster/${prefix}/%s/enode-hash" .ServiceMeta.Name) -}}
+                {{- .Data.data.value -}}
+                {{- end -}}@{{ .Address }}:{{ .Port }}",
+            {{ end -}}
+          ]
 
-        mantis.client-id = "${name}"
-        mantis.consensus.coinbase = "{{ with secret "kv/data/nomad-cluster/${prefix}/${name}/coinbase" }}{{ .Data.data.value }}{{ end }}"
-        mantis.node-key-file = "{{ env "NOMAD_SECRETS_DIR" }}/secret-key"
-        mantis.datadir = "{{ env "NOMAD_TASK_DIR" }}/mantis"
-        mantis.ethash.ethash-dir = "{{ env "NOMAD_TASK_DIR" }}/ethash"
-        mantis.metrics.enabled = true
-        mantis.metrics.port = {{ env "NOMAD_PORT_metrics" }}
-        mantis.network.rpc.http.interface = "0.0.0.0"
-        mantis.network.rpc.http.port = {{ env "NOMAD_PORT_rpc" }}
-        mantis.network.server-address.port = {{ env "NOMAD_PORT_server" }}
-      '';
-      destination = "local/mantis.conf";
-      changeMode = "noop";
-    }] ++ (lib.optional mining-enabled {
+          mantis.client-id = "${name}"
+          mantis.consensus.coinbase = "{{ with secret "kv/data/nomad-cluster/${prefix}/${name}/coinbase" }}{{ .Data.data.value }}{{ end }}"
+          mantis.node-key-file = "{{ env "NOMAD_SECRETS_DIR" }}/secret-key"
+          mantis.datadir = "{{ env "NOMAD_TASK_DIR" }}/mantis"
+          mantis.ethash.ethash-dir = "{{ env "NOMAD_TASK_DIR" }}/ethash"
+          mantis.metrics.enabled = true
+          mantis.metrics.port = {{ env "NOMAD_PORT_metrics" }}
+          mantis.network.rpc.http.interface = "0.0.0.0"
+          mantis.network.rpc.http.port = {{ env "NOMAD_PORT_rpc" }}
+          mantis.network.server-address.port = {{ env "NOMAD_PORT_server" }}
+          mantis.blockchains.testnet-internal.custom-genesis-file = "{{ env "NOMAD_TASK_DIR" }}/genesis.json"
+        '';
+        destination = "local/mantis.conf";
+        changeMode = "noop";
+      }
+      genesisJson
+    ] ++ (lib.optional mining-enabled {
       data = ''
         ${secret "kv/data/nomad-cluster/${prefix}/${name}/secret-key"}
         ${secret "kv/data/nomad-cluster/${prefix}/${name}/enode-hash"}
@@ -155,6 +151,8 @@ let
 
       tasks."${name}-telegraf" = systemdSandbox {
         name = "${name}-telegraf";
+
+        vault.policies = [ "nomad-cluster" ];
 
         command = writeShellScript "telegraf" ''
           set -exuo pipefail
@@ -206,7 +204,7 @@ let
         };
 
         services."${serviceName}-rpc" = {
-          tags = [ prefix "rpc" ];
+          tags = [ prefix "rpc" serviceName name ];
           portLabel = "rpc";
         };
 
@@ -258,34 +256,38 @@ let
       inherit count;
       requiredPeerCount = builtins.length miners;
       ephemeralDisk = { sizeMB = 1000; };
-      templates = [{
-        data = ''
-          include "${mantis}/conf/testnet-internal.conf"
+      templates = [
+        {
+          data = ''
+            include "${mantis}/conf/testnet-internal.conf"
 
-          logging.json-output = true
-          logging.logs-file = "logs"
+            logging.json-output = true
+            logging.logs-file = "logs"
 
-          mantis.blockchains.testnet-internal.bootstrap-nodes = [
-            {{ range service "${prefix}-mantis-miner" -}}
-              "enode://  {{- with secret (printf "kv/data/nomad-cluster/${prefix}/%s/enode-hash" .ServiceMeta.Name) -}}
-                {{- .Data.data.value -}}
-                {{- end -}}@{{ .Address }}:{{ .Port }}",
-            {{ end -}}
-          ]
+            mantis.blockchains.testnet-internal.bootstrap-nodes = [
+              {{ range service "${prefix}-mantis-miner" -}}
+                "enode://  {{- with secret (printf "kv/data/nomad-cluster/${prefix}/%s/enode-hash" .ServiceMeta.Name) -}}
+                  {{- .Data.data.value -}}
+                  {{- end -}}@{{ .Address }}:{{ .Port }}",
+              {{ end -}}
+            ]
 
-          mantis.client-id = "${prefix}-mantis-passive"
-          mantis.consensus.mining-enabled = false
-          mantis.datadir = "{{ env "NOMAD_TASK_DIR" }}/mantis"
-          mantis.ethash.ethash-dir = "{{ env "NOMAD_TASK_DIR" }}/ethash"
-          mantis.metrics.enabled = true
-          mantis.metrics.port = {{ env "NOMAD_PORT_metrics" }}
-          mantis.network.rpc.http.interface = "0.0.0.0"
-          mantis.network.rpc.http.port = {{ env "NOMAD_PORT_rpc" }}
-          mantis.network.server-address.port = {{ env "NOMAD_PORT_server" }}
-        '';
-        changeMode = "noop";
-        destination = "local/mantis.conf";
-      }];
+            mantis.client-id = "${prefix}-mantis-passive"
+            mantis.consensus.mining-enabled = false
+            mantis.datadir = "{{ env "NOMAD_TASK_DIR" }}/mantis"
+            mantis.ethash.ethash-dir = "{{ env "NOMAD_TASK_DIR" }}/ethash"
+            mantis.metrics.enabled = true
+            mantis.metrics.port = {{ env "NOMAD_PORT_metrics" }}
+            mantis.network.rpc.http.interface = "0.0.0.0"
+            mantis.network.rpc.http.port = {{ env "NOMAD_PORT_rpc" }}
+            mantis.network.server-address.port = {{ env "NOMAD_PORT_server" }}
+            mantis.blockchains.testnet-internal.custom-genesis-file = "{{ env "NOMAD_TASK_DIR" }}/genesis.json"
+          '';
+          changeMode = "restart";
+          destination = "local/mantis.conf";
+        }
+        genesisJson
+      ];
     };
 
   amountOfMiners = 1;
@@ -341,82 +343,118 @@ let
   faucet = {
     tasks.${faucetName} = systemdSandbox {
       name = faucetName;
-      env = {
-        PATH = lib.makeBinPath [
-          coreutils
-          mantis
-        ];
-      };
+      env = { PATH = lib.makeBinPath [ coreutils mantis ]; };
 
-      resources = { networks = [{ dynamicPorts = [{ label = "rpc"; } { label = "server"; } { label = "metrics"; }]; }]; };
+      vault.policies = [ "nomad-cluster" ];
 
-      templates = let 
+      resources = { networks = [{ dynamicPorts = [{ label = "rpc"; }]; }]; };
+      extraEnvironmentVariables = [ "COINBASE" ];
+
+      templates = let
         secret = key: ''{{ with secret "${key}" }}{{.Data.data.value}}{{end}}'';
-      in [{
-        data = ''
-          faucet {
-          
-            # Base directory where all the data used by the faucet is stored
-            datadir = {{ env "NOMAD_TASK_DIR" }}/mantis-faucet
-          
-            # Wallet address used to send transactions from
-            wallet-address = "0x00"
-          
-            # Password to unlock faucet wallet
-            wallet-password = ""
-          
-            # Path to directory where wallet key is stored
-            keystore-dir = {{ env "NOMAD_TASK_DIR" }}/mantis-faucet/keystore
-          
-            # Transaction gas price
-            tx-gas-price = 20000000000
-          
-            # Transaction gas limit
-            tx-gas-limit = 90000
-          
-            # Transaction value
-            tx-value = 1000000000000000000
-          
-            # Faucet listen interface
-            listen-interface = "0.0.0.0"
-          
-            # Faucet listen port
-            listen-port = {{ env "NOMAD_PORT_server" }}
-          
-            # Faucet cors config
-            cors-allowed-origins = "*"
-          
-            # Address of Ethereum node used to send the transaction
-            rpc-address = "http://0.0.0.0:{{ env "NOMAD_PART_rpc" }}/"
-          
-            # How often can a single IP address send a request
-            min-request-interval = 1.minute
-          
-            # How many ip addr -> timestamp entries to store
-            latest-timestamp-cache-size = 1024
-          }
-          
-          logging {
-            # Flag used to switch logs to the JSON format
-            json-output = false
-          
-            # Logs directory
-            logs-dir = {{ env "NOMAD_TASK_DIR" }}/mantis-faucet/logs
-          
-            # Logs filename
-            logs-file = "logs"
-          }
-        '';
-        changeMode = "noop";
-        destination = "local/faucet.conf";
-      }] ++ ([{
-        data = ''
-          ${secret "kv/nomad-cluster/${prefix}/faucet/faucet-key"}
-        '';
-        destination = "secrets/faucet-key";
-      }]);
+      in [
+        {
+          data = ''
+            include "${mantis}/conf/testnet-internal.conf"
+            mantis.blockchains.testnet-internal.custom-genesis-file = "{{ env "NOMAD_TASK_DIR" }}/genesis.json"
 
-      command = run-mantis-faucet;
+            faucet {
+              # Base directory where all the data used by the faucet is stored
+              datadir = {{ env "NOMAD_TASK_DIR" }}/mantis-faucet
+
+              # Wallet address used to send transactions from
+              wallet-address =
+                {{- with secret "kv/nomad-cluster/${prefix}/${prefix}-mantis-1/coinbase" -}}
+                  "{{.Data.data.value}}"
+                {{- end }}
+
+              # Password to unlock faucet wallet
+              wallet-password = ""
+
+              # Path to directory where wallet key is stored
+              keystore-dir = {{ env "NOMAD_SECRETS_DIR" }}/keystore
+
+              # Transaction gas price
+              tx-gas-price = 20000000000
+
+              # Transaction gas limit
+              tx-gas-limit = 90000
+
+              # Transaction value
+              tx-value = 1000000000000000000
+
+              # Faucet listen interface
+              listen-interface = "0.0.0.0"
+
+              # Faucet listen port
+              listen-port = {{ env "NOMAD_PORT_rpc" }}
+
+              # Faucet cors config
+              cors-allowed-origins = "*"
+
+              # Address of Ethereum node used to send the transaction
+              rpc-address = {{- range service "${prefix}-mantis-1.${prefix}-mantis-miner-rpc" -}}
+                  "http://{{ .Address }}:{{ .Port }}"
+                {{- end }}
+
+              # How often can a single IP address send a request
+              min-request-interval = 1.minute
+
+              # How many ip addr -> timestamp entries to store
+              latest-timestamp-cache-size = 1024
+            }
+
+            logging {
+              # Flag used to switch logs to the JSON format
+              json-output = false
+
+              # Logs directory
+              logs-dir = {{ env "NOMAD_TASK_DIR" }}/mantis-faucet/logs
+
+              # Logs filename
+              logs-file = "logs"
+            }
+          '';
+          changeMode = "noop";
+          destination = "local/faucet.conf";
+        }
+        genesisJson
+        {
+          data = ''
+            {{- with secret "kv/data/nomad-cluster/${prefix}/${prefix}-mantis-1/account" -}}
+            {{.Data.data | toJSON }}
+            {{- end -}}
+          '';
+          destination = "secrets/account";
+        }
+        {
+          data = ''
+            COINBASE={{- with secret "kv/data/nomad-cluster/${prefix}/${prefix}-mantis-1/coinbase" -}}{{ .Data.data.value }}{{- end -}}
+          '';
+          destination = "secrets/env";
+          env = true;
+        }
+      ];
+
+      command = writeShellScript "mantis-faucet" ''
+        set -exuo pipefail
+        export PATH=${lib.makeBinPath [ jq coreutils gnused gnugrep mantis ]}
+
+        mkdir -p "$NOMAD_TASK_DIR"/{mantis-faucet,logs}
+        mkdir -p "$NOMAD_SECRETS_DIR/keystore"
+        cd "$NOMAD_TASK_DIR"
+
+        cp faucet.conf running.conf
+        cp "$NOMAD_SECRETS_DIR/account" "$NOMAD_SECRETS_DIR/keystore/UTC--2020-10-16T14-48-29.47Z-$COINBASE"
+
+        cat "$NOMAD_SECRETS_DIR/keystore/UTC--2020-10-16T14-48-29.47Z-$COINBASE"
+
+        chown --reference . --recursive . || true
+
+        ulimit -c unlimited
+
+        exec faucet-server "-Duser.home=$NOMAD_TASK_DIR" "-Dconfig.file=$NOMAD_TASK_DIR/running.conf"
+      '';
 
       services."${faucetName}" = {
         tags = [ "${faucetName}" ];
@@ -425,17 +463,6 @@ let
           publicIp = "\${attr.unique.platform.aws.public-ipv4}";
         };
         portLabel = "rpc";
-        checks = [{
-          type = "script";
-          command = "echo true";
-          portLabel = "rpc";
-
-          checkRestart = {
-            limit = 5;
-            grace = "300s";
-            ignoreWarnings = false;
-          };
-        }];
       };
     };
   };

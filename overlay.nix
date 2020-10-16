@@ -108,6 +108,7 @@ in {
       secretKeyPath="kv/nomad-cluster/testnet/testnet-mantis-$count/secret-key"
       hashKeyPath="kv/nomad-cluster/testnet/testnet-mantis-$count/enode-hash"
       coinbasePath="kv/nomad-cluster/testnet/testnet-mantis-$count/coinbase"
+      accountPath="kv/nomad-cluster/testnet/testnet-mantis-$count/account"
 
       hashKey="$(vault kv get -field value "$hashKeyPath" || true)"
 
@@ -123,6 +124,8 @@ in {
 
           coinbase="$(generateCoinbase "$secretKey")"
           vault kv put "$coinbasePath" "value=$coinbase"
+
+          cat $tmpdir/.mantis/testnet-internal/keystore/*$coinbase | vault kv put "$accountPath" -
         else
           echo "Generating key in $keyFile and uploading to Vault"
 
@@ -140,6 +143,8 @@ in {
 
           coinbase="$(generateCoinbase "$secretKey")"
           vault kv put "$coinbasePath" "value=$coinbase"
+
+          cat $tmpdir/.mantis/testnet-internal/keystore/*$coinbase | vault kv put "$accountPath" -
         fi
       else
         echo "Downloading key for $keyFile from Vault"
@@ -150,7 +155,39 @@ in {
         coinbase="$(vault kv get -field value "$coinbasePath")"
         echo "$coinbase" > "$coinbaseFile"
       fi
+
+      coinbase="$(generateCoinbase "$secretKey")"
+      cat $tmpdir/.mantis/testnet-internal/keystore/*$coinbase | vault kv put "$accountPath" -
     done
+
+    read genesis <<EOF
+      ${
+        builtins.toJSON {
+          extraData = "0x00";
+          nonce = "0x0000000000000042";
+          gasLimit = "0x2fefd8";
+          difficulty = "0x400";
+          ommersHash =
+            "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347";
+          timestamp = "0x00";
+          coinbase = "0x0000000000000000000000000000000000000000";
+          mixHash =
+            "0x0000000000000000000000000000000000000000000000000000000000000000";
+          alloc = { };
+        }
+      }
+    EOF
+
+    for count in $(seq "$desired"); do
+      updatedGenesis="$(
+        echo "$genesis" \
+        | jq --arg address "$(< "secrets/mantis-$count.coinbase")" \
+          '.alloc[$address] = {"balance": "1606938044258990275541962092341162602522202993782792835301376"}'
+      )"
+      genesis="$updatedGenesis"
+    done
+
+    echo "$genesis" | vault kv put kv/nomad-cluster/testnet/genesis -
   '';
 
   devShell = let
