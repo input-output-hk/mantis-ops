@@ -24,9 +24,8 @@
 
     backend faucet_rpc
       mode http
-      default-server resolve-prefer ipv4 resolvers consul resolve-opts allow-dup-ip check maxconn 2000
-      http-request set-path /
-      server-template faucet-rpc 2 _testnet-mantis-passive-rpc._tcp.service.consul
+      default-server resolve-prefer ipv4 resolvers consul resolve-opts allow-dup-ip maxconn 2000
+      server-template faucet-rpc 2 _testnet-mantis-faucet._tcp.service.consul
 
     backend mantis_1
       default-server resolve-prefer ipv4 resolvers consul resolve-opts allow-dup-ip
