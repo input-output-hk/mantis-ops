@@ -67,6 +67,25 @@ let
       exec mantis "-Duser.home=$NOMAD_TASK_DIR" "-Dconfig.file=$NOMAD_TASK_DIR/running.conf"
     '';
 
+  run-mantis-faucet =
+    writeShellScript "mantis-faucet" ''
+      set -exuo pipefail
+      export PATH=${lib.makeBinPath [ jq coreutils gnused gnugrep mantis ]}
+
+      mkdir -p "$NOMAD_TASK_DIR"/{mantis,rocksdb,logs}
+      cd "$NOMAD_TASK_DIR"
+
+      cp "mantis.conf" running.conf
+
+      chown --reference . --recursive . || true
+
+      env
+
+      ulimit -c unlimited
+
+      exec mantis "-Duser.home=$NOMAD_TASK_DIR" "-Dconfig.file=$NOMAD_TASK_DIR/running.conf"
+    '';
+
   env = {
     # Adds some extra commands to the store and path for debugging inside
     # nomad jobs with `nomad alloc exec $ALLOC_ID /bin/sh`
@@ -316,6 +335,73 @@ let
       };
     };
   };
+
+  faucetName = "${prefix}-mantis-faucet";
+  faucet = {
+    tasks.${faucetName} = systemdSandbox {
+      name = faucetName;
+      env = {
+        PATH = lib.makeBinPath [
+          coreutils
+          mantis
+        ];
+      };
+
+      resources = { networks = [{ dynamicPorts = [{ label = "rpc"; } { label = "server"; } { label = "metrics"; }]; }]; };
+
+      templates = [{
+        data = ''
+          include "${mantis}/conf/testnet-internal.conf"
+
+          logging.json-output = true
+          logging.logs-file = "logs"
+
+          mantis.blockchains.testnet-internal.bootstrap-nodes = [
+            {{ range service "${prefix}-mantis-miner" -}}
+              "enode://  {{- with secret (printf "kv/data/nomad-cluster/${prefix}/%s/enode-hash" .ServiceMeta.Name) -}}
+                {{- .Data.data.value -}}
+                {{- end -}}@{{ .Address }}:{{ .Port }}",
+            {{ end -}}
+          ]
+
+          mantis.client-id = "${prefix}-mantis-faucet"
+          mantis.consensus.mining-enabled = false
+          mantis.datadir = "{{ env "NOMAD_TASK_DIR" }}/mantis"
+          mantis.ethash.ethash-dir = "{{ env "NOMAD_TASK_DIR" }}/ethash"
+          mantis.metrics.enabled = true
+          mantis.metrics.port = {{ env "NOMAD_PORT_metrics" }}
+          mantis.network.rpc.http.interface = "0.0.0.0"
+          mantis.network.rpc.http.port = {{ env "NOMAD_PORT_rpc" }}
+          mantis.network.server-address.port = {{ env "NOMAD_PORT_server" }}
+        '';
+        changeMode = "noop";
+        destination = "local/mantis.conf";
+      }];
+
+      command = run-mantis-faucet;
+
+      services."${faucetName}" = {
+        tags = [ "${faucetName}" ];
+        meta = {
+          name = faucetName;
+          publicIp = "\${attr.unique.platform.aws.public-ipv4}";
+        };
+        portLabel = "rpc";
+        checks = [{
+          type = "script";
+          command = "echo true";
+          portLabel = "rpc";
+
+          checkRestart = {
+            limit = 5;
+            grace = "300s";
+            ignoreWarnings = false;
+          };
+        }];
+      };
+    };
+  };
+
 in {
   "${prefix}-mantis" = mkNomadJob "${prefix}-mantis" {
     datacenters = [ "us-east-2" "eu-central-1" ];
@@ -343,5 +429,12 @@ in {
     type = "service";
 
     taskGroups."${prefix}-explorer" = explorer;
+  };
+
+  "${faucetName}" = mkNomadJob "${faucetName}" {
+    datacenters = [ "us-east-2" "eu-central-1" ];
+    type = "service";
+
+    taskGroups."${faucetName}" = faucet;
   };
 }
