@@ -123,22 +123,6 @@ in {
           inherit (securityGroupRules)
             internet internal ssh http https haproxyStats vault-http grpc;
         };
-
-        initialVaultSecrets = {
-          consul = ''
-            sops --decrypt --extract '["encrypt"]' ${
-              config.secrets.encryptedRoot + "/consul-clients.json"
-            } \
-            | vault kv put kv/bootstrap/clients/consul encrypt=-
-          '';
-
-          nomad = ''
-            sops --decrypt --extract '["server"]["encrypt"]' ${
-              config.secrets.encryptedRoot + "/nomad.json"
-            } \
-            | vault kv put kv/bootstrap/clients/nomad encrypt=-
-          '';
-        };
       };
 
       core-2 = {
