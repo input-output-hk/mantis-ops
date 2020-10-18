@@ -209,7 +209,7 @@ let
         };
 
         services.${serviceName} = {
-          tags = [ serviceName mantis-source.rev ] ++ tags;
+          tags = [ prefix serviceName mantis-source.rev ] ++ tags;
           meta = {
             inherit name;
             publicIp = "\${attr.unique.platform.aws.public-ipv4}";
@@ -239,11 +239,13 @@ let
         mining-enabled = true;
       };
       serviceName = "${prefix}-mantis-miner";
-      tags = [ prefix "public" name ];
+      tags = [ "ingress" prefix name ];
       meta = {
-        path = "/";
-        domain = "${name}.mantis.ws";
-        port = toString publicPort;
+        ingressHost = "${name}.mantis.ws";
+        ingressPort = toString publicPort;
+        ingressBind = "*:${toString publicPort}";
+        ingressMode = "tcp";
+        ingressServer = "${name}.${prefix}-mantis-miner.service.consul";
       };
     });
 
@@ -318,10 +320,15 @@ let
       '';
 
       services."${name}" = {
-        tags = [ "${name}" ];
+        tags = [ "ingress" prefix name ];
         meta = {
           inherit name;
           publicIp = "\${attr.unique.platform.aws.public-ipv4}";
+          ingressHost = "${name}.mantis.ws";
+          ingressMode = "http";
+          ingressIf = "{ path_beg -i /rpc/node }";
+          ingressServer = "_${name}._tcp.service.consul";
+          ingressBackendExtra = "http-request set-path /";
         };
         portLabel = "http";
         checks = [{
@@ -457,10 +464,13 @@ let
       '';
 
       services."${faucetName}" = {
-        tags = [ "${faucetName}" ];
+        tags = [ "ingress" prefix faucetName ];
         meta = {
           name = faucetName;
           publicIp = "\${attr.unique.platform.aws.public-ipv4}";
+          ingressHost = "${faucetName}.mantis.ws";
+          ingressMode = "http";
+          ingressServer = "_${faucetName}._tcp.service.consul";
         };
         portLabel = "rpc";
       };
