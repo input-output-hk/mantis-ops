@@ -232,19 +232,6 @@ in {
     name = "devShell";
   };
 
-  # inject vault-bin into bitte wrapper
-  bitte = let
-    bitte-nixpkgs = import self.inputs.nixpkgs {
-      inherit system;
-      overlays = [
-        (final: prev: {
-          vault-bin = self.inputs.bitte.legacyPackages.${system}.vault-bin;
-        })
-        self.inputs.bitte-cli.overlay.${system}
-      ];
-    };
-  in bitte-nixpkgs.bitte;
-
   mantis-explorer = final.callPackage ./pkgs/mantis-explorer.nix {
     src = self.inputs.mantis-explorer;
   };
@@ -259,8 +246,8 @@ in {
   };
 
   inherit (self.inputs.bitte.legacyPackages.${system})
-    vault-bin mkNomadJob terraform-with-plugins systemdSandbox nixFlakes nomad
-    consul consul-template bitte-tokens;
+    bitte vault-bin mkNomadJob terraform-with-plugins
+    systemdSandbox nixFlakes nomad consul consul-template bitte-tokens;
 
   nomadJobs = let
     jobsDir = ./jobs;
