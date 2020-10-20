@@ -156,7 +156,7 @@
     # Now the nomad cli becomes available.
     # The following are some example commands that may be useful:
     $ nomad status
-    $ nomad status mantis
+    $ nomad status testnet-mantis
     $ nomad alloc logs $ALLOC_ID > mantis-$ALLOC_ID.log
     $ nomad job stop mantis
     
