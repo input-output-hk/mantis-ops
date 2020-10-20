@@ -36,7 +36,11 @@
           terraform-with-plugins cfssl consul;
       };
 
-      hydraJobs = packages;
+      hydraJobs = packages // {
+        prebuilt-devshell = devShell.overrideAttrs (_: {
+          nobuildPhase = "touch $out";
+        });
+      };
 
       apps.bitte = utils.lib.mkApp { drv = legacyPackages.bitte; };
     })) // (let
