@@ -49,13 +49,19 @@ trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDS
 
 * Additionally, for a Nix multi-user install:
   * The following line should also be added, where `<YOUR_USERNAME>` is substituted with your actual non-root username:
-```
-trusted-users = <YOUR_USERNAME>
-```
+    ```
+    trusted-users = <YOUR_USERNAME>
+    ```
   * Once the new configuration lines have been added, the nix-daemon service needs to be restarted for the full Nix configuration changes to take effect:
-```
-sudo systemctl restart nix-daemon.service
-```
+    * Linux (shouldn't be necessary on NixOS as it's supposed to be handled by activation):
+    ```
+    sudo systemctl restart nix-daemon.service
+    ```
+    * Darwin:
+    ```
+    sudo launchctl unload /Library/LaunchDaemons/org.nixos.nix-daemon.plist
+    sudo launchctl load /Library/LaunchDaemons/org.nixos.nix-daemon.plist
+    ```
 
 * If lines for `experimental-features`, `substituters`, `trusted-public-keys` or `trusted-users` already exist in your Nix configuration file, then merge the lines above with the content that is already pre-existing in your Nix configuration.
 * For a NixOS installation, the following declarative code snippet in the machine NixOS configuration file, usually found at `/etc/nixos/configuration.nix`, followed by a `sudo nixos-rebuild switch` will add and activate the modified Nix configuration:
