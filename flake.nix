@@ -17,7 +17,7 @@
   };
 
   outputs = { self, nixpkgs, utils, ops-lib, bitte, ... }:
-    (utils.lib.eachSystem [ "x86_64-linux" ] (system: rec {
+    (utils.lib.eachSystem [ "x86_64-linux" "x86_64-darwin" ] (system: rec {
       overlay = import ./overlay.nix { inherit system self; };
 
       legacyPackages = import nixpkgs {
@@ -32,9 +32,14 @@
       inherit (legacyPackages) devShell;
 
       packages = {
-        inherit (legacyPackages) bitte nixFlakes sops generate-mantis-keys;
-        inherit (self.inputs.bitte.packages.${system})
+        inherit (legacyPackages) bitte nixFlakes sops generate-mantis-keys
           terraform-with-plugins cfssl consul;
+      };
+
+      hydraJobs = packages // {
+        prebuilt-devshell = devShell.overrideAttrs (_: {
+          nobuildPhase = "touch $out";
+        });
       };
 
       apps.bitte = utils.lib.mkApp { drv = legacyPackages.bitte; };
