@@ -494,6 +494,7 @@ let
           name = faucetName;
           publicIp = "\${attr.unique.platform.aws.public-ipv4}";
           ingressHost = "${faucetName}.mantis.ws";
+          ingressBind = "*:443";
           ingressMode = "http";
           ingressServer = "_${faucetName}._tcp.service.consul";
         };
