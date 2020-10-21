@@ -34,7 +34,7 @@
 
 
   services.ingress-config.extraConfig = ''
-    {{- range services -}}
+    {{ range services -}}
       {{ if .Tags | contains "ingress" -}}
         {{ range service .Name -}}
           {{ if .ServiceMeta.IngressServer -}}
