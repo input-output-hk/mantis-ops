@@ -141,12 +141,12 @@ let
 
   mkMantis = { name, resources, ephemeralDisk, count ? 1, templates, serviceName
     , tags ? [ ], extraEnvironmentVariables ? [ ], meta ? { }, constraints ? [ ]
-    , requiredPeerCount }: {
+    , requiredPeerCount, services ? {} }: {
       inherit ephemeralDisk count constraints;
 
       reschedulePolicy = {
         attempts = 0;
-        unlimited = false;
+        unlimited = true;
       };
 
       tasks."${name}-telegraf" = systemdSandbox {
@@ -193,40 +193,42 @@ let
 
         restartPolicy = {
           interval = "30m";
-          attempts = 1;
+          attempts = 10;
           delay = "1m";
           mode = "fail";
         };
 
-        services."${serviceName}-prometheus" = {
-          tags = [ prefix "prometheus" ];
-          portLabel = "metrics";
-        };
+        services = lib.recursiveUpdate {
+          "${serviceName}-prometheus" = {
+            tags = [ "prometheus" prefix serviceName name mantis-source.rev ];
+            portLabel = "metrics";
+          };
 
-        services."${serviceName}-rpc" = {
-          tags = [ prefix "rpc" serviceName name ];
-          portLabel = "rpc";
-        };
-
-        services.${serviceName} = {
-          tags = [ prefix serviceName mantis-source.rev ] ++ tags;
-          meta = {
-            inherit name;
-            publicIp = "\${attr.unique.platform.aws.public-ipv4}";
-          } // meta;
-          portLabel = "server";
-          checks = [{
-            type = "http";
-            path = "/healthcheck";
+          "${serviceName}-rpc" = {
+            tags = [ "rpc" prefix serviceName name mantis-source.rev ];
             portLabel = "rpc";
+          };
 
-            checkRestart = {
-              limit = 5;
-              grace = "300s";
-              ignoreWarnings = false;
-            };
-          }];
-        };
+          ${serviceName} = {
+            tags = [ "server" prefix serviceName mantis-source.rev ] ++ tags;
+            meta = {
+              inherit name;
+              publicIp = "\${attr.unique.platform.aws.public-ipv4}";
+            } // meta;
+            portLabel = "server";
+            checks = [{
+              type = "http";
+              path = "/healthcheck";
+              portLabel = "rpc";
+
+              checkRestart = {
+                limit = 5;
+                grace = "300s";
+                ignoreWarnings = false;
+              };
+            }];
+          };
+        } services;
       };
     };
 
@@ -238,8 +240,11 @@ let
         inherit name;
         mining-enabled = true;
       };
+
       serviceName = "${prefix}-mantis-miner";
+
       tags = [ "ingress" prefix name ];
+
       meta = {
         ingressHost = "${name}.mantis.ws";
         ingressPort = toString publicPort;
@@ -254,10 +259,30 @@ let
       name = "${prefix}-mantis-passive";
       serviceName = "${prefix}-mantis-passive";
       resources = passiveResources;
-      tags = [ prefix "passive" ];
+      tags = [ prefix "passive" "ingress" ];
+
       inherit count;
+
       requiredPeerCount = builtins.length miners;
+
       ephemeralDisk = { sizeMB = 1000; };
+
+      services."${prefix}-mantis-passive-rpc" = {
+        tags = [ "rpc" "ingress" prefix "${prefix}-mantis-passive" mantis-source.rev ];
+        portLabel = "rpc";
+        meta = {
+          ingressHost = "${prefix}-explorer.mantis.ws";
+          ingressMode = "http";
+          IngressBind = "*:443";
+          ingressIf = "{ path_beg -i /rpc/node }";
+          ingressServer = "_${prefix}-mantis-passive-rpc._tcp.service.consul";
+          ingressBackendExtra = ''
+            option tcplog
+            http-request set-path /
+          '';
+        };
+      };
+
       templates = [
         {
           data = ''
@@ -326,9 +351,9 @@ let
           publicIp = "\${attr.unique.platform.aws.public-ipv4}";
           ingressHost = "${name}.mantis.ws";
           ingressMode = "http";
-          ingressIf = "{ path_beg -i /rpc/node }";
+          IngressBind = "*:443";
+          ingressIf = "! { path_beg -i /rpc/node }";
           ingressServer = "_${name}._tcp.service.consul";
-          ingressBackendExtra = "http-request set-path /";
         };
         portLabel = "http";
         checks = [{

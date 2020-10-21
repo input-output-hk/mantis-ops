@@ -5,7 +5,7 @@
   #   acl is_faucet_rpc hdr(host) -i faucet.${config.cluster.domain}
   # '';
 
-  services.ingress.extraHttpsBackends = ''
+  services.ingress-config.extraHttpsBackends = ''
     {{ range services -}}
       {{ if .Tags | contains "ingress" -}}
         {{ range service .Name -}}
@@ -33,8 +33,8 @@
     #   server-template faucet-rpc 2 _testnet-mantis-faucet._tcp.service.consul
 
 
-  services.ingress.extraConfig = ''
-    {{ range services -}}
+  services.ingress-config.extraConfig = ''
+    {{- range services -}}
       {{ if .Tags | contains "ingress" -}}
         {{ range service .Name -}}
           {{ if .ServiceMeta.IngressServer -}}
