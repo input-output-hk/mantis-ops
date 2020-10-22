@@ -221,7 +221,6 @@ in {
       final.python38Packages.pyhcl
       final.direnv
       final.nixFlakes
-      final.bitte-tokens
       final.jq
     ];
   };
@@ -246,8 +245,8 @@ in {
   };
 
   inherit (self.inputs.bitte.legacyPackages.${system})
-    bitte vault-bin mkNomadJob terraform-with-plugins
-    systemdSandbox nixFlakes nomad consul consul-template bitte-tokens;
+    bitte vault-bin mkNomadJob terraform-with-plugins systemdSandbox nixFlakes
+    nomad consul consul-template;
 
   nomadJobs = let
     jobsDir = ./jobs;
