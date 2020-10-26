@@ -379,9 +379,10 @@ in {
     self.inputs.bitte.legacyPackages.${system}.mkNixosConfigurations
     final.clusters;
 
-  clusters = self.inputs.bitte.legacyPackages.${system}.mkClusters {
+  clusters = self.inputs.bitte.legacyPackages.x86_64-linux.mkClusters {
     root = ./clusters;
-    inherit self system;
+    system = "x86_64-linux";
+    inherit self;
   };
 
   inherit (self.inputs.bitte.legacyPackages.${system})
