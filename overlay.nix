@@ -66,9 +66,11 @@ in {
       ])
     }"
 
-    [ $# -eq 1 ] || { echo "One argument is required. Pass the number of keys to generate."; exit 1; }
+    [ $# -eq 2 ] || { echo "Two arguments are required. Pass the prefix and the number of keys to generate."; exit 1; }
 
-    desired="$1"
+    prefix="$1"
+    desired="$2"
+    mkdir -p secrets
 
     echo "generating $desired keys"
 
@@ -105,47 +107,37 @@ in {
     for count in $(seq "$desired"); do
       keyFile="secrets/mantis-$count.key"
       coinbaseFile="secrets/mantis-$count.coinbase"
-      secretKeyPath="kv/nomad-cluster/testnet/testnet-mantis-$count/secret-key"
-      hashKeyPath="kv/nomad-cluster/testnet/testnet-mantis-$count/enode-hash"
-      coinbasePath="kv/nomad-cluster/testnet/testnet-mantis-$count/coinbase"
-      accountPath="kv/nomad-cluster/testnet/testnet-mantis-$count/account"
+      secretKeyPath="kv/nomad-cluster/$prefix/testnet-mantis-$count/secret-key"
+      hashKeyPath="kv/nomad-cluster/$prefix/testnet-mantis-$count/enode-hash"
+      coinbasePath="kv/nomad-cluster/$prefix/testnet-mantis-$count/coinbase"
+      accountPath="kv/nomad-cluster/$prefix/testnet-mantis-$count/account"
+      genesisPath="kv/nomad-cluster/$prefix/genesis"
 
       hashKey="$(vault kv get -field value "$hashKeyPath" || true)"
 
       if [ -z "$hashKey" ]; then
-        if [ -s "$keyFile" ]; then
-          echo "Uploading existing key from $keyFile to Vault"
-
-          hashKey="$(tail -1 "$keyFile")"
-          vault kv put "$hashKeyPath" "value=$hashKey"
-
-          secretKey="$(head -1 "$keyFile")"
-          vault kv put "$secretKeyPath" "value=$secretKey"
-
-          coinbase="$(generateCoinbase "$secretKey")"
-          vault kv put "$coinbasePath" "value=$coinbase"
-
-          cat $tmpdir/.mantis/testnet-internal/keystore/*$coinbase | vault kv put "$accountPath" -
-        else
-          echo "Generating key in $keyFile and uploading to Vault"
+        if ! [ -s "$keyFile" ]; then
+          echo "Generating key in $keyFile"
 
           len=0
           until [ $len -eq 194 ]; do
             echo "generating key..."
             len="$( eckeygen -Dconfig.file=${final.mantis}/conf/mantis.conf | tee "$keyFile" | wc -c )"
           done
-
-          hashKey="$(tail -1 "$keyFile")"
-          vault kv put "$hashKeyPath" "value=$hashKey"
-
-          secretKey="$(head -1 "$keyFile")"
-          vault kv put "$secretKeyPath" "value=$secretKey"
-
-          coinbase="$(generateCoinbase "$secretKey")"
-          vault kv put "$coinbasePath" "value=$coinbase"
-
-          cat $tmpdir/.mantis/testnet-internal/keystore/*$coinbase | vault kv put "$accountPath" -
         fi
+
+        echo "Uploading existing key from $keyFile to Vault"
+
+        hashKey="$(tail -1 "$keyFile")"
+        vault kv put "$hashKeyPath" "value=$hashKey"
+
+        secretKey="$(head -1 "$keyFile")"
+        vault kv put "$secretKeyPath" "value=$secretKey"
+
+        coinbase="$(generateCoinbase "$secretKey")"
+        vault kv put "$coinbasePath" "value=$coinbase"
+
+        cat $tmpdir/.mantis/testnet-internal/keystore/*$coinbase | vault kv put "$accountPath" -
       else
         echo "Downloading key for $keyFile from Vault"
         secretKey="$(vault kv get -field value "$secretKeyPath")"
@@ -187,7 +179,7 @@ in {
       genesis="$updatedGenesis"
     done
 
-    echo "$genesis" | vault kv put kv/nomad-cluster/testnet/genesis -
+    echo "$genesis" | vault kv put $genesisPath -
   '';
 
   devShell = let
