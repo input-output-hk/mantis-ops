@@ -276,7 +276,7 @@
   * Pre-existing bootstrap node state can be viewed at the [testnet Vault kv](https://vault.mantis.ws/ui/vault/secrets/kv/list/nomad-cluster/testnet/) path.
   * This state pre-generation is done with the following command:
     ```
-    nix run .#generate-mantis-keys $NAMESPACE $TOTAL_NUM_BOOTSTRAP_NODES
+    nix run .#generate-mantis-keys $NAMESPACE $TOTAL_NUM_MANTIS_BOOTSTRAP_NODES $TOTAL_NUM_OBFT_NODES
     ```
     `NANESPACE` being `"testnet"` for the main testnet or your personal testnet name.
 
