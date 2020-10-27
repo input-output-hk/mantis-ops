@@ -77,7 +77,7 @@
       nix.extraOptions = ''
         experimental-features = nix-command flakes ca-references
       '';
-    
+
     ```
 
 
@@ -87,10 +87,10 @@
     ```
     # For cloning using a github registered key:
     $ git clone git@github.com:input-output-hk/mantis-ops
-    
+
     # or, for cloning without a github registered key:
     $ git clone https://github.com/input-output-hk/mantis-ops
-    
+
     $ cd mantis-ops
     ```
 
@@ -152,14 +152,14 @@
     ```
     # Export the nomad developer token:
     $ export NOMAD_TOKEN="$(vault read -field secret_id nomad/creds/developer)"
-    
+
     # Now the nomad cli becomes available.
     # The following are some example commands that may be useful:
     $ nomad status
     $ nomad status testnet-mantis
     $ nomad alloc logs $ALLOC_ID > mantis-$ALLOC_ID.log
     $ nomad job stop mantis
-    
+
     # etc.
     ```
 
@@ -202,7 +202,7 @@
     ```
     # In the "Log labels" field enter the following to search for all logs related to the `mantis-1` taskgroup:
     {syslog_identifier="mantis-1"}
-    
+
     # In the "Log labels" field enter the following to search for all logs related to the `mantis-1` taskgroup
     # and filter for DAG events:
     {syslog_identifier="mantis-1"} |~ "DAG"
@@ -219,7 +219,7 @@
         ref = "$BRANCH";
         submodules = true;
       };
-    
+
     ```
 * To update the commit that a mantis job will be run with, update the `rev` and `ref` fields with the appropriate git commit revision and git commit branch.
 * It is a good idea to commit mantis-source updates since a github action will automatically push the build product to cachix for faster job deployments for everyone on the team.
@@ -272,8 +272,11 @@
   * Pre-existing bootstrap node state can be viewed at the [testnet Vault kv](https://vault.mantis.ws/ui/vault/secrets/kv/list/nomad-cluster/testnet/) path.
   * This state pre-generation is done with the following command:
     ```
-    nix run .#generate-mantis-keys $TOTAL_NUM_BOOTSTRAP_NODES
+    nix run .#generate-mantis-keys $NAMESPACE $TOTAL_NUM_BOOTSTRAP_NODES
     ```
+    `NANESPACE` being `"testnet"` for the main testnet or your personal testnet name.
+
+
 
 
 ### Scaling Infrastructure Requirements
@@ -302,7 +305,7 @@
     ```
     # Build the mantis executables and configuration files
     $ nix build .#mantis -o mantis-node
-    
+
     # Run a local mantis node against the testnet bootstrap cluster
     $ consul-template -template templates/mantis.tmpl:mantis-local.conf -exec './mantis-node/bin/mantis -Dconfig.file=./mantis-local.conf'
     ```
