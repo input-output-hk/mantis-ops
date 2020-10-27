@@ -147,9 +147,6 @@ in {
         coinbase="$(vault kv get -field value "$coinbasePath")"
         echo "$coinbase" > "$coinbaseFile"
       fi
-
-      coinbase="$(generateCoinbase "$secretKey")"
-      cat $tmpdir/.mantis/testnet-internal/keystore/*$coinbase | vault kv put "$accountPath" -
     done
 
     read genesis <<EOF
