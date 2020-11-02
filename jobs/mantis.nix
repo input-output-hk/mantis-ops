@@ -1,100 +1,16 @@
-{ mkNomadJob, systemdSandbox, writeShellScript, writeText, coreutils, lib
-, cacert, jq, gnused, mantis, mantis-source, dnsutils, gnugrep, iproute, lsof
-, netcat, nettools, procps, curl, gawk, telegraf, webfs, mantis-explorer }:
+{ mkNomadJob, lib, mantis, mantis-source, dockerImages }:
 let
   # NOTE: Copy this file and change the next line if you want to start your own cluster!
-  prefix = "testnet";
-
-  minerResources = {
-    # For c5.2xlarge in clusters/mantis/testnet/default.nix, the url ref below
-    # provides 3.4 GHz * 8 vCPU = 27.2 GHz max.  80% is 21760 MHz.
-    # Allocating by vCPU or core quantity not yet available.
-    # Ref: https://github.com/hashicorp/nomad/blob/master/client/fingerprint/env_aws.go
-    cpu = 21760;
-    memoryMB = 8 * 1024;
-    networks = [{
-      dynamicPorts =
-        [ { label = "rpc"; } { label = "server"; } { label = "metrics"; } ];
-    }];
-  };
-
-  passiveResources = {
-    # For c5.2xlarge in clusters/mantis/testnet/default.nix, the url ref below
-    # provides 3.4 GHz * 8 vCPU = 27.2 GHz max.  80% is 21760 MHz.
-    # Allocating by vCPU or core quantity not yet available.
-    # Ref: https://github.com/hashicorp/nomad/blob/master/client/fingerprint/env_aws.go
-    cpu = 500;
-    memoryMB = 3 * 1024;
-    networks = [{
-      dynamicPorts =
-        [ { label = "rpc"; } { label = "server"; } { label = "metrics"; } ];
-    }];
-  };
-
-  ephemeralDisk = {
-    # Std client disk size is set as gp2, 100 GB SSD in bitte at
-    # modules/terraform/clients.nix
-    sizeMB = 10 * 1000;
-    # migrate = true;
-    # sticky = true;
-  };
+  namespace = "mantis-testnet";
 
   genesisJson = {
     data = ''
-      {{- with secret "kv/nomad-cluster/${prefix}/genesis" -}}
+      {{- with secret "kv/nomad-cluster/${namespace}/genesis" -}}
       {{.Data.data | toJSON }}
       {{- end -}}
     '';
     changeMode = "restart";
     destination = "local/genesis.json";
-  };
-
-  run-mantis = { requiredPeerCount }:
-    writeShellScript "mantis" ''
-      set -exuo pipefail
-      export PATH=${lib.makeBinPath [ jq coreutils gnused gnugrep mantis ]}
-
-      mkdir -p "$NOMAD_TASK_DIR"/{mantis,rocksdb,logs}
-      cd "$NOMAD_TASK_DIR"
-
-      set +x
-      echo "waiting for ${toString requiredPeerCount} peers"
-      until [ "$(grep -c enode mantis.conf)" -ge ${
-        toString requiredPeerCount
-      } ]; do
-        sleep 0.1
-      done
-      set -x
-
-      cp "mantis.conf" running.conf
-
-      chown --reference . --recursive . || true
-
-      env
-
-      cat "$NOMAD_TASK_DIR/genesis.json"
-
-      ulimit -c unlimited
-
-      exec mantis "-Duser.home=$NOMAD_TASK_DIR" "-Dconfig.file=$NOMAD_TASK_DIR/running.conf"
-    '';
-
-  env = {
-    # Adds some extra commands to the store and path for debugging inside
-    # nomad jobs with `nomad alloc exec $ALLOC_ID /bin/sh`
-    PATH = lib.makeBinPath [
-      coreutils
-      curl
-      dnsutils
-      gawk
-      gnugrep
-      iproute
-      jq
-      lsof
-      netcat
-      nettools
-      procps
-    ];
   };
 
   templatesFor = { name ? null, mining-enabled ? false }:
@@ -108,18 +24,18 @@ let
           logging.logs-file = "logs"
 
           mantis.blockchains.testnet-internal.bootstrap-nodes = [
-            {{ range service "${prefix}-mantis-miner" -}}
-              "enode://  {{- with secret (printf "kv/data/nomad-cluster/${prefix}/%s/enode-hash" .ServiceMeta.Name) -}}
+            {{ range service "${namespace}-mantis-miner" -}}
+              "enode://  {{- with secret (printf "kv/data/nomad-cluster/${namespace}/%s/enode-hash" .ServiceMeta.Name) -}}
                 {{- .Data.data.value -}}
                 {{- end -}}@{{ .Address }}:{{ .Port }}",
             {{ end -}}
           ]
 
           mantis.client-id = "${name}"
-          mantis.consensus.coinbase = "{{ with secret "kv/data/nomad-cluster/${prefix}/${name}/coinbase" }}{{ .Data.data.value }}{{ end }}"
+          mantis.consensus.coinbase = "{{ with secret "kv/data/nomad-cluster/${namespace}/${name}/coinbase" }}{{ .Data.data.value }}{{ end }}"
           mantis.node-key-file = "{{ env "NOMAD_SECRETS_DIR" }}/secret-key"
-          mantis.datadir = "{{ env "NOMAD_TASK_DIR" }}/mantis"
-          mantis.ethash.ethash-dir = "{{ env "NOMAD_TASK_DIR" }}/ethash"
+          mantis.datadir = "/local/mantis"
+          mantis.ethash.ethash-dir = "/local/ethash"
           mantis.metrics.enabled = true
           mantis.metrics.port = {{ env "NOMAD_PORT_metrics" }}
           mantis.network.rpc.http.interface = "0.0.0.0"
@@ -133,34 +49,62 @@ let
       genesisJson
     ] ++ (lib.optional mining-enabled {
       data = ''
-        ${secret "kv/data/nomad-cluster/${prefix}/${name}/secret-key"}
-        ${secret "kv/data/nomad-cluster/${prefix}/${name}/enode-hash"}
+        ${secret "kv/data/nomad-cluster/${namespace}/${name}/secret-key"}
+        ${secret "kv/data/nomad-cluster/${namespace}/${name}/enode-hash"}
       '';
       destination = "secrets/secret-key";
     });
 
-  mkMantis = { name, resources, ephemeralDisk, count ? 1, templates, serviceName
-    , tags ? [ ], extraEnvironmentVariables ? [ ], meta ? { }, constraints ? [ ]
-    , requiredPeerCount, services ? {} }: {
-      inherit ephemeralDisk count constraints;
+  mkMantis = { name, resources, count ? 1, templates, serviceName, tags ? [ ]
+    , meta ? { }, constraints ? [ ], requiredPeerCount, services ? { } }: {
+      inherit count constraints;
+
+      networks = [{
+        ports = {
+          metrics.to = 7000;
+          rpc.to = 8000;
+          server.to = 9000;
+        };
+      }];
+
+      ephemeralDisk = {
+        sizeMB = 10 * 1000;
+        migrate = true;
+        sticky = true;
+      };
 
       reschedulePolicy = {
         attempts = 0;
         unlimited = true;
       };
 
-      tasks."${name}-telegraf" = systemdSandbox {
-        name = "${name}-telegraf";
+      tasks.telegraf = {
+        driver = "docker";
 
         vault.policies = [ "nomad-cluster" ];
 
-        command = writeShellScript "telegraf" ''
-          set -exuo pipefail
+        resources = {
+          cpu = 100; # mhz
+          memoryMB = 128;
+        };
 
-          ${coreutils}/bin/env
+        config = {
+          image = dockerImages.telegraf.id;
+          args = [ "-config" "local/telegraf.config" ];
 
-          exec ${telegraf}/bin/telegraf -config $NOMAD_TASK_DIR/telegraf.config
-        '';
+          labels = [{
+            inherit namespace name;
+            imageTag = dockerImages.telegraf.image.imageTag;
+          }];
+
+          logging = {
+            type = "journald";
+            config = [{
+              tag = "${name}-telegraf";
+              labels = "name,namespace,imageTag";
+            }];
+          };
+        };
 
         templates = [{
           data = ''
@@ -171,25 +115,79 @@ let
 
             [global_tags]
             client_id = "${name}"
+            namespace = "${namespace}"
 
             [inputs.prometheus]
             metric_version = 1
-            urls = [ "http://{{ env "NOMAD_ADDR_${
-              lib.replaceStrings [ "-" ] [ "_" ] name
-            }_metrics" }}" ]
+
+            urls = [ "http://{{ env "NOMAD_ADDR_metrics" }}" ]
 
             [outputs.influxdb]
             database = "telegraf"
-            urls = ["http://monitoring.node.consul:8428"]
+            urls = ["http://{{with node "monitoring" }}{{ .Node.Address }}{{ end }}:8428"]
           '';
+
           destination = "local/telegraf.config";
         }];
       };
 
-      tasks.${name} = systemdSandbox {
-        inherit name env resources templates extraEnvironmentVariables;
-        command = run-mantis { inherit requiredPeerCount; };
+      services = lib.recursiveUpdate {
+        "${serviceName}-prometheus" = {
+          portLabel = "metrics";
+          tags = [ "prometheus" namespace serviceName name mantis-source.rev ];
+        };
+
+        "${serviceName}-rpc" = {
+          portLabel = "rpc";
+          tags = [ "rpc" namespace serviceName name mantis-source.rev ];
+        };
+
+        ${serviceName} = {
+          portLabel = "server";
+
+          tags = [ "server" namespace serviceName mantis-source.rev ] ++ tags;
+
+          meta = {
+            inherit name;
+            publicIp = "\${attr.unique.platform.aws.public-ipv4}";
+          } // meta;
+
+          checks = [{
+            type = "http";
+            path = "/healthcheck";
+            portLabel = "rpc";
+
+            checkRestart = {
+              limit = 5;
+              grace = "300s";
+              ignoreWarnings = false;
+            };
+          }];
+        };
+      } services;
+
+      tasks.${name} = {
+        inherit name resources templates;
+        driver = "docker";
         vault.policies = [ "nomad-cluster" ];
+
+        config = {
+          image = dockerImages.mantis.id;
+          args = [ "-Dconfig.file=running.conf" ];
+          ports = ["rpc" "server" "metrics"];
+          labels = [{
+            inherit namespace name;
+            imageTag = dockerImages.mantis.image.imageTag;
+          }];
+
+          logging = {
+            type = "journald";
+            config = [{
+              tag = name;
+              labels = "name,namespace,imageTag";
+            }];
+          };
+        };
 
         restartPolicy = {
           interval = "30m";
@@ -198,84 +196,69 @@ let
           mode = "fail";
         };
 
-        services = lib.recursiveUpdate {
-          "${serviceName}-prometheus" = {
-            tags = [ "prometheus" prefix serviceName name mantis-source.rev ];
-            portLabel = "metrics";
-          };
-
-          "${serviceName}-rpc" = {
-            tags = [ "rpc" prefix serviceName name mantis-source.rev ];
-            portLabel = "rpc";
-          };
-
-          ${serviceName} = {
-            tags = [ "server" prefix serviceName mantis-source.rev ] ++ tags;
-            meta = {
-              inherit name;
-              publicIp = "\${attr.unique.platform.aws.public-ipv4}";
-            } // meta;
-            portLabel = "server";
-            checks = [{
-              type = "http";
-              path = "/healthcheck";
-              portLabel = "rpc";
-
-              checkRestart = {
-                limit = 5;
-                grace = "300s";
-                ignoreWarnings = false;
-              };
-            }];
-          };
-        } services;
+        env = { REQUIRED_PEER_COUNT = toString requiredPeerCount; };
       };
     };
 
   mkMiner = { name, publicPort, requiredPeerCount ? 0, instanceId ? null }:
     lib.nameValuePair name (mkMantis {
-      resources = minerResources;
-      inherit ephemeralDisk name requiredPeerCount;
+      resources = {
+        # For c5.2xlarge in clusters/mantis/testnet/default.nix, the url ref below
+        # provides 3.4 GHz * 8 vCPU = 27.2 GHz max.  80% is 21760 MHz.
+        # Allocating by vCPU or core quantity not yet available.
+        # Ref: https://github.com/hashicorp/nomad/blob/master/client/fingerprint/env_aws.go
+        cpu = 21760;
+        memoryMB = 8 * 1024;
+      };
+
+      inherit name requiredPeerCount;
       templates = templatesFor {
         inherit name;
         mining-enabled = true;
       };
 
-      serviceName = "${prefix}-mantis-miner";
+      serviceName = "${namespace}-mantis-miner";
 
-      tags = [ "ingress" prefix name ];
+      tags = [ "ingress" namespace name ];
 
       meta = {
         ingressHost = "${name}.mantis.ws";
         ingressPort = toString publicPort;
         ingressBind = "*:${toString publicPort}";
         ingressMode = "tcp";
-        ingressServer = "${name}.${prefix}-mantis-miner.service.consul";
+        ingressServer = "${name}.${namespace}-mantis-miner.service.consul";
       };
     });
 
   mkPassive = count:
-    mkMantis {
-      name = "${prefix}-mantis-passive";
-      serviceName = "${prefix}-mantis-passive";
-      resources = passiveResources;
-      tags = [ prefix "passive" "ingress" ];
+    let name = "${namespace}-mantis-passive";
+    in mkMantis {
+      inherit name;
+      serviceName = name;
+      resources = {
+        # For c5.2xlarge in clusters/mantis/testnet/default.nix, the url ref below
+        # provides 3.4 GHz * 8 vCPU = 27.2 GHz max.  80% is 21760 MHz.
+        # Allocating by vCPU or core quantity not yet available.
+        # Ref: https://github.com/hashicorp/nomad/blob/master/client/fingerprint/env_aws.go
+        cpu = 500;
+        memoryMB = 3 * 1024;
+      };
+
+      tags = [ namespace "passive" "ingress" ];
 
       inherit count;
 
       requiredPeerCount = builtins.length miners;
 
-      ephemeralDisk = { sizeMB = 1000; };
-
-      services."${prefix}-mantis-passive-rpc" = {
-        tags = [ "rpc" "ingress" prefix "${prefix}-mantis-passive" mantis-source.rev ];
+      services."${name}-rpc" = {
+        tags = [ "rpc" "ingress" namespace name mantis-source.rev ];
         portLabel = "rpc";
         meta = {
-          ingressHost = "${prefix}-explorer.mantis.ws";
+          ingressHost = "${namespace}-explorer.mantis.ws";
           ingressMode = "http";
-          IngressBind = "*:443";
+          ingressBind = "*:443";
           ingressIf = "{ path_beg -i /rpc/node }";
-          ingressServer = "_${prefix}-mantis-passive-rpc._tcp.service.consul";
+          ingressServer = "_${name}-rpc._tcp.service.consul";
           ingressBackendExtra = ''
             option tcplog
             http-request set-path /
@@ -292,17 +275,17 @@ let
             logging.logs-file = "logs"
 
             mantis.blockchains.testnet-internal.bootstrap-nodes = [
-              {{ range service "${prefix}-mantis-miner" -}}
-                "enode://  {{- with secret (printf "kv/data/nomad-cluster/${prefix}/%s/enode-hash" .ServiceMeta.Name) -}}
+              {{ range service "${namespace}-mantis-miner" -}}
+                "enode://  {{- with secret (printf "kv/data/nomad-cluster/${namespace}/%s/enode-hash" .ServiceMeta.Name) -}}
                   {{- .Data.data.value -}}
                   {{- end -}}@{{ .Address }}:{{ .Port }}",
               {{ end -}}
             ]
 
-            mantis.client-id = "${prefix}-mantis-passive"
+            mantis.client-id = "${name}"
             mantis.consensus.mining-enabled = false
-            mantis.datadir = "{{ env "NOMAD_TASK_DIR" }}/mantis"
-            mantis.ethash.ethash-dir = "{{ env "NOMAD_TASK_DIR" }}/ethash"
+            mantis.datadir = "/local/mantis"
+            mantis.ethash.ethash-dir = "/local/ethash"
             mantis.metrics.enabled = true
             mantis.metrics.port = {{ env "NOMAD_PORT_metrics" }}
             mantis.network.rpc.http.interface = "0.0.0.0"
@@ -320,67 +303,105 @@ let
   amountOfMiners = 3;
 
   miners = lib.forEach (lib.range 1 amountOfMiners) (num: {
-    name = "${prefix}-mantis-${toString num}";
+    name = "mantis-${toString num}";
     requiredPeerCount = num - 1;
     publicPort = 9000 + num; # routed through haproxy/ingress
   });
 
-  explorer = let name = "${prefix}-explorer";
+  explorer = let name = "${namespace}-explorer";
   in {
-    tasks.${name} = systemdSandbox {
-      inherit name;
-      env = {
-        PATH = lib.makeBinPath [
-          coreutils
-          # nginx
-          webfs
-        ];
+    services."${name}" = {
+      portLabel = "http";
+
+      tags = [ "ingress" namespace "explorer" name ];
+
+      meta = {
+        inherit name;
+        publicIp = "\${attr.unique.platform.aws.public-ipv4}";
+        ingressHost = "${name}.mantis.ws";
+        ingressMode = "http";
+        ingressBind = "*:443";
+        ingressIf = "! { path_beg -i /rpc/node }";
+        ingressServer = "_${name}._tcp.service.consul";
       };
 
-      resources = { networks = [{ dynamicPorts = [{ label = "http"; }]; }]; };
-
-      command = writeShellScript "mantis-explorer-server" ''
-        set -euxo pipefail
-        exec webfsd -F -j -p $NOMAD_PORT_http -r ${mantis-explorer} -f index.html
-      '';
-
-      services."${name}" = {
-        tags = [ "ingress" prefix name ];
-        meta = {
-          inherit name;
-          publicIp = "\${attr.unique.platform.aws.public-ipv4}";
-          ingressHost = "${name}.mantis.ws";
-          ingressMode = "http";
-          IngressBind = "*:443";
-          ingressIf = "! { path_beg -i /rpc/node }";
-          ingressServer = "_${name}._tcp.service.consul";
-        };
+      checks = [{
+        type = "http";
+        path = "/";
         portLabel = "http";
-        checks = [{
-          type = "http";
-          path = "/";
-          portLabel = "http";
 
-          checkRestart = {
-            limit = 5;
-            grace = "300s";
-            ignoreWarnings = false;
-          };
+        checkRestart = {
+          limit = 5;
+          grace = "300s";
+          ignoreWarnings = false;
+        };
+      }];
+    };
+
+    networks = [{ ports = { http.to = 8080; }; }];
+
+    tasks.explorer = {
+      inherit name;
+      driver = "docker";
+      config.image = dockerImages.webfs.id;
+      ports = [ "http" ];
+      labels = [{
+        inherit namespace name;
+        imageTag = dockerImages.webfs.image.imageTag;
+      }];
+
+      logging = {
+        type = "journald";
+        config = [{
+          tag = name;
+          labels = "name,namespace,imageTag";
         }];
       };
     };
   };
 
-  faucetName = "${prefix}-mantis-faucet";
+  faucetName = "${namespace}-mantis-faucet";
   faucet = {
-    tasks.${faucetName} = systemdSandbox {
+    services."${faucetName}" = {
+      portLabel = "rpc";
+
+      tags = [ "ingress" namespace "faucet" faucetName ];
+
+      meta = {
+        name = faucetName;
+        publicIp = "\${attr.unique.platform.aws.public-ipv4}";
+        ingressHost = "${faucetName}.mantis.ws";
+        ingressBind = "*:443";
+        ingressMode = "http";
+        ingressServer = "_${faucetName}._tcp.service.consul";
+      };
+    };
+
+    networks = [{ ports = [{ rpc.to = 8000; }]; }];
+
+    tasks.faucet = {
       name = faucetName;
-      env = { PATH = lib.makeBinPath [ coreutils mantis ]; };
+      driver = "docker";
 
       vault.policies = [ "nomad-cluster" ];
 
-      resources = { networks = [{ dynamicPorts = [{ label = "rpc"; }]; }]; };
-      extraEnvironmentVariables = [ "COINBASE" ];
+      config = {
+        image = dockerImages.mantis-faucet.id;
+        args = [ "-Dconfig.file=running.conf" ];
+        labels = [{
+          inherit namespace;
+          name = faucetName;
+          imageTag = dockerImages.webfs.mantis-faucet.imageTag;
+        }];
+
+        logging = {
+          type = "journald";
+          config = [{
+            tag = faucetName;
+            labels = "name,namespace,imageTag";
+          }];
+        };
+      };
 
       templates = let
         secret = key: ''{{ with secret "${key}" }}{{.Data.data.value}}{{end}}'';
@@ -392,11 +413,11 @@ let
 
             faucet {
               # Base directory where all the data used by the faucet is stored
-              datadir = {{ env "NOMAD_TASK_DIR" }}/mantis-faucet
+              datadir = "/local/mantis-faucet"
 
               # Wallet address used to send transactions from
               wallet-address =
-                {{- with secret "kv/nomad-cluster/${prefix}/${prefix}-mantis-1/coinbase" -}}
+                {{- with secret "kv/nomad-cluster/${namespace}/${namespace}-mantis-1/coinbase" -}}
                   "{{.Data.data.value}}"
                 {{- end }}
 
@@ -425,7 +446,7 @@ let
               cors-allowed-origins = "*"
 
               # Address of Ethereum node used to send the transaction
-              rpc-address = {{- range service "${prefix}-mantis-1.${prefix}-mantis-miner-rpc" -}}
+              rpc-address = {{- range service "${namespace}-mantis-1.${namespace}-mantis-miner-rpc" -}}
                   "http://{{ .Address }}:{{ .Port }}"
                 {{- end }}
 
@@ -441,7 +462,7 @@ let
               json-output = false
 
               # Logs directory
-              logs-dir = {{ env "NOMAD_TASK_DIR" }}/mantis-faucet/logs
+              logs-dir = /local/mantis-faucet/logs
 
               # Logs filename
               logs-file = "logs"
@@ -453,7 +474,7 @@ let
         genesisJson
         {
           data = ''
-            {{- with secret "kv/data/nomad-cluster/${prefix}/${prefix}-mantis-1/account" -}}
+            {{- with secret "kv/data/nomad-cluster/${namespace}/${namespace}-mantis-1/account" -}}
             {{.Data.data | toJSON }}
             {{- end -}}
           '';
@@ -461,81 +482,48 @@ let
         }
         {
           data = ''
-            COINBASE={{- with secret "kv/data/nomad-cluster/${prefix}/${prefix}-mantis-1/coinbase" -}}{{ .Data.data.value }}{{- end -}}
+            COINBASE={{- with secret "kv/data/nomad-cluster/${namespace}/${namespace}-mantis-1/coinbase" -}}{{ .Data.data.value }}{{- end -}}
           '';
           destination = "secrets/env";
           env = true;
         }
       ];
-
-      command = writeShellScript "mantis-faucet" ''
-        set -exuo pipefail
-        export PATH=${lib.makeBinPath [ jq coreutils gnused gnugrep mantis ]}
-
-        mkdir -p "$NOMAD_TASK_DIR"/{mantis-faucet,logs}
-        mkdir -p "$NOMAD_SECRETS_DIR/keystore"
-        cd "$NOMAD_TASK_DIR"
-
-        cp faucet.conf running.conf
-        cp "$NOMAD_SECRETS_DIR/account" "$NOMAD_SECRETS_DIR/keystore/UTC--2020-10-16T14-48-29.47Z-$COINBASE"
-
-        cat "$NOMAD_SECRETS_DIR/keystore/UTC--2020-10-16T14-48-29.47Z-$COINBASE"
-
-        chown --reference . --recursive . || true
-
-        ulimit -c unlimited
-
-        exec faucet-server "-Duser.home=$NOMAD_TASK_DIR" "-Dconfig.file=$NOMAD_TASK_DIR/running.conf"
-      '';
-
-      services."${faucetName}" = {
-        tags = [ "ingress" prefix faucetName ];
-        meta = {
-          name = faucetName;
-          publicIp = "\${attr.unique.platform.aws.public-ipv4}";
-          ingressHost = "${faucetName}.mantis.ws";
-          ingressBind = "*:443";
-          ingressMode = "http";
-          ingressServer = "_${faucetName}._tcp.service.consul";
-        };
-        portLabel = "rpc";
-      };
     };
   };
-
 in {
-  "${prefix}-mantis" = mkNomadJob "${prefix}-mantis" {
+  "${namespace}-mantis" = mkNomadJob "mantis" {
     datacenters = [ "us-east-2" "eu-central-1" ];
     type = "service";
+    inherit namespace;
 
     update = {
       maxParallel = 1;
       # healthCheck = "checks"
-      minHealthyTime = "10s";
+      minHealthyTime = "30s";
       healthyDeadline = "5m";
       progressDeadline = "10m";
       autoRevert = true;
-      autoPromote = false;
-      canary = 0;
+      autoPromote = true;
+      canary = 1;
       stagger = "30s";
     };
 
     taskGroups = (lib.listToAttrs (map mkMiner miners)) // {
-      "${prefix}-mantis-passive" = mkPassive 1;
+      passive = mkPassive 1;
     };
   };
 
-  "${prefix}-mantis-explorer" = mkNomadJob "${prefix}-mantis-explorer" {
+  "${namespace}-mantis-explorer" = mkNomadJob "explorer" {
     datacenters = [ "us-east-2" "eu-central-1" ];
     type = "service";
 
-    taskGroups."${prefix}-explorer" = explorer;
+    taskGroups.explorer = explorer;
   };
 
-  "${faucetName}" = mkNomadJob "${faucetName}" {
+  "${faucetName}" = mkNomadJob "faucet" {
     datacenters = [ "us-east-2" "eu-central-1" ];
     type = "service";
 
-    taskGroups."${faucetName}" = faucet;
+    taskGroups.faucet = faucet;
   };
 }

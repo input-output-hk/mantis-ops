@@ -245,4 +245,50 @@ in {
     imported = lib.forEach fileNames
       (fileName: final.callPackage (jobsDir + "/${fileName}") { });
   in lib.foldl' lib.recursiveUpdate { } imported;
+
+  dockerImages = let
+    imageDir = ./docker;
+    contents = builtins.readDir imageDir;
+    toImport = name: type: type == "regular" && lib.hasSuffix ".nix" name;
+    fileNames = builtins.attrNames (lib.filterAttrs toImport contents);
+    imported = lib.forEach fileNames
+      (fileName: final.callPackages (imageDir + "/${fileName}") { });
+    merged = lib.foldl' lib.recursiveUpdate { } imported;
+  in lib.flip lib.mapAttrs merged (key: image: {
+    inherit image;
+
+    id = "${image.imageName}:${image.imageTag}";
+
+    push = final.writeShellScriptBin "push" ''
+      set -euo pipefail
+      echo "Pushing ${image} (${image.imageName}:${image.imageTag}) ..."
+      docker load -i ${image}
+      docker push ${image.imageName}:${image.imageTag}
+    '';
+
+    load = builtins.trace key (final.writeShellScriptBin "load" ''
+      set -euo pipefail
+      echo "Loading ${image} (${image.imageName}:${image.imageTag}) ..."
+      docker load -i ${image}
+    '');
+  });
+
+  push-docker-images = final.writeShellScriptBin "push-docker-images" ''
+    set -euo pipefail
+    ${lib.concatStringsSep "\n"
+    (lib.mapAttrsToList (key: value: "${value.push}/bin/push")
+      final.dockerImages)}
+  '';
+
+  load-docker-images = final.writeShellScriptBin "load-docker-images" ''
+    set -euo pipefail
+    ${lib.concatStringsSep "\n"
+    (lib.mapAttrsToList (key: value: "${value.load}/bin/load")
+      final.dockerImages)}
+  '';
+
+  inherit ((self.inputs.nixpkgs.legacyPackages.${system}).dockerTools)
+    buildLayeredImage;
+
+  mkEnv = lib.mapAttrsToList (key: value: "${key}=${value}");
 }

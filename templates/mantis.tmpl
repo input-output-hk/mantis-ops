@@ -3,9 +3,10 @@ include "./result/conf/testnet-internal.conf"
 mantis.consensus.mining-enabled = false
 
 mantis.blockchains.testnet-internal.bootstrap-nodes = [
-{{ range service "testnet-mantis-miner" -}}
+{{ range service "mantis-testnet-mantis-miner" -}}
+  {{ . | toJSON }}
   "enode://  {{- with secret (printf "kv/data/nomad-cluster/testnet/%s/enode-hash" .ServiceMeta.Name) -}}
     {{- .Data.data.value -}}
-    {{- end -}}@{{ .ServiceMeta.Name }}.mantis.ws:{{ .ServiceMeta.Port }}",
+    {{- end -}}@{{ .ServiceMeta.Name }}.mantis.ws:{{ .ServiceMeta.IngressPort }}",
 {{ end -}}
 ]
