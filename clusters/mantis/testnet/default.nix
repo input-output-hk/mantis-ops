@@ -17,6 +17,28 @@ let
 in {
   imports = [ ./iam.nix ];
 
+  services.consul.policies.developer.servicePrefix."mantis-" = {
+    policy = "write";
+    intentions = "write";
+  };
+
+  services.nomad.policies = {
+    admin.namespace."mantis-*".policy = "write";
+    developer = {
+      namespace."mantis-*".policy = "write";
+      agent.policy = "read";
+      quota.policy = "read";
+      node.policy = "read";
+      hostVolume."*".policy = "read";
+    };
+  };
+
+  services.nomad.namespaces = {
+    mantis-testnet.description = "Mantis testnet";
+    mantis-obft.description = "Mantis OBFT";
+    mantis-iele.description = "Mantis IELE";
+  };
+
   cluster = {
     name = "mantis-testnet";
 
@@ -42,11 +64,11 @@ in {
     autoscalingGroups = listToAttrs (forEach [
       {
         region = "eu-central-1";
-        desiredCapacity = 2;
+        desiredCapacity = 4;
       }
       {
         region = "us-east-2";
-        desiredCapacity = 2;
+        desiredCapacity = 4;
       }
     ] (args:
       let
@@ -78,6 +100,7 @@ in {
             "${extraConfig}"
             ./secrets.nix
             ./monitoring.nix
+            ./seaweedfs.nix
           ];
 
           securityGroupRules = {
@@ -172,6 +195,7 @@ in {
           ./secrets.nix
           ./ingress.nix
           "${extraConfig}"
+          ./docker-registry.nix
         ];
 
         securityGroupRules = {
