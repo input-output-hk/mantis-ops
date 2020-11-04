@@ -10,6 +10,10 @@
     terranix.follows = "bitte/terranix";
     utils.url = "github:numtide/flake-utils";
     ops-lib.url = "github:input-output-hk/ops-lib/zfs-image?dir=zfs";
+    mantis-automation = {
+      url = "git+ssh://github.com/input-output-hk/mantis-automation?ref=etcm-99-mantis-agen";
+      flake = false;
+    };
     mantis-explorer = {
       url = "github:input-output-hk/mantis-explorer";
       flake = false;

@@ -125,6 +125,23 @@
         "type": "github"
       }
     },
+    "mantis-automation": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1604490211,
+        "narHash": "sha256-j5mx00V/2HCT35gsWxJkhSGQ/bxUA9zJWSbtms/g9Qk=",
+        "ref": "etcm-99-mantis-agen",
+        "rev": "4fd5fd079debc7bc7cae5fdc591f849357058e36",
+        "revCount": 486,
+        "type": "git",
+        "url": "ssh://github.com/input-output-hk/mantis-automation"
+      },
+      "original": {
+        "ref": "etcm-99-mantis-agen",
+        "type": "git",
+        "url": "ssh://github.com/input-output-hk/mantis-automation"
+      }
+    },
     "nixpkgs": {
       "locked": {
         "lastModified": 1602739928,
@@ -213,6 +230,7 @@
           "bitte-cli"
         ],
         "mantis-explorer": "mantis-explorer",
+        "mantis-automation": "mantis-automation",
         "nixpkgs": [
           "bitte",
           "nixpkgs"
