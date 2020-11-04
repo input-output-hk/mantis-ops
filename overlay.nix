@@ -15,6 +15,9 @@ in {
     submodules = true;
   };
 
+  midnight-automation =
+    import self.inputs.midnight-automation { inherit system; };
+
   mantis = import final.mantis-source { inherit system; };
 
   generate-mantis-keys = let
@@ -216,7 +219,8 @@ in {
 
   # Used for caching
   devShellPath = prev.symlinkJoin {
-    paths = final.devShell.buildInputs ++ [ final.mantis final.nixFlakes ];
+    paths = final.devShell.buildInputs
+      ++ [ final.mantis final.nixFlakes final.midnight-automation ];
     name = "devShell";
   };
 
