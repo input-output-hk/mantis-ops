@@ -133,16 +133,19 @@ let
 
       services = lib.recursiveUpdate {
         "${serviceName}-prometheus" = {
+          addressMode = "host";
           portLabel = "metrics";
           tags = [ "prometheus" namespace serviceName name mantis-source.rev ];
         };
 
         "${serviceName}-rpc" = {
+          addressMode = "host";
           portLabel = "rpc";
           tags = [ "rpc" namespace serviceName name mantis-source.rev ];
         };
 
         ${serviceName} = {
+          addressMode = "host";
           portLabel = "server";
 
           tags = [ "server" namespace serviceName mantis-source.rev ] ++ tags;
@@ -251,6 +254,7 @@ let
       requiredPeerCount = builtins.length miners;
 
       services."${name}-rpc" = {
+        addressMode = "host";
         tags = [ "rpc" "ingress" namespace name mantis-source.rev ];
         portLabel = "rpc";
         meta = {
@@ -311,6 +315,7 @@ let
   explorer = let name = "${namespace}-explorer";
   in {
     services."${name}" = {
+      addressMode = "host";
       portLabel = "http";
 
       tags = [ "ingress" namespace "explorer" name ];
@@ -363,6 +368,7 @@ let
   faucetName = "${namespace}-mantis-faucet";
   faucet = {
     services."${faucetName}" = {
+      addressMode = "host";
       portLabel = "rpc";
 
       tags = [ "ingress" namespace "faucet" faucetName ];
