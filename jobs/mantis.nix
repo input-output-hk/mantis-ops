@@ -1,5 +1,3 @@
-import ./mantis-active-gen.nix { inherit mkNomadJob dockerImages; namespace = "mantis-testnet"; }
-
 { mkNomadJob, lib, mantis, mantis-source, dockerImages }:
 let
   # NOTE: Copy this file and change the next line if you want to start your own cluster!
@@ -535,3 +533,5 @@ in {
     taskGroups.faucet = faucet;
   };
 }
+
+// (import ./mantis-active-gen.nix { inherit mkNomadJob dockerImages; namespace = "mantis-testnet"; })
