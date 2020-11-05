@@ -304,7 +304,7 @@ let
       ];
     };
 
-  amountOfMiners = 3;
+  amountOfMiners = 5;
 
   miners = lib.forEach (lib.range 1 amountOfMiners) (num: {
     name = "mantis-${toString num}";
@@ -515,7 +515,7 @@ in {
     };
 
     taskGroups = (lib.listToAttrs (map mkMiner miners)) // {
-      passive = mkPassive 1;
+      passive = mkPassive 3;
     };
   };
 
