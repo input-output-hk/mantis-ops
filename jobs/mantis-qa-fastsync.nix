@@ -16,6 +16,7 @@ let
           logging.logs-file = "logs"
 
           mantis.client-id = "${name}"
+          mantis.sync.do-fast-sync = true
           mantis.consensus.coinbase = "{{ with secret "kv/data/nomad-cluster/${namespace}/${name}/coinbase" }}{{ .Data.data.value }}{{ end }}"
           mantis.node-key-file = "{{ env "NOMAD_SECRETS_DIR" }}/secret-key"
           mantis.datadir = "/local/mantis"
@@ -261,6 +262,7 @@ let
             logging.logs-file = "logs"
 
             mantis.client-id = "${name}"
+            mantis.sync.do-fast-sync = true
             mantis.consensus.mining-enabled = false
             mantis.datadir = "/local/mantis"
             mantis.ethash.ethash-dir = "/local/ethash"
