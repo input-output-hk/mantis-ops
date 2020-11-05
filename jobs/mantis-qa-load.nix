@@ -515,7 +515,7 @@ in {
     };
 
     taskGroups = (lib.listToAttrs (map mkMiner miners)) // {
-      passive = mkPassive 30;
+      passive = mkPassive 10;
     };
   };
 
