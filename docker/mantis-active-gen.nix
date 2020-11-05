@@ -3,6 +3,7 @@
 , htop, tree, lsof, utillinux, openjdk8_headless, tmux }:
 let
   entrypoint = writeShellScript "wait" ''
+    mkdir -p /tmp
     while true; do sleep 60; done
   '';
 
