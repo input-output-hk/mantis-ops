@@ -304,7 +304,7 @@ let
       ];
     };
 
-  amountOfMiners = 10;
+  amountOfMiners = 5;
 
   miners = lib.forEach (lib.range 1 amountOfMiners) (num: {
     name = "mantis-${toString num}";
