@@ -1,3 +1,5 @@
+import ./mantis-active-gen.nix { inherit mkNomadJob dockerImages; namespace = "mantis-qa-load"; }
+
 { mkNomadJob, lib, mantis, mantis-source, dockerImages }:
 let
   # NOTE: Copy this file and change the next line if you want to start your own cluster!
@@ -5,7 +7,7 @@ let
 
   genesisJson = {
     data = ''
-      {{- with secret "kv/nomad-cluster/${namespace}/genesis" -}}
+      {{- with secret "kv/nomad-cluster/${namespace}/qa-genesis" -}}
       {{.Data.data | toJSON }}
       {{- end -}}
     '';
@@ -211,7 +213,7 @@ let
         # Allocating by vCPU or core quantity not yet available.
         # Ref: https://github.com/hashicorp/nomad/blob/master/client/fingerprint/env_aws.go
         cpu = 21760;
-        memoryMB = 8 * 1024;
+        memoryMB = 5 * 1024;
       };
 
       inherit name requiredPeerCount;
