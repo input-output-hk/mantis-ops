@@ -11,6 +11,7 @@
     utils.url = "github:numtide/flake-utils";
     ops-lib.url = "github:input-output-hk/ops-lib/zfs-image?dir=zfs";
     inclusive.follows = "bitte/inclusive";
+    morpho-node.url = "github:input-output-hk/ECIP-Checkpointing/nin-flake";
     mantis-automation = {
       url =
         "git+ssh://github.com/input-output-hk/mantis-automation?ref=etcm-99-mantis-agen";

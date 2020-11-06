@@ -100,6 +100,19 @@
       "original": {
         "owner": "numtide",
         "repo": "flake-utils",
+    "haskell-nix": {
+      "locked": {
+        "lastModified": 1604670513,
+        "narHash": "sha256-ir7WUoKjN/RUm7xk73K1GKUREui7pXWWgIHYTrqSxPs=",
+        "owner": "input-output-hk",
+        "repo": "haskell.nix",
+        "rev": "ddc4d650fe668c84090ccc9e3ad6a5b82c6654f7",
+        "type": "github"
+      },
+      "original": {
+        "owner": "input-output-hk",
+        "ref": "update-flake",
+        "repo": "haskell.nix",
         "type": "github"
       }
     },
@@ -192,6 +205,30 @@
         "ref": "etcm-99-mantis-agen",
         "type": "git",
         "url": "ssh://github.com/input-output-hk/mantis-automation"
+      }
+    },
+    "morpho-node": {
+      "inputs": {
+        "haskell-nix": "haskell-nix",
+        "nixpkgs": [
+          "morpho-node",
+          "haskell-nix"
+        ],
+        "utils": "utils_4"
+      },
+      "locked": {
+        "lastModified": 1604681666,
+        "narHash": "sha256-4qWKeKlDLznuxkpL3BwriXjyb9rtquM7xv7C6o5NRQU=",
+        "owner": "input-output-hk",
+        "repo": "ECIP-Checkpointing",
+        "rev": "f1a1290cce4915ab0d785dcefa38f818e2bc2ff4",
+        "type": "github"
+      },
+      "original": {
+        "owner": "input-output-hk",
+        "ref": "nin-flake",
+        "repo": "ECIP-Checkpointing",
+        "type": "github"
       }
     },
     "nixpkgs": {
@@ -315,6 +352,7 @@
         "mantis-explorer": "mantis-explorer",
         "mantis-faucet-web": "mantis-faucet-web",
         "mantis-automation": "mantis-automation",
+        "morpho-node": "morpho-node",
         "nixpkgs": [
           "bitte",
           "nixpkgs"
@@ -324,7 +362,7 @@
           "bitte",
           "terranix"
         ],
-        "utils": "utils_4"
+        "utils": "utils_5"
       }
     },
     "stdlib": {
@@ -420,6 +458,21 @@
       }
     },
     "utils_4": {
+      "locked": {
+        "lastModified": 1601282935,
+        "narHash": "sha256-WQAFV6sGGQxrRs3a+/Yj9xUYvhTpukQJIcMbIi7LCJ4=",
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "rev": "588973065fce51f4763287f0fda87a174d78bf48",
+        "type": "github"
+      },
+      "original": {
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "type": "github"
+      }
+    },
+    "utils_5": {
       "locked": {
         "lastModified": 1601282935,
         "narHash": "sha256-WQAFV6sGGQxrRs3a+/Yj9xUYvhTpukQJIcMbIi7LCJ4=",
