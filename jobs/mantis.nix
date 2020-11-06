@@ -211,7 +211,7 @@ let
         # Allocating by vCPU or core quantity not yet available.
         # Ref: https://github.com/hashicorp/nomad/blob/master/client/fingerprint/env_aws.go
         cpu = 21760;
-        memoryMB = 8 * 1024;
+        memoryMB = 5 * 1024;
       };
 
       inherit name requiredPeerCount;
