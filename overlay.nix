@@ -42,6 +42,8 @@ in {
   mantis-explorer-server = prev.callPackage ./pkgs/mantis-explorer-server.nix {
     inherit (self.inputs.inclusive.lib) inclusive;
   };
+  morpho-source = self.inputs.morpho-node;
+  morpho-node = self.inputs.morpho-node.morpho-node.${system};
 
   # Any:
   # - run of this command with a parameter different than the testnet (currently 10)
@@ -360,6 +362,7 @@ in {
   mantis-explorer = self.inputs.mantis-explorer.defaultPackage.${system};
 
   mantis-faucet-web = self.inputs.mantis-faucet-web.defaultPackage.${system};
+
 
   nixosConfigurations =
     self.inputs.bitte.legacyPackages.${system}.mkNixosConfigurations
