@@ -112,11 +112,11 @@
     "mantis-explorer": {
       "flake": false,
       "locked": {
-        "lastModified": 1602865854,
-        "narHash": "sha256-1BC2ThWbCXSlAde/edWLT2s5Qrw0IGF1jO8/Fmct260=",
+        "lastModified": 1604685942,
+        "narHash": "sha256-WWSEOWscqR5bJpp7YkQQtduezeyFw0ZGgb1ohWtG4xY=",
         "owner": "input-output-hk",
         "repo": "mantis-explorer",
-        "rev": "6d1b5062ddd1ecc02ee5d3e1dfb75da883cabf03",
+        "rev": "9c823b78ea04509db5f85d5595b98e91733fde0a",
         "type": "github"
       },
       "original": {
