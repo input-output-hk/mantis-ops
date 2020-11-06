@@ -19,6 +19,224 @@ let
     destination = "local/genesis.json";
   };
 
+  run-morpho =
+    pkgs.writeShellScript "morpho" ''
+      exec morpho-checkpoint-node
+            --topology morpho-topology.json \
+            --database-path /var/lib/midnight-checkpointing-node/db \
+            --port 3000 \
+            --config morpho-config.yaml \
+            --tracing-verbosity-maximal \
+            --genesis-hash 3 \
+            --socket-dir /run/midnight-checkpointing-node/socket \
+            --trace-chain-sync-block-server \
+            --trace-mempool \
+            --trace-forge \
+            --trace-ledger-state \
+            --trace-midnight-rpc
+    '';
+
+  env = {
+    # Adds some extra commands to the store and path for debugging inside
+    # nomad jobs with `nomad alloc exec $ALLOC_ID /bin/sh`
+    PATH = with pkgs; lib.makeBinPath [
+      coreutils
+      curl
+      dnsutils
+      gawk
+      gnugrep
+      iproute
+      jq
+      lsof
+      netcat
+      nettools
+      procps
+    ];
+  };
+
+  templatesFor = { name ? null, mining-enabled ? false }:
+    let secret = key: ''{{ with secret "${key}" }}{{.Data.data.value}}{{end}}'';
+    in [
+      {
+        data = ''
+          include "${mantis}/conf/testnet-internal-nomad.conf"
+
+          logging.json-output = true
+          logging.logs-file = "logs"
+
+          mantis.blockchains.testnet-internal-nomad.bootstrap-nodes = [
+            {{ range service "${namespace}-mantis-miner" -}}
+              "enode://  {{- with secret (printf "kv/data/nomad-cluster/${namespace}/%s/enode-hash" .ServiceMeta.Name) -}}
+                {{- .Data.data.value -}}
+                {{- end -}}@{{ .Address }}:{{ .Port }}",
+            {{ end -}}
+          ]
+
+          mantis.client-id = "${name}"
+          mantis.consensus.coinbase = "{{ with secret "kv/data/nomad-cluster/${namespace}/${name}/coinbase" }}{{ .Data.data.value }}{{ end }}"
+          mantis.node-key-file = "{{ env "NOMAD_SECRETS_DIR" }}/secret-key"
+          mantis.datadir = "/local/mantis"
+          mantis.ethash.ethash-dir = "/local/ethash"
+          mantis.metrics.enabled = true
+          mantis.metrics.port = {{ env "NOMAD_PORT_metrics" }}
+          mantis.network.rpc.http.interface = "0.0.0.0"
+          mantis.network.rpc.http.port = {{ env "NOMAD_PORT_rpc" }}
+          mantis.network.server-address.port = {{ env "NOMAD_PORT_server" }}
+          mantis.blockchains.testnet-internal-nomad.custom-genesis-file = "{{ env "NOMAD_TASK_DIR" }}/genesis.json"
+
+          mantis.blockchains.testnet-internal-nomad.ecip1098-block-number = 0
+          mantis.blockchains.testnet-internal-nomad.ecip1097-block-number = 0
+        '';
+        destination = "local/mantis.conf";
+        changeMode = "noop";
+      }
+      genesisJson
+    ] ++ (lib.optional mining-enabled {
+      data = ''
+        ${secret "kv/data/nomad-cluster/${namespace}/${name}/secret-key"}
+        ${secret "kv/data/nomad-cluster/${namespace}/${name}/enode-hash"}
+      '';
+      destination = "secrets/secret-key";
+    });
+
+  mkMorpho = {name, resources, ephemeralDisk, count ? 1, templates, serviceName
+  , tags ? [ ], extraEnvironmentVariables ? [ ], meta ? { }, constraints ? [ ]
+  , requiredPeerCount, services ? {} }: {
+      tasks.${name} = systemdSandbox {
+        inherit name env resources extraEnvironmentVariables;
+        command = run-morpho;
+        vault.policies = [ "nomad-cluster" ];
+        serviceName = "${namespace}-morpho-node";
+        # TODO manveru: metrics ports?
+
+        restartPolicy = {
+          interval = "30m";
+          attempts = 10;
+          delay = "1m";
+          mode = "fail";
+        };
+
+        templates = [
+          {
+            data = ''
+                NodeId: {{ index (split "-" ${name}) 2 }}
+                Protocol: MockedBFT
+                NumCoreNodes: {{ len (service "${namespace}-morpho-node") }}
+                RequiresNetworkMagic: RequiresMagic
+                TurnOnLogging: True
+                ViewMode: SimpleView
+                TurnOnLogMetrics: True
+                SlotDuration: 5
+                SnapshotsOnDisk: 60
+                SnapshotInterval: 60
+                PoWBlockFetchInterval: 5000000
+                PoWNodeRpcUrl: http://127.0.0.1:8546
+                PrometheusPort: 13788
+                CheckpointInterval: 4
+                RequiredMajority: {{ len (service "${namespace}-morpho-node") | divide 2 | add 1 }}
+                FedPubKeys:
+                {{- range service "${namespace}-morpho-node" -}}
+                {{- with secret (printf "kv/data/nomad-cluster/${namespace}/%s/obft-public-key") .ServiceMeta.Name }}
+                    - {{ .Data.data.value -}}
+                    {{- end -}}
+                {{- end }}
+                NodePrivKeyFile: ./morpho-private-key
+                ApplicationName: morpho-checkpoint
+                ApplicationVersion: 1
+                LastKnownBlockVersion-Major: 0
+                LastKnownBlockVersion-Minor: 2
+                LastKnownBlockVersion-Alt: 0
+                TracingVerbosity: NormalVerbosity
+                TraceBlockFetchClient: True
+                TraceBlockFetchDecisions: True
+                TraceBlockFetchProtocol: True
+                TraceBlockFetchProtocolSerialised: False
+                TraceBlockFetchServer: True
+                TraceChainDb: True
+                TraceChainSyncClient: True
+                TraceChainSyncBlockServer: True
+                TraceChainSyncHeaderServer: True
+                TraceChainSyncProtocol: True
+                TraceDNSResolver: False
+                TraceDNSSubscription: False
+                TraceErrorPolicy: False
+                TraceForge: True
+                TraceIpSubscription: False
+                TraceLocalChainSyncProtocol: True
+                TraceLocalTxSubmissionProtocol: True
+                TraceLocalTxSubmissionServer: True
+                TraceMempool: True
+                TraceMux: False
+                TraceTxInbound: True
+                TraceTxOutbound: True
+                TraceTxSubmissionProtocol: True
+            '';
+            destination = "local/morpho-config.yaml";
+          }
+          {
+            data = ''
+              {{- with secret (printf "kv/data/nomad-cluster/${namespace}/%s/obft-private-key" .ServiceMeta.Name) -}}
+              {{- .Data.data.value -}}
+              {{- end -}}
+            '';
+            destination = "local/morpho-private-key";
+          }
+          {
+            data = ''
+              [
+                {{- range service "${namespace}-morpho-node" -}}
+                  {
+                    "nodeAddress": {
+                    "addr": "{{ .Address }}",
+                    "port": 3001,
+                    "valency": 1
+                    },
+                    "nodeId": {{- index (split "-" .ServiceMeta.Name) 2 -}},
+                    "producers": [
+                    {{- range service "${namespace}-morpho-node" -}}
+                      {
+                          "addr": "{{ .Address }}",
+                          "port": 3001,
+                          "valency": 1
+                      },
+                    {{- end -}}
+                    ]}
+                {{- end }}
+                ]
+            '';
+            destination = "local/morpho-topology.json";
+          }
+        ];
+
+        services = lib.recursiveUpdate {
+          "${serviceName}-prometheus" = {
+            tags = [ "prometheus" namespace serviceName name mantis-source.rev ];
+            portLabel = "metrics";
+          };
+
+          ${serviceName} = {
+            tags = [ "server" namespace serviceName mantis-source.rev ] ++ tags;
+            meta = {
+              inherit name;
+              publicIp = "\${attr.unique.platform.aws.public-ipv4}";
+            } // meta;
+            portLabel = "server";
+            checks = [{
+              type = "http";
+              path = "/healthcheck";
+              portLabel = "rpc";
+
+              checkRestart = {
+                limit = 5;
+                grace = "300s";
+                ignoreWarnings = false;
+              };
+            }];
+          };
+        } services;
+      };
+  };
+
   mkMantis = { name, resources, count ? 1, templates, serviceName, tags ? [ ]
     , meta ? { }, constraints ? [ ], requiredPeerCount, services ? { } }: {
       inherit count constraints;
