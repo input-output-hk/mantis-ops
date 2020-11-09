@@ -348,19 +348,21 @@ let
     tasks.explorer = {
       inherit name;
       driver = "docker";
-      config.image = dockerImages.webfs.id;
-      ports = [ "http" ];
-      labels = [{
-        inherit namespace name;
-        imageTag = dockerImages.webfs.image.imageTag;
-      }];
-
-      logging = {
-        type = "journald";
-        config = [{
-          tag = name;
-          labels = "name,namespace,imageTag";
+      config = {
+        image = dockerImages.webfs.id;
+        ports = [ "http" ];
+        labels = [{
+          inherit namespace name;
+          imageTag = dockerImages.webfs.image.imageTag;
         }];
+
+        logging = {
+          type = "journald";
+          config = [{
+            tag = name;
+            labels = "name,namespace,imageTag";
+          }];
+        };
       };
     };
   };
