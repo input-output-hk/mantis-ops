@@ -158,10 +158,10 @@ in {
           extraData = "0x00";
           nonce = "0x0000000000000042";
           gasLimit = "0x2fefd8";
-          difficulty = "0x400";
+          difficulty = "0xF4240";
           ommersHash =
             "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347";
-          timestamp = "0x00";
+          timestamp = "0x5FA34080";
           coinbase = "0x0000000000000000000000000000000000000000";
           mixHash =
             "0x0000000000000000000000000000000000000000000000000000000000000000";
