@@ -43,6 +43,7 @@ in {
     inherit (self.inputs.inclusive.lib) inclusive;
   };
   morpho-source = self.inputs.morpho-node;
+
   morpho-node = self.inputs.morpho-node.morpho-node.${system};
 
   # Any:
@@ -137,7 +138,7 @@ in {
       ) | jq -e -r .result | sed 's/^0x//'
     }
 
-    nodes="$(seq -f "testnet-mantis-%g" "$desired"; seq -f "testnet-obft-%g" "$desiredObft")"
+    nodes="$(seq -f "mantis-%g" "$desired"; seq -f "obft-node-%g" "$desiredObft")"
     for node in $nodes; do
       mantisKeyFile="secrets/$prefix/mantis-$node.key"
       coinbaseFile="secrets/$prefix/$node.coinbase"

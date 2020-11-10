@@ -100,6 +100,9 @@
       "original": {
         "owner": "numtide",
         "repo": "flake-utils",
+        "type": "github"
+      }
+    },
     "haskell-nix": {
       "locked": {
         "lastModified": 1604670513,
@@ -199,12 +202,12 @@
         "rev": "8847d25a45808dbfa6c3629d7ab999fd1b4d6414",
         "revCount": 489,
         "type": "git",
-        "url": "ssh://github.com/input-output-hk/midnight-automation"
+        "url": "ssh://git@github.com/input-output-hk/midnight-automation"
       },
       "original": {
         "ref": "etcm-99-mantis-agen",
         "type": "git",
-        "url": "ssh://github.com/input-output-hk/midnight-automation"
+        "url": "ssh://git@github.com/input-output-hk/midnight-automation"
       }
     },
     "morpho-node": {
@@ -226,7 +229,7 @@
       },
       "original": {
         "owner": "input-output-hk",
-        "ref": "nin-flake",
+        "ref": "master",
         "repo": "ECIP-Checkpointing",
         "type": "github"
       }
