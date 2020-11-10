@@ -1,5 +1,5 @@
-{ mkNomadJob, lib, mantis, mantis-source, mantis-faucet, mantis-faucet-source
-, dockerImages, mantis-explorer }:
+{ mkNomadJob, lib, mantis, mantis-source, mantis-faucet, mantis-faucet-source, morpho-node
+, morpho-source, dockerImages, mantis-explorer }:
 let
   # NOTE: Copy this file and change the next line if you want to start your own cluster!
   namespace = "mantis-testnet";
@@ -17,41 +17,6 @@ let
     '';
     changeMode = "restart";
     destination = "local/genesis.json";
-  };
-
-  run-morpho =
-    pkgs.writeShellScript "morpho" ''
-      exec morpho-checkpoint-node
-            --topology morpho-topology.json \
-            --database-path /var/lib/mantis-checkpointing-node/db \
-            --port 3000 \
-            --config morpho-config.yaml \
-            --tracing-verbosity-maximal \
-            --genesis-hash 3 \
-            --socket-dir /run/mantis-checkpointing-node/socket \
-            --trace-chain-sync-block-server \
-            --trace-mempool \
-            --trace-forge \
-            --trace-ledger-state \
-            --trace-mantis-rpc
-    '';
-
-  env = {
-    # Adds some extra commands to the store and path for debugging inside
-    # nomad jobs with `nomad alloc exec $ALLOC_ID /bin/sh`
-    PATH = with pkgs; lib.makeBinPath [
-      coreutils
-      curl
-      dnsutils
-      gawk
-      gnugrep
-      iproute
-      jq
-      lsof
-      netcat
-      nettools
-      procps
-    ];
   };
 
   templatesFor = { name ? null, mining-enabled ? false }:
@@ -99,142 +64,218 @@ let
       destination = "secrets/secret-key";
     });
 
-  mkMorpho = {name, resources, ephemeralDisk, count ? 1, templates, serviceName
-  , tags ? [ ], extraEnvironmentVariables ? [ ], meta ? { }, constraints ? [ ]
-  , requiredPeerCount, services ? {} }: {
-      tasks.${name} = systemdSandbox {
-        inherit name env resources extraEnvironmentVariables;
-        command = run-morpho;
-        vault.policies = [ "nomad-cluster" ];
-        serviceName = "${namespace}-morpho-node";
-        # TODO manveru: metrics ports?
+  amountOfMorphoNodes = 5;
 
-        restartPolicy = {
-          interval = "30m";
-          attempts = 10;
-          delay = "1m";
-          mode = "fail";
+  morphoNodes = lib.forEach (lib.range 1 amountOfMorphoNodes) (n: {
+    name = "obft-node-${toString n}";
+    nodeNumber = n;
+  });
+
+  mkMorpho = { name, nodeNumber, nbNodes }: {
+    services = {
+      "${namespace}-${name}" = {
+        addressMode = "host";
+        portLabel = "morpho";
+
+        tags = [ "morpho" namespace name morpho-source.rev ];
+        meta = {
+          inherit name;
+          nodeNumber = builtins.toString nodeNumber;
         };
-
-        templates = [
-          {
-            data = ''
-                NodeId: {{ index (split "-" ${name}) 2 }}
-                Protocol: MockedBFT
-                NumCoreNodes: {{ len (service "${namespace}-morpho-node") }}
-                RequiresNetworkMagic: RequiresMagic
-                TurnOnLogging: True
-                ViewMode: SimpleView
-                TurnOnLogMetrics: True
-                SlotDuration: 5
-                SnapshotsOnDisk: 60
-                SnapshotInterval: 60
-                PoWBlockFetchInterval: 5000000
-                PoWNodeRpcUrl: http://127.0.0.1:8546
-                PrometheusPort: 13788
-                CheckpointInterval: 4
-                RequiredMajority: {{ len (service "${namespace}-morpho-node") | divide 2 | add 1 }}
-                FedPubKeys:
-                {{- range service "${namespace}-morpho-node" -}}
-                {{- with secret (printf "kv/data/nomad-cluster/${namespace}/%s/obft-public-key") .ServiceMeta.Name }}
-                    - {{ .Data.data.value -}}
-                    {{- end -}}
-                {{- end }}
-                NodePrivKeyFile: ./morpho-private-key
-                ApplicationName: morpho-checkpoint
-                ApplicationVersion: 1
-                LastKnownBlockVersion-Major: 0
-                LastKnownBlockVersion-Minor: 2
-                LastKnownBlockVersion-Alt: 0
-                TracingVerbosity: NormalVerbosity
-                TraceBlockFetchClient: True
-                TraceBlockFetchDecisions: True
-                TraceBlockFetchProtocol: True
-                TraceBlockFetchProtocolSerialised: False
-                TraceBlockFetchServer: True
-                TraceChainDb: True
-                TraceChainSyncClient: True
-                TraceChainSyncBlockServer: True
-                TraceChainSyncHeaderServer: True
-                TraceChainSyncProtocol: True
-                TraceDNSResolver: False
-                TraceDNSSubscription: False
-                TraceErrorPolicy: False
-                TraceForge: True
-                TraceIpSubscription: False
-                TraceLocalChainSyncProtocol: True
-                TraceLocalTxSubmissionProtocol: True
-                TraceLocalTxSubmissionServer: True
-                TraceMempool: True
-                TraceMux: False
-                TraceTxInbound: True
-                TraceTxOutbound: True
-                TraceTxSubmissionProtocol: True
-            '';
-            destination = "local/morpho-config.yaml";
-          }
-          {
-            data = ''
-              {{- with secret (printf "kv/data/nomad-cluster/${namespace}/%s/obft-private-key" .ServiceMeta.Name) -}}
-              {{- .Data.data.value -}}
-              {{- end -}}
-            '';
-            destination = "local/morpho-private-key";
-          }
-          {
-            data = ''
-              [
-                {{- range service "${namespace}-morpho-node" -}}
-                  {
-                    "nodeAddress": {
-                    "addr": "{{ .Address }}",
-                    "port": 3001,
-                    "valency": 1
-                    },
-                    "nodeId": {{- index (split "-" .ServiceMeta.Name) 2 -}},
-                    "producers": [
-                    {{- range service "${namespace}-morpho-node" -}}
-                      {
-                          "addr": "{{ .Address }}",
-                          "port": 3001,
-                          "valency": 1
-                      },
-                    {{- end -}}
-                    ]}
-                {{- end }}
-                ]
-            '';
-            destination = "local/morpho-topology.json";
-          }
-        ];
-
-        services = lib.recursiveUpdate {
-          "${serviceName}-prometheus" = {
-            tags = [ "prometheus" namespace serviceName name mantis-source.rev ];
-            portLabel = "metrics";
-          };
-
-          ${serviceName} = {
-            tags = [ "server" namespace serviceName mantis-source.rev ] ++ tags;
-            meta = {
-              inherit name;
-              publicIp = "\${attr.unique.platform.aws.public-ipv4}";
-            } // meta;
-            portLabel = "server";
-            checks = [{
-              type = "http";
-              path = "/healthcheck";
-              portLabel = "rpc";
-
-              checkRestart = {
-                limit = 5;
-                grace = "300s";
-                ignoreWarnings = false;
-              };
-            }];
-          };
-        } services;
       };
+    };
+
+    networks = [{
+      ports = {
+        metrics.to = 7000;
+        rpc.to = 8000;
+        server.to = 9000;
+        morpho.to = 3000;
+        morphoPrometheus.to = 6000;
+      };
+    }];
+
+    tasks.${name} = {
+      inherit name;
+      driver = "docker";
+      env = { REQUIRED_PEER_COUNT = builtins.toString nbNodes; };
+      vault.policies = [ "nomad-cluster" ];
+      # TODO manveru: port mapping??
+
+      templates = [
+        {
+          data = ''
+            NodeId: {{ index (split "-" "${name}") 2 }}
+            Protocol: MockedBFT
+            NumCoreNodes: {{ len (service "${namespace}-morpho-node") }}
+            RequiresNetworkMagic: RequiresMagic
+            NetworkMagic: 12345
+            SystemStart: "2020-11-17T00:00:00Z"
+            SecurityParam: 5
+            TurnOnLogging: True
+            ViewMode: SimpleView
+            TurnOnLogMetrics: True
+            SlotDuration: 5
+            SnapshotsOnDisk: 60
+            SnapshotInterval: 60
+            PoWBlockFetchInterval: 5000000
+            PoWNodeRpcUrl: http://{{ env "NOMAD_ADDR_rpc" }}
+            PrometheusPort: {{ env "NOMAD_PORT_morphoPrometheus" }}
+            CheckpointInterval: 4
+            RequiredMajority: {{ len (service "${namespace}-morpho-node") | divide 2 | add 1 }}
+            FedPubKeys:
+            {{- range service "${namespace}-morpho-node" -}}
+            {{- with secret (printf "kv/data/nomad-cluster/${namespace}/%s/obft-public-key") .ServiceMeta.Name }}
+                - {{ .Data.data.value -}}
+                {{- end -}}
+            {{- end }}
+            NodePrivKeyFile: {{ env "NOMAD_SECRETS_DIR" }}/morpho-private-key
+            ApplicationName: morpho-checkpoint
+            ApplicationVersion: 1
+            LastKnownBlockVersion-Major: 0
+            LastKnownBlockVersion-Minor: 2
+            LastKnownBlockVersion-Alt: 0
+            TracingVerbosity: NormalVerbosity
+            TraceBlockFetchClient: True
+            TraceBlockFetchDecisions: True
+            TraceBlockFetchProtocol: True
+            TraceBlockFetchProtocolSerialised: False
+            TraceBlockFetchServer: True
+            TraceChainDb: True
+            TraceChainSyncClient: True
+            TraceChainSyncBlockServer: True
+            TraceChainSyncHeaderServer: True
+            TraceChainSyncProtocol: True
+            TraceDNSResolver: False
+            TraceDNSSubscription: False
+            TraceErrorPolicy: False
+            TraceForge: True
+            TraceIpSubscription: False
+            TraceLocalChainSyncProtocol: True
+            TraceLocalTxSubmissionProtocol: True
+            TraceLocalTxSubmissionServer: True
+            TraceMempool: True
+            TraceMux: False
+            TraceTxInbound: True
+            TraceTxOutbound: True
+            TraceTxSubmissionProtocol: True
+          '';
+          destination = "local/morpho-config.yaml";
+        }
+        {
+          data = ''
+            {{- with secret "kv/data/nomad-cluster/${namespace}/${name}/obft-private-key" -}}
+            {{- .Data.data.value -}}
+            {{- end -}}
+          '';
+          destination = "secrets/morpho-private-key";
+        }
+        {
+          data = ''
+            [
+              {{- range service "${namespace}-morpho-node" -}}
+                {
+                  "nodeAddress": {
+                  "addr": "{{ .Address }}",
+                  "port": 3001,
+                  "valency": 1
+                  },
+                  "nodeId": {{- index (split "-" .ServiceMeta.Name) 2 -}},
+                  "producers": [
+                  {{- range $index, $service := service "${namespace}-morpho-node" -}}
+                  {{ if ne $index 0 }},{{ end }}
+                    {
+                        "addr": "{{ .Address }}",
+                        "port": 3001,
+                        "valency": 1
+                    }
+                  {{- end -}}
+                  ]}
+              {{- end }}
+              ]
+          '';
+          destination = "local/morpho-topology.json";
+          changeMode = "noop";
+        }
+      ];
+
+      config = {
+        image = dockerImages.morpho.id;
+        args = [ ];
+        labels = [{
+          inherit namespace name;
+          imageTag = dockerImages.morpho.image.imageTag;
+        }];
+
+        logging = {
+          type = "journald";
+          config = [{
+            tag = name;
+            labels = "name,namespace,imageTag";
+          }];
+        };
+      };
+
+      restartPolicy = {
+        interval = "30m";
+        attempts = 10;
+        delay = "1m";
+        mode = "delay";
+      };
+    };
+
+    tasks.telegraf = {
+      driver = "docker";
+
+      vault.policies = [ "nomad-cluster" ];
+
+      resources = {
+        cpu = 100; # mhz
+        memoryMB = 128;
+      };
+
+      config = {
+        image = dockerImages.telegraf.id;
+        args = [ "-config" "local/telegraf.config" ];
+
+        labels = [{
+          inherit namespace name;
+          imageTag = dockerImages.telegraf.image.imageTag;
+        }];
+
+        logging = {
+          type = "journald";
+          config = [{
+            tag = "${name}-telegraf";
+            labels = "name,namespace,imageTag";
+          }];
+        };
+      };
+
+      templates = [{
+        data = ''
+          [agent]
+          flush_interval = "10s"
+          interval = "10s"
+          omit_hostname = false
+
+          [global_tags]
+          client_id = "${name}"
+          namespace = "${namespace}"
+
+          [inputs.prometheus]
+          metric_version = 1
+
+          urls = [ "http://{{ env "NOMAD_ADDR_morphoPrometheus" }}" ]
+
+          [outputs.influxdb]
+          database = "telegraf"
+          urls = ["http://{{with node "monitoring" }}{{ .Node.Address }}{{ end }}:8428"]
+        '';
+
+        destination = "local/telegraf.config";
+      }];
+    };
   };
 
   mkMantis = { name, resources, count ? 1, templates, serviceName, tags ? [ ]
@@ -649,7 +690,6 @@ let
       "${faucetName}" = {
         addressMode = "host";
         portLabel = "rpc";
-        task = "faucet";
 
         tags =
           [ "ingress" namespace "faucet" faucetName mantis-faucet-source.rev ];
@@ -1056,9 +1096,24 @@ in {
       stagger = "30s";
     };
 
-    taskGroups = (lib.listToAttrs (map mkMiner miners)) // {
-      passive = mkPassive 3;
-    };
+    taskGroups = let
+      minerTaskGroups = lib.listToAttrs (map mkMiner miners);
+      passiveTaskGroups = mkPassive 3;
+    in minerTaskGroups // passiveTaskGroups;
+  };
+
+  "${namespace}-morpho" = mkNomadJob "morpho" {
+    datacenters = [ "us-east-2" "eu-central-1" ];
+    type = "service";
+    inherit namespace;
+
+    taskGroups = let
+      generateMorphoTaskGroup = nbNodes: node:
+        lib.nameValuePair node.name (lib.recursiveUpdate (mkPassive 1)
+          (mkMorpho (node // { inherit nbNodes; })));
+      morphoTaskGroups =
+        map (generateMorphoTaskGroup (builtins.length morphoNodes)) morphoNodes;
+    in lib.listToAttrs morphoTaskGroups;
   };
 
   "${namespace}-explorer" = mkNomadJob "explorer" {

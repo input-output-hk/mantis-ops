@@ -4,7 +4,6 @@ let
   run-morpho-node = writeShellScript "morpho-node" ''
     set -exuo pipefail
 
-    mkdir -p /tmp
     cd "$NOMAD_TASK_DIR"
 
     set +x
