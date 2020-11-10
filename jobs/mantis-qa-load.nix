@@ -1,11 +1,11 @@
 { mkNomadJob, lib, mantis, mantis-source, dockerImages }:
 let
   # NOTE: Copy this file and change the next line if you want to start your own cluster!
-  namespace = "mantis-testnet";
+  namespace = "mantis-qa-load";
 
   genesisJson = {
     data = ''
-      {{- with secret "kv/nomad-cluster/${namespace}/genesis" -}}
+      {{- with secret "kv/nomad-cluster/${namespace}/qa-genesis" -}}
       {{.Data.data | toJSON }}
       {{- end -}}
     '';
@@ -304,7 +304,7 @@ let
       ];
     };
 
-  amountOfMiners = 5;
+  amountOfMiners = 10;
 
   miners = lib.forEach (lib.range 1 amountOfMiners) (num: {
     name = "mantis-${toString num}";
@@ -348,21 +348,19 @@ let
     tasks.explorer = {
       inherit name;
       driver = "docker";
-      config = {
-        image = dockerImages.webfs.id;
-        ports = [ "http" ];
-        labels = [{
-          inherit namespace name;
-          imageTag = dockerImages.webfs.image.imageTag;
-        }];
+      config.image = dockerImages.webfs.id;
+      ports = [ "http" ];
+      labels = [{
+        inherit namespace name;
+        imageTag = dockerImages.webfs.image.imageTag;
+      }];
 
-        logging = {
-          type = "journald";
-          config = [{
-            tag = name;
-            labels = "name,namespace,imageTag";
-          }];
-        };
+      logging = {
+        type = "journald";
+        config = [{
+          tag = name;
+          labels = "name,namespace,imageTag";
+        }];
       };
     };
   };
@@ -517,7 +515,7 @@ in {
     };
 
     taskGroups = (lib.listToAttrs (map mkMiner miners)) // {
-      passive = mkPassive 3;
+      passive = mkPassive 20;
     };
   };
 
@@ -536,4 +534,4 @@ in {
   };
 }
 
-// (import ./mantis-active-gen.nix { inherit mkNomadJob dockerImages; namespace = "mantis-testnet"; })
+// (import ./mantis-active-gen.nix { inherit mkNomadJob dockerImages; namespace = "mantis-qa-load"; })
