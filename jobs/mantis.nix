@@ -385,7 +385,7 @@ let
       };
     };
 
-    networks = [{ ports = [{ rpc.to = 8000; }]; }];
+    networks = [{ ports = { rpc.to = 8000; }; }];
 
     tasks.faucet = {
       name = faucetName;
@@ -399,7 +399,7 @@ let
         labels = [{
           inherit namespace;
           name = faucetName;
-          imageTag = dockerImages.webfs.mantis-faucet.imageTag;
+          imageTag = dockerImages.mantis-faucet.image.imageTag;
         }];
 
         logging = {
