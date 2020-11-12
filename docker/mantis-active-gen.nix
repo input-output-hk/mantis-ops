@@ -1,4 +1,4 @@
-{ lib, buildLayeredImage, writeShellScript, writeShellScriptBin
+{ lib, buildLayeredImage, curl, writeShellScript, writeShellScriptBin
 , mantis-automation, coreutils, gnused, gnugrep, mc, vim, bashInteractive
 , htop, tree, lsof, utillinux, openjdk8_headless, tmux }:
 let
@@ -17,6 +17,7 @@ in {
       active-gen
       bashInteractive
       coreutils
+      curl
       gnugrep
       gnused
       htop
