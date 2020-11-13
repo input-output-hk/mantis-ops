@@ -15,10 +15,19 @@ in {
     submodules = true;
   };
 
+  mantis-faucet-source = builtins.fetchGit {
+    url = "https://github.com/input-output-hk/mantis";
+    rev = "62c00140d34e134dcb71b1812e5f76d8401ee747";
+    ref = "develop";
+    submodules = true;
+  };
+
   midnight-automation =
     import self.inputs.midnight-automation { inherit system; };
 
   mantis = import final.mantis-source { inherit system; };
+
+  mantis-faucet = import final.mantis-faucet-source { inherit system; };
 
   generate-mantis-keys = let
     mantisConfigJson = {
@@ -264,7 +273,7 @@ in {
   # Used for caching
   devShellPath = prev.symlinkJoin {
     paths = final.devShell.buildInputs
-      ++ [ final.mantis final.nixFlakes final.midnight-automation ];
+      ++ [ final.mantis final.mantis-faucet final.nixFlakes final.midnight-automation ];
     name = "devShell";
   };
 

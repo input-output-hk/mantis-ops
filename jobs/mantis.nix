@@ -1,4 +1,4 @@
-{ mkNomadJob, lib, mantis, mantis-source, dockerImages }:
+{ mkNomadJob, lib, mantis, mantis-source, mantis-faucet, mantis-faucet-source, dockerImages }:
 let
   # NOTE: Copy this file and change the next line if you want to start your own cluster!
   namespace = "mantis-testnet";
@@ -369,43 +369,115 @@ let
 
   faucetName = "${namespace}-mantis-faucet";
   faucet = {
-    services."${faucetName}" = {
-      addressMode = "host";
-      portLabel = "rpc";
+    services = {
+      "${faucetName}" = {
+        addressMode = "host";
+        portLabel = "rpc";
 
-      tags = [ "ingress" namespace "faucet" faucetName ];
+        tags = [ "ingress" namespace "faucet" faucetName mantis-faucet-source.rev ];
 
-      meta = {
-        name = faucetName;
-        publicIp = "\${attr.unique.platform.aws.public-ipv4}";
-        ingressHost = "${faucetName}.mantis.ws";
-        ingressBind = "*:443";
-        ingressMode = "http";
-        ingressServer = "_${faucetName}._tcp.service.consul";
+        meta = {
+          name = faucetName;
+          publicIp = "\${attr.unique.platform.aws.public-ipv4}";
+          ingressHost = "${faucetName}.mantis.ws";
+          ingressBind = "*:443";
+          ingressMode = "http";
+          ingressServer = "_${faucetName}._tcp.service.consul";
+        };
+      };
+      "${faucetName}-prometheus" = {
+        addressMode = "host";
+        portLabel = "metrics";
+        tags = [ "prometheus" namespace "faucet" faucetName mantis-faucet-source.rev ];
       };
     };
 
-    networks = [{ ports = { rpc.to = 8000; }; }];
+    networks = [{
+      ports = {
+        metrics.to = 7000;
+        rpc.to = 8000;
+      };
+     }];
 
-    tasks.faucet = {
-      name = faucetName;
+    tasks.telegraf = {
       driver = "docker";
 
       vault.policies = [ "nomad-cluster" ];
 
+      resources = {
+        cpu = 100; # mhz
+        memoryMB = 128;
+      };
+
+      config = {
+        image = dockerImages.telegraf.id;
+        args = [ "-config" "local/telegraf.config" ];
+
+        labels = [{
+          inherit namespace;
+          name = "faucet";
+          imageTag = dockerImages.telegraf.image.imageTag;
+        }];
+
+        logging = {
+          type = "journald";
+          config = [{
+            tag = "faucet-telegraf";
+            labels = "name,namespace,imageTag";
+          }];
+        };
+      };
+
+      templates = [{
+        data = ''
+          [agent]
+          flush_interval = "10s"
+          interval = "10s"
+          omit_hostname = false
+
+          [global_tags]
+          client_id = "faucet"
+          namespace = "${namespace}"
+
+          [inputs.prometheus]
+          metric_version = 1
+
+          urls = [ "http://{{ env "NOMAD_ADDR_metrics" }}" ]
+
+          [outputs.influxdb]
+          database = "telegraf"
+          urls = ["http://{{with node "monitoring" }}{{ .Node.Address }}{{ end }}:8428"]
+        '';
+
+        destination = "local/telegraf.config";
+      }];
+    };
+
+    tasks.faucet = {
+      name = "faucet";
+      driver = "docker";
+
+      vault.policies = [ "nomad-cluster" ];
+
+      resources = {
+        cpu = 21760;
+        memoryMB = 5 * 1024;
+      };
+
       config = {
         image = dockerImages.mantis-faucet.id;
         args = [ "-Dconfig.file=running.conf" ];
+        ports = ["rpc" "metrics"];
         labels = [{
           inherit namespace;
-          name = faucetName;
+          name = "faucet";
           imageTag = dockerImages.mantis-faucet.image.imageTag;
         }];
 
         logging = {
           type = "journald";
           config = [{
-            tag = faucetName;
+            tag = "faucet";
             labels = "name,namespace,imageTag";
           }];
         };
@@ -416,7 +488,7 @@ let
       in [
         {
           data = ''
-            include "${mantis}/conf/testnet-internal.conf"
+            include "${mantis-faucet}/conf/testnet-internal.conf"
             mantis.blockchains.testnet-internal.custom-genesis-file = "{{ env "NOMAD_TASK_DIR" }}/genesis.json"
 
             faucet {
@@ -454,7 +526,8 @@ let
               cors-allowed-origins = "*"
 
               # Address of Ethereum node used to send the transaction
-              rpc-address = {{- range service "${namespace}-mantis-1.${namespace}-mantis-miner-rpc" -}}
+              rpc-address =
+                {{- range service "mantis-1.${namespace}-mantis-miner-rpc" -}}
                   "http://{{ .Address }}:{{ .Port }}"
                 {{- end }}
 
@@ -467,14 +540,26 @@ let
 
             logging {
               # Flag used to switch logs to the JSON format
-              json-output = false
+              json-output = true
 
               # Logs directory
-              logs-dir = /local/mantis-faucet/logs
+              #logs-dir = /local/mantis-faucet/logs
 
               # Logs filename
               logs-file = "logs"
             }
+
+            mantis.blockchains.testnet-internal.bootstrap-nodes = [
+              {{ range service "${namespace}-mantis-miner" -}}
+                "enode://  {{- with secret (printf "kv/data/nomad-cluster/${namespace}/%s/enode-hash" .ServiceMeta.Name) -}}
+                  {{- .Data.data.value -}}
+                  {{- end -}}@{{ .Address }}:{{ .Port }}",
+              {{ end -}}
+            ]
+
+            mantis.client-id = "${faucetName}"
+            mantis.metrics.enabled = true
+            mantis.metrics.port = {{ env "NOMAD_PORT_metrics" }}
           '';
           changeMode = "noop";
           destination = "local/faucet.conf";
@@ -531,6 +616,7 @@ in {
   "${faucetName}" = mkNomadJob "faucet" {
     datacenters = [ "us-east-2" "eu-central-1" ];
     type = "service";
+    inherit namespace;
 
     taskGroups.faucet = faucet;
   };
