@@ -229,7 +229,7 @@ let
         ingressPort = toString publicPort;
         ingressBind = "*:${toString publicPort}";
         ingressMode = "tcp";
-        ingressServer = "${name}.${namespace}-mantis-miner.service.consul";
+        ingressServer = "_${namespace}-mantis-miner._${name}.service.consul";
       };
     });
 
