@@ -261,7 +261,7 @@ let
           ingressHost = "${namespace}-explorer.mantis.ws";
           ingressMode = "http";
           ingressBind = "*:443";
-          ingressIf = "{ path_beg -i /rpc/node }";
+          ingressIf = "{ path_beg -i /rpc/node } { path_beg -i /sockjs-node }";
           ingressServer = "_${name}-rpc._tcp.service.consul";
           ingressBackendExtra = ''
             option tcplog
@@ -326,7 +326,7 @@ let
         ingressHost = "${name}.mantis.ws";
         ingressMode = "http";
         ingressBind = "*:443";
-        ingressIf = "! { path_beg -i /rpc/node }";
+        ingressIf = "! { path_beg -i /rpc/node } ! { path_beg -i /sockjs-node }";
         ingressServer = "_${name}._tcp.service.consul";
       };
 
@@ -348,12 +348,18 @@ let
     tasks.explorer = {
       inherit name;
       driver = "docker";
+
+      resources = {
+        cpu = 100; # mhz
+        memoryMB = 128;
+      };
+
       config = {
-        image = dockerImages.webfs.id;
+        image = dockerImages.darkhttpd.id;
         ports = [ "http" ];
         labels = [{
           inherit namespace name;
-          imageTag = dockerImages.webfs.image.imageTag;
+          imageTag = dockerImages.darkhttpd.image.imageTag;
         }];
 
         logging = {
@@ -609,6 +615,7 @@ in {
   "${namespace}-mantis-explorer" = mkNomadJob "explorer" {
     datacenters = [ "us-east-2" "eu-central-1" ];
     type = "service";
+    inherit namespace;
 
     taskGroups.explorer = explorer;
   };
