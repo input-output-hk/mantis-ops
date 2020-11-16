@@ -66,11 +66,11 @@ in {
     autoscalingGroups = listToAttrs (forEach [
       {
         region = "eu-central-1";
-        desiredCapacity = 4;
+        desiredCapacity = 6;
       }
       {
         region = "us-east-2";
-        desiredCapacity = 4;
+        desiredCapacity = 6;
       }
     ] (args:
       let
@@ -102,7 +102,7 @@ in {
             "${extraConfig}"
             ./secrets.nix
             ./monitoring.nix
-            ./seaweedfs.nix
+            # ./seaweedfs.nix
           ];
 
           securityGroupRules = {
