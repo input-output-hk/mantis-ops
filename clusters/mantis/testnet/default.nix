@@ -37,6 +37,8 @@ in {
     mantis-testnet.description = "Mantis testnet";
     mantis-obft.description = "Mantis OBFT";
     mantis-iele.description = "Mantis IELE";
+    mantis-qa-load.description = "Mantis QA Load";
+    mantis-qa-fastsync.description = "Mantis QA FastSync";
   };
 
   cluster = {
