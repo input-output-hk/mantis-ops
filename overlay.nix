@@ -191,49 +191,53 @@ in {
     echo "$genesis" | vault kv put $genesisPath -
   '';
 
-  generate-mantis-qa-genesis = final.writeShellScriptBin "generate-mantis-qa-genesis" ''
-    set -xeuo pipefail
+  generate-mantis-qa-genesis =
+    final.writeShellScriptBin "generate-mantis-qa-genesis" ''
+      set -xeuo pipefail
 
-    prefix="$1"
+      prefix="$1"
 
-    read genesis <<EOF
-      ${
-        builtins.toJSON {
-          extraData = "0x00";
-          nonce = "0x0000000000000042";
-          gasLimit = "0xffffffffff";
-          difficulty = "0x400";
-          ommersHash =
-            "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347";
-          timestamp = "0x00";
-          coinbase = "0x0000000000000000000000000000000000000000";
-          mixHash =
-            "0x0000000000000000000000000000000000000000000000000000000000000000";
-          alloc = {
-            "5a3b6d6e72db079655c6327c722cd40a60c888b4" = {
-              _comments = "PrivateKey in use: 00804c5be5b608c6a03ae5db56ac29c97192ac8b87720e7009dbc735460c7d8122; Coinbase";
-              balance = "0";
+      read genesis <<EOF
+        ${
+          builtins.toJSON {
+            extraData = "0x00";
+            nonce = "0x0000000000000042";
+            gasLimit = "0xffffffffff";
+            difficulty = "0x400";
+            ommersHash =
+              "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347";
+            timestamp = "0x00";
+            coinbase = "0x0000000000000000000000000000000000000000";
+            mixHash =
+              "0x0000000000000000000000000000000000000000000000000000000000000000";
+            alloc = {
+              "5a3b6d6e72db079655c6327c722cd40a60c888b4" = {
+                _comments =
+                  "PrivateKey in use: 00804c5be5b608c6a03ae5db56ac29c97192ac8b87720e7009dbc735460c7d8122; Coinbase";
+                balance = "0";
+              };
+              "7fbcf9190993aa5232def0238e129ce7b7e42da7" = {
+                _comments =
+                  "PrivateKey in use: 00feedec7150e9562b037727cfb33a51c753357dec7f36d659b0a531a4a5aa4000";
+                balance =
+                  "1606938044258990275541962092341162602522202993782792835301376";
+              };
+              "316158e265fa708c623cc3094b2bb5889e0f5ca5" = {
+                balance = "100000000000000000000";
+              };
+              "b9ec69316a8810db91c36de79c4f1e785f2c35fc" = {
+                balance = "100000000000000000000";
+              };
+              "488c10c91771d3b3c25f63b6414309b119baacb5" = {
+                balance = "100000000000000000000";
+              };
             };
-            "7fbcf9190993aa5232def0238e129ce7b7e42da7" = {
-              _comments = "PrivateKey in use: 00feedec7150e9562b037727cfb33a51c753357dec7f36d659b0a531a4a5aa4000";
-              balance = "1606938044258990275541962092341162602522202993782792835301376";
-            };
-            "316158e265fa708c623cc3094b2bb5889e0f5ca5" = {
-              balance = "100000000000000000000";
-            };
-            "b9ec69316a8810db91c36de79c4f1e785f2c35fc" = {
-              balance = "100000000000000000000";
-            };
-            "488c10c91771d3b3c25f63b6414309b119baacb5" = {
-              balance = "100000000000000000000";
-            };
-          };
+          }
         }
-      }
-    EOF
+      EOF
 
-    echo "$genesis" | vault kv put kv/nomad-cluster/$prefix/qa-genesis -
-  '';
+      echo "$genesis" | vault kv put kv/nomad-cluster/$prefix/qa-genesis -
+    '';
 
   devShell = let
     cluster = "mantis-testnet";
@@ -272,8 +276,12 @@ in {
 
   # Used for caching
   devShellPath = prev.symlinkJoin {
-    paths = final.devShell.buildInputs
-      ++ [ final.mantis final.mantis-faucet final.nixFlakes final.midnight-automation ];
+    paths = final.devShell.buildInputs ++ [
+      final.mantis
+      final.mantis-faucet
+      final.nixFlakes
+      final.midnight-automation
+    ];
     name = "devShell";
   };
 

@@ -177,7 +177,7 @@ let
         config = {
           image = dockerImages.mantis.id;
           args = [ "-Dconfig.file=running.conf" ];
-          ports = ["rpc" "server" "metrics"];
+          ports = [ "rpc" "server" "metrics" ];
           labels = [{
             inherit namespace name;
             imageTag = dockerImages.mantis.image.imageTag;
@@ -534,4 +534,7 @@ in {
   };
 }
 
-// (import ./mantis-active-gen.nix { inherit mkNomadJob dockerImages; namespace = "mantis-qa-load"; })
+// (import ./mantis-active-gen.nix {
+  inherit mkNomadJob dockerImages;
+  namespace = "mantis-qa-load";
+})

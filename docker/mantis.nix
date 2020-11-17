@@ -1,4 +1,5 @@
-{ lib, mkEnv, buildLayeredImage, writeShellScript, mantis, mantis-faucet, coreutils, gnused, gnugrep }:
+{ lib, mkEnv, buildLayeredImage, writeShellScript, mantis, mantis-faucet
+, coreutils, gnused, gnugrep }:
 let
   mantis-entrypoint = writeShellScript "mantis" ''
     set -exuo pipefail
@@ -42,7 +43,8 @@ in {
     config = {
       Entrypoint = [ mantis-entrypoint ];
 
-      Env = mkEnv { PATH = lib.makeBinPath [ coreutils gnugrep gnused mantis ]; };
+      Env =
+        mkEnv { PATH = lib.makeBinPath [ coreutils gnugrep gnused mantis ]; };
     };
   };
 
@@ -51,7 +53,9 @@ in {
     config = {
       Entrypoint = [ faucet-entrypoint ];
 
-      Env = mkEnv { PATH = lib.makeBinPath [ coreutils gnugrep gnused mantis-faucet ]; };
+      Env = mkEnv {
+        PATH = lib.makeBinPath [ coreutils gnugrep gnused mantis-faucet ];
+      };
     };
   };
 }

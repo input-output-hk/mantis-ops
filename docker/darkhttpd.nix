@@ -1,4 +1,5 @@
-{ lib, mkEnv, buildLayeredImage, writeShellScript, darkhttpd, mime-types, mantis-explorer }:
+{ lib, mkEnv, buildLayeredImage, writeShellScript, darkhttpd, mime-types
+, mantis-explorer }:
 let
   entrypoint = writeShellScript "darkhttpd" ''
     set -exuo pipefail

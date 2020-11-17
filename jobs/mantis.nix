@@ -1,4 +1,5 @@
-{ mkNomadJob, lib, mantis, mantis-source, mantis-faucet, mantis-faucet-source, dockerImages }:
+{ mkNomadJob, lib, mantis, mantis-source, mantis-faucet, mantis-faucet-source
+, dockerImages }:
 let
   # NOTE: Copy this file and change the next line if you want to start your own cluster!
   namespace = "mantis-testnet";
@@ -177,7 +178,7 @@ let
         config = {
           image = dockerImages.mantis.id;
           args = [ "-Dconfig.file=running.conf" ];
-          ports = ["rpc" "server" "metrics"];
+          ports = [ "rpc" "server" "metrics" ];
           labels = [{
             inherit namespace name;
             imageTag = dockerImages.mantis.image.imageTag;
@@ -326,7 +327,8 @@ let
         ingressHost = "${name}.mantis.ws";
         ingressMode = "http";
         ingressBind = "*:443";
-        ingressIf = "! { path_beg -i /rpc/node } ! { path_beg -i /sockjs-node }";
+        ingressIf =
+          "! { path_beg -i /rpc/node } ! { path_beg -i /sockjs-node }";
         ingressServer = "_${name}._tcp.service.consul";
       };
 
@@ -380,7 +382,8 @@ let
         addressMode = "host";
         portLabel = "rpc";
 
-        tags = [ "ingress" namespace "faucet" faucetName mantis-faucet-source.rev ];
+        tags =
+          [ "ingress" namespace "faucet" faucetName mantis-faucet-source.rev ];
 
         meta = {
           name = faucetName;
@@ -394,7 +397,13 @@ let
       "${faucetName}-prometheus" = {
         addressMode = "host";
         portLabel = "metrics";
-        tags = [ "prometheus" namespace "faucet" faucetName mantis-faucet-source.rev ];
+        tags = [
+          "prometheus"
+          namespace
+          "faucet"
+          faucetName
+          mantis-faucet-source.rev
+        ];
       };
     };
 
@@ -403,7 +412,7 @@ let
         metrics.to = 7000;
         rpc.to = 8000;
       };
-     }];
+    }];
 
     tasks.telegraf = {
       driver = "docker";
@@ -473,7 +482,7 @@ let
       config = {
         image = dockerImages.mantis-faucet.id;
         args = [ "-Dconfig.file=running.conf" ];
-        ports = ["rpc" "metrics"];
+        ports = [ "rpc" "metrics" ];
         labels = [{
           inherit namespace;
           name = "faucet";
@@ -601,9 +610,9 @@ in {
       minHealthyTime = "30s";
       healthyDeadline = "5m";
       progressDeadline = "10m";
-      autoRevert = true;
-      autoPromote = true;
-      canary = 1;
+      autoRevert = false;
+      autoPromote = false;
+      canary = 0;
       stagger = "30s";
     };
 
@@ -629,4 +638,7 @@ in {
   };
 }
 
-// (import ./mantis-active-gen.nix { inherit mkNomadJob dockerImages; namespace = "mantis-testnet"; })
+// (import ./mantis-active-gen.nix {
+  inherit mkNomadJob dockerImages;
+  namespace = "mantis-testnet";
+})
