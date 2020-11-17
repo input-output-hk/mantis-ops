@@ -5,30 +5,28 @@ let
 
   templatesFor = { name ? null, mining-enabled ? false }:
     let secret = key: ''{{ with secret "${key}" }}{{.Data.data.value}}{{end}}'';
-    in [
-      {
-        data = ''
-          include "${mantis}/conf/etc.conf"
+    in [{
+      data = ''
+        include "${mantis}/conf/etc.conf"
 
-          logging.json-output = true
-          logging.logs-file = "logs"
+        logging.json-output = true
+        logging.logs-file = "logs"
 
-          mantis.client-id = "${name}"
-          mantis.sync.do-fast-sync = true
-          mantis.consensus.coinbase = "{{ with secret "kv/data/nomad-cluster/${namespace}/${name}/coinbase" }}{{ .Data.data.value }}{{ end }}"
-          mantis.node-key-file = "{{ env "NOMAD_SECRETS_DIR" }}/secret-key"
-          mantis.datadir = "/local/mantis"
-          mantis.ethash.ethash-dir = "/local/ethash"
-          mantis.metrics.enabled = true
-          mantis.metrics.port = {{ env "NOMAD_PORT_metrics" }}
-          mantis.network.rpc.http.interface = "0.0.0.0"
-          mantis.network.rpc.http.port = {{ env "NOMAD_PORT_rpc" }}
-          mantis.network.server-address.port = {{ env "NOMAD_PORT_server" }}
-        '';
-        destination = "local/mantis.conf";
-        changeMode = "noop";
-      }
-    ] ++ (lib.optional mining-enabled {
+        mantis.client-id = "${name}"
+        mantis.sync.do-fast-sync = true
+        mantis.consensus.coinbase = "{{ with secret "kv/data/nomad-cluster/${namespace}/${name}/coinbase" }}{{ .Data.data.value }}{{ end }}"
+        mantis.node-key-file = "{{ env "NOMAD_SECRETS_DIR" }}/secret-key"
+        mantis.datadir = "/local/mantis"
+        mantis.ethash.ethash-dir = "/local/ethash"
+        mantis.metrics.enabled = true
+        mantis.metrics.port = {{ env "NOMAD_PORT_metrics" }}
+        mantis.network.rpc.http.interface = "0.0.0.0"
+        mantis.network.rpc.http.port = {{ env "NOMAD_PORT_rpc" }}
+        mantis.network.server-address.port = {{ env "NOMAD_PORT_server" }}
+      '';
+      destination = "local/mantis.conf";
+      changeMode = "noop";
+    }] ++ (lib.optional mining-enabled {
       data = ''
         ${secret "kv/data/nomad-cluster/${namespace}/${name}/secret-key"}
         ${secret "kv/data/nomad-cluster/${namespace}/${name}/enode-hash"}
@@ -158,7 +156,7 @@ let
         config = {
           image = dockerImages.mantis.id;
           args = [ "-Dconfig.file=running.conf" ];
-          ports = ["rpc" "server" "metrics"];
+          ports = [ "rpc" "server" "metrics" ];
           labels = [{
             inherit namespace name;
             imageTag = dockerImages.mantis.image.imageTag;
@@ -251,29 +249,27 @@ let
         };
       };
 
-      templates = [
-        {
-          data = ''
-            include "${mantis}/conf/etc.conf"
+      templates = [{
+        data = ''
+          include "${mantis}/conf/etc.conf"
 
-            logging.json-output = true
-            logging.logs-file = "logs"
+          logging.json-output = true
+          logging.logs-file = "logs"
 
-            mantis.client-id = "${name}"
-            mantis.sync.do-fast-sync = true
-            mantis.consensus.mining-enabled = false
-            mantis.datadir = "/local/mantis"
-            mantis.ethash.ethash-dir = "/local/ethash"
-            mantis.metrics.enabled = true
-            mantis.metrics.port = {{ env "NOMAD_PORT_metrics" }}
-            mantis.network.rpc.http.interface = "0.0.0.0"
-            mantis.network.rpc.http.port = {{ env "NOMAD_PORT_rpc" }}
-            mantis.network.server-address.port = {{ env "NOMAD_PORT_server" }}
-          '';
-          changeMode = "restart";
-          destination = "local/mantis.conf";
-        }
-      ];
+          mantis.client-id = "${name}"
+          mantis.sync.do-fast-sync = true
+          mantis.consensus.mining-enabled = false
+          mantis.datadir = "/local/mantis"
+          mantis.ethash.ethash-dir = "/local/ethash"
+          mantis.metrics.enabled = true
+          mantis.metrics.port = {{ env "NOMAD_PORT_metrics" }}
+          mantis.network.rpc.http.interface = "0.0.0.0"
+          mantis.network.rpc.http.port = {{ env "NOMAD_PORT_rpc" }}
+          mantis.network.server-address.port = {{ env "NOMAD_PORT_server" }}
+        '';
+        changeMode = "restart";
+        destination = "local/mantis.conf";
+      }];
     };
 
   amountOfMiners = 0;
@@ -307,4 +303,7 @@ in {
   };
 }
 
-// (import ./mantis-active-gen.nix { inherit mkNomadJob dockerImages; namespace = "mantis-qa-fastsync"; })
+// (import ./mantis-active-gen.nix {
+  inherit mkNomadJob dockerImages;
+  namespace = "mantis-qa-fastsync";
+})

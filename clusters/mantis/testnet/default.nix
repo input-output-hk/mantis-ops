@@ -179,9 +179,7 @@ in {
         privateIP = "172.16.0.20";
         subnet = cluster.vpc.subnets.core-1;
         volumeSize = 500;
-        route53.domains = [
-          "*.${cluster.domain}"
-        ];
+        route53.domains = [ "*.${cluster.domain}" ];
 
         modules = let
           extraConfig = pkgs.writeText "extra-config.nix" ''
@@ -201,7 +199,8 @@ in {
         ];
 
         securityGroupRules = {
-          inherit (securityGroupRules) internet internal ssh http mantis-server-public;
+          inherit (securityGroupRules)
+            internet internal ssh http mantis-server-public;
         };
       };
     };
