@@ -18,6 +18,7 @@ let
     let secret = key: ''{{ with secret "${key}" }}{{.Data.data.value}}{{end}}'';
     in [
       {
+        # FIXME: pow-target-time was only temporarily changed here, should be included on the default testnet-internal on next version of mantis
         data = ''
           include "${mantis}/conf/testnet-internal.conf"
 
@@ -43,6 +44,8 @@ let
           mantis.network.rpc.http.port = {{ env "NOMAD_PORT_rpc" }}
           mantis.network.server-address.port = {{ env "NOMAD_PORT_server" }}
           mantis.blockchains.testnet-internal.custom-genesis-file = "{{ env "NOMAD_TASK_DIR" }}/genesis.json"
+
+          mantis.blockchains.testnet-internal.pow-target-time = 30 seconds
         '';
         destination = "local/mantis.conf";
         changeMode = "noop";
@@ -273,6 +276,7 @@ let
 
       templates = [
         {
+          # FIXME: pow-target-time was only temporarily changed here, should be included on the default testnet-internal on next version of mantis
           data = ''
             include "${mantis}/conf/testnet-internal.conf"
 
@@ -297,6 +301,8 @@ let
             mantis.network.rpc.http.port = {{ env "NOMAD_PORT_rpc" }}
             mantis.network.server-address.port = {{ env "NOMAD_PORT_server" }}
             mantis.blockchains.testnet-internal.custom-genesis-file = "{{ env "NOMAD_TASK_DIR" }}/genesis.json"
+
+            mantis.blockchains.testnet-internal.pow-target-time = 30 seconds
           '';
           changeMode = "restart";
           destination = "local/mantis.conf";
