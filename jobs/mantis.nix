@@ -515,7 +515,7 @@ let
 
               # Wallet address used to send transactions from
               wallet-address =
-                {{- with secret "kv/nomad-cluster/${namespace}/${namespace}-mantis-1/coinbase" -}}
+                {{- with secret "kv/nomad-cluster/${namespace}/mantis-1/coinbase" -}}
                   "{{.Data.data.value}}"
                 {{- end }}
 
@@ -611,7 +611,7 @@ let
         genesisJson
         {
           data = ''
-            {{- with secret "kv/data/nomad-cluster/${namespace}/${namespace}-mantis-1/account" -}}
+            {{- with secret "kv/data/nomad-cluster/${namespace}/mantis-1/account" -}}
             {{.Data.data | toJSON }}
             {{- end -}}
           '';
@@ -619,7 +619,7 @@ let
         }
         {
           data = ''
-            COINBASE={{- with secret "kv/data/nomad-cluster/${namespace}/${namespace}-mantis-1/coinbase" -}}{{ .Data.data.value }}{{- end -}}
+            COINBASE={{- with secret "kv/data/nomad-cluster/${namespace}/mantis-1/coinbase" -}}{{ .Data.data.value }}{{- end -}}
           '';
           destination = "secrets/env";
           env = true;
