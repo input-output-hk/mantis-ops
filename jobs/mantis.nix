@@ -265,10 +265,12 @@ let
           ingressHost = "${namespace}-explorer.mantis.ws";
           ingressMode = "http";
           ingressBind = "*:443";
-          ingressIf = "{ path_beg -i /rpc/node } { path_beg -i /sockjs-node }";
+          ingressIf =
+            "{ path_beg -i /rpc/node } or { hdr(host) -i ${namespace}-explorer.mantis.ws } { path_beg -i /sockjs-node }";
           ingressServer = "_${name}-rpc._tcp.service.consul";
           ingressBackendExtra = ''
             option tcplog
+            http-response set-header X-Server %s
             http-request set-path /
           '';
         };
@@ -336,6 +338,9 @@ let
         ingressIf =
           "! { path_beg -i /rpc/node } ! { path_beg -i /sockjs-node }";
         ingressServer = "_${name}._tcp.service.consul";
+        ingressBackendExtra = ''
+          http-response set-header X-Server %s
+        '';
       };
 
       checks = [{
