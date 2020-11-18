@@ -1,5 +1,5 @@
 { lib, mkEnv, buildLayeredImage, writeShellScript, mantis, mantis-faucet
-, coreutils, gnused, gnugrep }:
+, coreutils, gnused, gnugrep, debugUtils }:
 let
   mantis-entrypoint = writeShellScript "mantis" ''
     set -exuo pipefail
@@ -35,7 +35,7 @@ let
 
     chown --reference . --recursive . || true
     ulimit -c unlimited
-    exec mantis "-Duser.home=$NOMAD_TASK_DIR" "$@"
+    exec mantis faucet "-Duser.home=$NOMAD_TASK_DIR" "$@"
   '';
 in {
   mantis = buildLayeredImage {
@@ -50,6 +50,9 @@ in {
 
   mantis-faucet = buildLayeredImage {
     name = "docker.mantis.ws/mantis-faucet";
+
+    contents = debugUtils;
+
     config = {
       Entrypoint = [ faucet-entrypoint ];
 

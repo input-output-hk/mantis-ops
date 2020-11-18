@@ -1,6 +1,7 @@
 include "./result/conf/testnet-internal.conf"
 
 mantis.consensus.mining-enabled = false
+mantis.blockchains.testnet-internal.custom-genesis-file = "./genesis.json"
 
 mantis.blockchains.testnet-internal.bootstrap-nodes = [
 {{ range service "mantis-testnet-mantis-miner" -}}

@@ -271,10 +271,10 @@ in {
       final.nomad
       final.consul
       final.consul-template
-      final.python38Packages.pyhcl
       final.direnv
       final.nixFlakes
       final.jq
+      final.fd
     ];
   };
 
@@ -288,6 +288,23 @@ in {
     ];
     name = "devShell";
   };
+
+  debugUtils = with final; [
+    bashInteractive
+    coreutils
+    curl
+    dnsutils
+    fd
+    gawk
+    gnugrep
+    iproute
+    jq
+    lsof
+    netcat
+    nettools
+    procps
+    tree
+  ];
 
   mantis-explorer = final.callPackage ./pkgs/mantis-explorer.nix {
     src = self.inputs.mantis-explorer;
