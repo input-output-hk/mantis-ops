@@ -18,6 +18,7 @@ let
     let secret = key: ''{{ with secret "${key}" }}{{.Data.data.value}}{{end}}'';
     in [
       {
+        # FIXME: pow-target-time was only temporarily changed here, should be included on the default testnet-internal on next version of mantis
         data = ''
           include "${mantis}/conf/testnet-internal.conf"
 
@@ -43,6 +44,8 @@ let
           mantis.network.rpc.http.port = {{ env "NOMAD_PORT_rpc" }}
           mantis.network.server-address.port = {{ env "NOMAD_PORT_server" }}
           mantis.blockchains.testnet-internal.custom-genesis-file = "{{ env "NOMAD_TASK_DIR" }}/genesis.json"
+
+          mantis.blockchains.testnet-internal.pow-target-time = 30 seconds
         '';
         destination = "local/mantis.conf";
         changeMode = "noop";
@@ -273,6 +276,7 @@ let
 
       templates = [
         {
+          # FIXME: pow-target-time was only temporarily changed here, should be included on the default testnet-internal on next version of mantis
           data = ''
             include "${mantis}/conf/testnet-internal.conf"
 
@@ -297,6 +301,8 @@ let
             mantis.network.rpc.http.port = {{ env "NOMAD_PORT_rpc" }}
             mantis.network.server-address.port = {{ env "NOMAD_PORT_server" }}
             mantis.blockchains.testnet-internal.custom-genesis-file = "{{ env "NOMAD_TASK_DIR" }}/genesis.json"
+
+            mantis.blockchains.testnet-internal.pow-target-time = 30 seconds
           '';
           changeMode = "restart";
           destination = "local/mantis.conf";
@@ -503,16 +509,13 @@ let
       in [
         {
           data = ''
-            include "${mantis-faucet}/conf/testnet-internal.conf"
-            mantis.blockchains.testnet-internal.custom-genesis-file = "{{ env "NOMAD_TASK_DIR" }}/genesis.json"
-
             faucet {
               # Base directory where all the data used by the faucet is stored
               datadir = "/local/mantis-faucet"
 
               # Wallet address used to send transactions from
               wallet-address =
-                {{- with secret "kv/nomad-cluster/${namespace}/${namespace}-mantis-1/coinbase" -}}
+                {{- with secret "kv/nomad-cluster/${namespace}/mantis-1/coinbase" -}}
                   "{{.Data.data.value}}"
                 {{- end }}
 
@@ -601,18 +604,6 @@ let
                 }
               }
             }
-
-            mantis.blockchains.testnet-internal.bootstrap-nodes = [
-              {{ range service "${namespace}-mantis-miner" -}}
-                "enode://  {{- with secret (printf "kv/data/nomad-cluster/${namespace}/%s/enode-hash" .ServiceMeta.Name) -}}
-                  {{- .Data.data.value -}}
-                  {{- end -}}@{{ .Address }}:{{ .Port }}",
-              {{ end -}}
-            ]
-
-            mantis.client-id = "${faucetName}"
-            mantis.metrics.enabled = true
-            mantis.metrics.port = {{ env "NOMAD_PORT_metrics" }}
           '';
           changeMode = "noop";
           destination = "local/faucet.conf";
@@ -620,7 +611,7 @@ let
         genesisJson
         {
           data = ''
-            {{- with secret "kv/data/nomad-cluster/${namespace}/${namespace}-mantis-1/account" -}}
+            {{- with secret "kv/data/nomad-cluster/${namespace}/mantis-1/account" -}}
             {{.Data.data | toJSON }}
             {{- end -}}
           '';
@@ -628,7 +619,7 @@ let
         }
         {
           data = ''
-            COINBASE={{- with secret "kv/data/nomad-cluster/${namespace}/${namespace}-mantis-1/coinbase" -}}{{ .Data.data.value }}{{- end -}}
+            COINBASE={{- with secret "kv/data/nomad-cluster/${namespace}/mantis-1/coinbase" -}}{{ .Data.data.value }}{{- end -}}
           '';
           destination = "secrets/env";
           env = true;
