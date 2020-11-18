@@ -18,12 +18,12 @@ let
     in [
       {
         data = ''
-          include "${mantis}/conf/testnet-internal.conf"
+          include "${mantis}/conf/testnet-internal-nomad.conf"
 
           logging.json-output = true
           logging.logs-file = "logs"
 
-          mantis.blockchains.testnet-internal.bootstrap-nodes = [
+          mantis.blockchains.testnet-internal-nomad.bootstrap-nodes = [
             {{ range service "${namespace}-mantis-miner" -}}
               "enode://  {{- with secret (printf "kv/data/nomad-cluster/${namespace}/%s/enode-hash" .ServiceMeta.Name) -}}
                 {{- .Data.data.value -}}
@@ -41,7 +41,7 @@ let
           mantis.network.rpc.http.interface = "0.0.0.0"
           mantis.network.rpc.http.port = {{ env "NOMAD_PORT_rpc" }}
           mantis.network.server-address.port = {{ env "NOMAD_PORT_server" }}
-          mantis.blockchains.testnet-internal.custom-genesis-file = "{{ env "NOMAD_TASK_DIR" }}/genesis.json"
+          mantis.blockchains.testnet-internal-nomad.custom-genesis-file = "{{ env "NOMAD_TASK_DIR" }}/genesis.json"
         '';
         destination = "local/mantis.conf";
         changeMode = "noop";
@@ -273,12 +273,12 @@ let
       templates = [
         {
           data = ''
-            include "${mantis}/conf/testnet-internal.conf"
+            include "${mantis}/conf/testnet-internal-nomad.conf"
 
             logging.json-output = true
             logging.logs-file = "logs"
 
-            mantis.blockchains.testnet-internal.bootstrap-nodes = [
+            mantis.blockchains.testnet-internal-nomad.bootstrap-nodes = [
               {{ range service "${namespace}-mantis-miner" -}}
                 "enode://  {{- with secret (printf "kv/data/nomad-cluster/${namespace}/%s/enode-hash" .ServiceMeta.Name) -}}
                   {{- .Data.data.value -}}
@@ -295,7 +295,7 @@ let
             mantis.network.rpc.http.interface = "0.0.0.0"
             mantis.network.rpc.http.port = {{ env "NOMAD_PORT_rpc" }}
             mantis.network.server-address.port = {{ env "NOMAD_PORT_server" }}
-            mantis.blockchains.testnet-internal.custom-genesis-file = "{{ env "NOMAD_TASK_DIR" }}/genesis.json"
+            mantis.blockchains.testnet-internal-nomad.custom-genesis-file = "{{ env "NOMAD_TASK_DIR" }}/genesis.json"
           '';
           changeMode = "restart";
           destination = "local/mantis.conf";
