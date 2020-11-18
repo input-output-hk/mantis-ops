@@ -10,14 +10,14 @@ in {
   # The branch was `chore/update-sbt-add-nix`, for future reference.
   mantis-source = builtins.fetchGit {
     url = "https://github.com/input-output-hk/mantis";
-    rev = "df2916bccd53b2ccc5c3758e5aa7f272c6fbb4fe";
+    rev = "dcb6d7b714bc1e23f75dd3e62365b316dab68ec3";
     ref = "develop";
     submodules = true;
   };
 
   mantis-faucet-source = builtins.fetchGit {
     url = "https://github.com/input-output-hk/mantis";
-    rev = "df2916bccd53b2ccc5c3758e5aa7f272c6fbb4fe";
+    rev = "dcb6d7b714bc1e23f75dd3e62365b316dab68ec3";
     ref = "develop";
     submodules = true;
   };
@@ -29,6 +29,10 @@ in {
 
   mantis-faucet = import final.mantis-faucet-source { inherit system; };
 
+  # Any:
+  # - run of this command with a parameter different than the testnet (currently 10)
+  # - change in the genesis file here
+  # Requires an update on the mantis repository and viceversa
   generate-mantis-keys = let
     mantisConfigJson = {
       mantis = {
@@ -119,10 +123,10 @@ in {
     for count in $(seq "$desired"); do
       keyFile="secrets/mantis-$count.key"
       coinbaseFile="secrets/mantis-$count.coinbase"
-      secretKeyPath="kv/nomad-cluster/$prefix/testnet-mantis-$count/secret-key"
-      hashKeyPath="kv/nomad-cluster/$prefix/testnet-mantis-$count/enode-hash"
-      coinbasePath="kv/nomad-cluster/$prefix/testnet-mantis-$count/coinbase"
-      accountPath="kv/nomad-cluster/$prefix/testnet-mantis-$count/account"
+      secretKeyPath="kv/nomad-cluster/$prefix/mantis-$count/secret-key"
+      hashKeyPath="kv/nomad-cluster/$prefix/mantis-$count/enode-hash"
+      coinbasePath="kv/nomad-cluster/$prefix/mantis-$count/coinbase"
+      accountPath="kv/nomad-cluster/$prefix/mantis-$count/account"
       genesisPath="kv/nomad-cluster/$prefix/genesis"
 
       hashKey="$(vault kv get -field value "$hashKeyPath" || true)"
