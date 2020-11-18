@@ -18,14 +18,13 @@ let
     let secret = key: ''{{ with secret "${key}" }}{{.Data.data.value}}{{end}}'';
     in [
       {
-        # FIXME: pow-target-time was only temporarily changed here, should be included on the default testnet-internal on next version of mantis
         data = ''
-          include "${mantis}/conf/testnet-internal.conf"
+          include "${mantis}/conf/testnet-internal-nomad.conf"
 
           logging.json-output = true
           logging.logs-file = "logs"
 
-          mantis.blockchains.testnet-internal.bootstrap-nodes = [
+          mantis.blockchains.testnet-internal-nomad.bootstrap-nodes = [
             {{ range service "${namespace}-mantis-miner" -}}
               "enode://  {{- with secret (printf "kv/data/nomad-cluster/${namespace}/%s/enode-hash" .ServiceMeta.Name) -}}
                 {{- .Data.data.value -}}
@@ -43,9 +42,10 @@ let
           mantis.network.rpc.http.interface = "0.0.0.0"
           mantis.network.rpc.http.port = {{ env "NOMAD_PORT_rpc" }}
           mantis.network.server-address.port = {{ env "NOMAD_PORT_server" }}
-          mantis.blockchains.testnet-internal.custom-genesis-file = "{{ env "NOMAD_TASK_DIR" }}/genesis.json"
+          mantis.blockchains.testnet-internal-nomad.custom-genesis-file = "{{ env "NOMAD_TASK_DIR" }}/genesis.json"
 
-          mantis.blockchains.testnet-internal.pow-target-time = 30 seconds
+          mantis.blockchains.testnet-internal-nomad.ecip1098-block-number = 0
+          mantis.blockchains.testnet-internal-nomad.ecip1097-block-number = 0
         '';
         destination = "local/mantis.conf";
         changeMode = "noop";
@@ -279,14 +279,13 @@ let
 
       templates = [
         {
-          # FIXME: pow-target-time was only temporarily changed here, should be included on the default testnet-internal on next version of mantis
           data = ''
-            include "${mantis}/conf/testnet-internal.conf"
+            include "${mantis}/conf/testnet-internal-nomad.conf"
 
             logging.json-output = true
             logging.logs-file = "logs"
 
-            mantis.blockchains.testnet-internal.bootstrap-nodes = [
+            mantis.blockchains.testnet-internal-nomad.bootstrap-nodes = [
               {{ range service "${namespace}-mantis-miner" -}}
                 "enode://  {{- with secret (printf "kv/data/nomad-cluster/${namespace}/%s/enode-hash" .ServiceMeta.Name) -}}
                   {{- .Data.data.value -}}
@@ -303,9 +302,10 @@ let
             mantis.network.rpc.http.interface = "0.0.0.0"
             mantis.network.rpc.http.port = {{ env "NOMAD_PORT_rpc" }}
             mantis.network.server-address.port = {{ env "NOMAD_PORT_server" }}
-            mantis.blockchains.testnet-internal.custom-genesis-file = "{{ env "NOMAD_TASK_DIR" }}/genesis.json"
+            mantis.blockchains.testnet-internal-nomad.custom-genesis-file = "{{ env "NOMAD_TASK_DIR" }}/genesis.json"
 
-            mantis.blockchains.testnet-internal.pow-target-time = 30 seconds
+            mantis.blockchains.testnet-internal-nomad.ecip1098-block-number = 0
+            mantis.blockchains.testnet-internal-nomad.ecip1097-block-number = 0
           '';
           changeMode = "restart";
           destination = "local/mantis.conf";
