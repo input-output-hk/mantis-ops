@@ -414,7 +414,7 @@ let
       in [
         {
           data = ''
-            include "${mantis}/conf/testnet-internal.conf"
+            include "${mantis-faucet}/conf/testnet-internal.conf"
             mantis.blockchains.testnet-internal.custom-genesis-file = "{{ env "NOMAD_TASK_DIR" }}/genesis.json"
 
             faucet {
@@ -442,37 +442,88 @@ let
               # Transaction value
               tx-value = 1000000000000000000
 
-              # Faucet listen interface
-              listen-interface = "0.0.0.0"
-
-              # Faucet listen port
-              listen-port = {{ env "NOMAD_PORT_rpc" }}
-
-              # Faucet cors config
-              cors-allowed-origins = "*"
-
               # Address of Ethereum node used to send the transaction
               rpc-address = {{- range service "${namespace}-mantis-1.${namespace}-mantis-miner-rpc" -}}
                   "http://{{ .Address }}:{{ .Port }}"
                 {{- end }}
 
               # How often can a single IP address send a request
-              min-request-interval = 1.minute
-
-              # How many ip addr -> timestamp entries to store
-              latest-timestamp-cache-size = 1024
+              min-request-interval = 0.minute
             }
 
             logging {
               # Flag used to switch logs to the JSON format
-              json-output = false
+              json-output = true
 
               # Logs directory
-              logs-dir = /local/mantis-faucet/logs
+              #logs-dir = /local/mantis-faucet/logs
 
               # Logs filename
               logs-file = "logs"
             }
+
+            mantis {
+              network {
+                rpc {
+                  http {
+                    # JSON-RPC mode
+                    # Available modes are: http, https
+                    # Choosing https requires creating a certificate and setting up 'certificate-keystore-path' and
+                    # 'certificate-password-file'
+                    # See: https://github.com/input-output-hk/mantis/wiki/Creating-self-signed-certificate-for-using-JSON-RPC-with-HTTPS
+                    mode = "http"
+
+                    # Whether to enable JSON-RPC HTTP(S) endpoint
+                    enabled = true
+
+                    # Listening address of JSON-RPC HTTP(S) endpoint
+                    interface = "0.0.0.0"
+
+                    # Listening port of JSON-RPC HTTP(S) endpoint
+                    port = {{ env "NOMAD_PORT_rpc" }}
+
+                    # Path to the keystore storing the certificates (used only for https)
+                    # null value indicates HTTPS is not being used
+                    certificate-keystore-path = null
+
+                    # Type of certificate keystore being used
+                    # null value indicates HTTPS is not being used
+                    certificate-keystore-type = null
+
+                    # File with the password used for accessing the certificate keystore (used only for https)
+                    # null value indicates HTTPS is not being used
+                    certificate-password-file = null
+
+                    # Domains allowed to query RPC endpoint. Use "*" to enable requests from
+                    # any domain.
+                    cors-allowed-origins = "*"
+                  }
+
+                  ipc {
+                    # Whether to enable JSON-RPC over IPC
+                    enabled = false
+
+                    # Path to IPC socket file
+                    socket-file = "/local/mantis-faucet/faucet.ipc"
+                  }
+
+                  # Enabled JSON-RPC APIs over the JSON-RPC endpoint
+                  apis = "faucet"
+                }
+              }
+            }
+
+            mantis.blockchains.testnet-internal.bootstrap-nodes = [
+              {{ range service "${namespace}-mantis-miner" -}}
+                "enode://  {{- with secret (printf "kv/data/nomad-cluster/${namespace}/%s/enode-hash" .ServiceMeta.Name) -}}
+                  {{- .Data.data.value -}}
+                  {{- end -}}@{{ .Address }}:{{ .Port }}",
+              {{ end -}}
+            ]
+
+            mantis.client-id = "${faucetName}"
+            mantis.metrics.enabled = true
+            mantis.metrics.port = {{ env "NOMAD_PORT_metrics" }}
           '';
           changeMode = "noop";
           destination = "local/faucet.conf";
