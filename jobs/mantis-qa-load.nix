@@ -413,11 +413,7 @@ let
         secret = key: ''{{ with secret "${key}" }}{{.Data.data.value}}{{end}}'';
       in [
         {
-          # FIXME: this previously extended "${mantis-faucet}/conf/testnet-internal.conf", but mantis-faucet is undefined, I might have not fully fixed while changing this
           data = ''
-            include "${faucet}/conf/testnet-internal.conf"
-            mantis.blockchains.testnet-internal.custom-genesis-file = "{{ env "NOMAD_TASK_DIR" }}/genesis.json"
-
             faucet {
               # Base directory where all the data used by the faucet is stored
               datadir = "/local/mantis-faucet"
@@ -513,18 +509,6 @@ let
                 }
               }
             }
-
-            mantis.blockchains.testnet-internal.bootstrap-nodes = [
-              {{ range service "${namespace}-mantis-miner" -}}
-                "enode://  {{- with secret (printf "kv/data/nomad-cluster/${namespace}/%s/enode-hash" .ServiceMeta.Name) -}}
-                  {{- .Data.data.value -}}
-                  {{- end -}}@{{ .Address }}:{{ .Port }}",
-              {{ end -}}
-            ]
-
-            mantis.client-id = "${faucetName}"
-            mantis.metrics.enabled = true
-            mantis.metrics.port = {{ env "NOMAD_PORT_metrics" }}
           '';
           changeMode = "noop";
           destination = "local/faucet.conf";
