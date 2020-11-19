@@ -1,9 +1,9 @@
-include "./result/conf/testnet-internal.conf"
+include "./result/conf/testnet-internal-nomad.conf"
 
 mantis.consensus.mining-enabled = false
 mantis.blockchains.testnet-internal.custom-genesis-file = "./genesis.json"
 
-mantis.blockchains.testnet-internal.bootstrap-nodes = [
+mantis.blockchains.testnet-internal-nomad.bootstrap-nodes = [
 {{ range service "mantis-testnet-mantis-miner" -}}
   "enode://  {{- with secret (printf "kv/data/nomad-cluster/testnet/%s/enode-hash" .ServiceMeta.Name) -}}
     {{- .Data.data.value -}}
