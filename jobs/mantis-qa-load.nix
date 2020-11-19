@@ -440,7 +440,7 @@ let
               tx-value = 1000000000000000000
 
               # Address of Ethereum node used to send the transaction
-              rpc-address = {{- range service "${namespace}-mantis-1.${namespace}-mantis-miner-rpc" -}}
+              rpc-address = {{- range service "mantis-1.${namespace}-mantis-miner-rpc" -}}
                   "http://{{ .Address }}:{{ .Port }}"
                 {{- end }}
 
