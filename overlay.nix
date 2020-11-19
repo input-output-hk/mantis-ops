@@ -237,7 +237,7 @@ in {
     for count in $(seq "$desired"); do
       updatedGenesis="$(
         echo "$genesis" \
-        | jq --arg address "$(< "secrets/mantis-$count.coinbase")" \
+        | jq --arg address "$(< "secrets/$prefix/mantis-$count.coinbase")" \
           '.alloc[$address] = {"balance": "1606938044258990275541962092341162602522202993782792835301376"}'
       )"
       genesis="$updatedGenesis"
