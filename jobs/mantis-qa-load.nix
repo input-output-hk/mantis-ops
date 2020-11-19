@@ -383,7 +383,7 @@ let
       };
     };
 
-    networks = [{ ports = [{ rpc.to = 8000; }]; }];
+    networks = [{ ports = { rpc.to = 8000; }; }];
 
     tasks.faucet = {
       name = faucetName;
@@ -558,6 +558,7 @@ in {
   "${namespace}-mantis-explorer" = mkNomadJob "explorer" {
     datacenters = [ "us-east-2" "eu-central-1" ];
     type = "service";
+    inherit namespace;
 
     taskGroups.explorer = explorer;
   };
@@ -565,6 +566,7 @@ in {
   "${faucetName}" = mkNomadJob "faucet" {
     datacenters = [ "us-east-2" "eu-central-1" ];
     type = "service";
+    inherit namespace;
 
     taskGroups.faucet = faucet;
   };
