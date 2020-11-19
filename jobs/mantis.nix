@@ -211,11 +211,12 @@ let
     lib.nameValuePair name (mkMantis {
       resources = {
         # For c5.2xlarge in clusters/mantis/testnet/default.nix, the url ref below
-        # provides 3.4 GHz * 8 vCPU = 27.2 GHz max.  80% is 21760 MHz.
+        # provides 3.4 GHz * 8 vCPU = 27.2 GHz max.
+        # Mantis mainly uses only one core.
         # Allocating by vCPU or core quantity not yet available.
         # Ref: https://github.com/hashicorp/nomad/blob/master/client/fingerprint/env_aws.go
-        cpu = 21760;
-        memoryMB = 5 * 1024;
+        cpu = 3400;
+        memoryMB = 4 * 1024;
       };
 
       inherit name requiredPeerCount;
@@ -388,10 +389,18 @@ let
 
   faucetName = "${namespace}-mantis-faucet";
   faucet = {
+    networks = [{
+      ports = {
+        metrics.to = 7000;
+        rpc.to = 8000;
+      };
+    }];
+
     services = {
       "${faucetName}" = {
         addressMode = "host";
         portLabel = "rpc";
+        task = "faucet";
 
         tags =
           [ "ingress" namespace "faucet" faucetName mantis-faucet-source.rev ];
@@ -404,7 +413,25 @@ let
           ingressMode = "http";
           ingressServer = "_${faucetName}._tcp.service.consul";
         };
+
+        # FIXME: this always returns FaucetUnavailable
+        # checks = [{
+        #   taskName = "faucet";
+        #   type = "script";
+        #   name = "faucet_health";
+        #   command = "healthcheck";
+        #   interval = "60s";
+        #   timeout = "5s";
+        #   portLabel = "rpc";
+
+        #   checkRestart = {
+        #     limit = 5;
+        #     grace = "300s";
+        #     ignoreWarnings = false;
+        #   };
+        # }];
       };
+
       "${faucetName}-prometheus" = {
         addressMode = "host";
         portLabel = "metrics";
@@ -418,67 +445,6 @@ let
       };
     };
 
-    networks = [{
-      ports = {
-        metrics.to = 7000;
-        rpc.to = 8000;
-      };
-    }];
-
-    tasks.telegraf = {
-      driver = "docker";
-
-      vault.policies = [ "nomad-cluster" ];
-
-      resources = {
-        cpu = 100; # mhz
-        memoryMB = 128;
-      };
-
-      config = {
-        image = dockerImages.telegraf.id;
-        args = [ "-config" "local/telegraf.config" ];
-
-        labels = [{
-          inherit namespace;
-          name = "faucet";
-          imageTag = dockerImages.telegraf.image.imageTag;
-        }];
-
-        logging = {
-          type = "journald";
-          config = [{
-            tag = "faucet-telegraf";
-            labels = "name,namespace,imageTag";
-          }];
-        };
-      };
-
-      templates = [{
-        data = ''
-          [agent]
-          flush_interval = "10s"
-          interval = "10s"
-          omit_hostname = false
-
-          [global_tags]
-          client_id = "faucet"
-          namespace = "${namespace}"
-
-          [inputs.prometheus]
-          metric_version = 1
-
-          urls = [ "http://{{ env "NOMAD_ADDR_metrics" }}" ]
-
-          [outputs.influxdb]
-          database = "telegraf"
-          urls = ["http://{{with node "monitoring" }}{{ .Node.Address }}{{ end }}:8428"]
-        '';
-
-        destination = "local/telegraf.config";
-      }];
-    };
-
     tasks.faucet = {
       name = "faucet";
       driver = "docker";
@@ -486,8 +452,8 @@ let
       vault.policies = [ "nomad-cluster" ];
 
       resources = {
-        cpu = 21760;
-        memoryMB = 5 * 1024;
+        cpu = 100;
+        memoryMB = 1024;
       };
 
       config = {
@@ -630,6 +596,60 @@ let
           env = true;
         }
       ];
+    };
+
+    tasks.telegraf = {
+      driver = "docker";
+
+      vault.policies = [ "nomad-cluster" ];
+
+      resources = {
+        cpu = 100; # mhz
+        memoryMB = 128;
+      };
+
+      config = {
+        image = dockerImages.telegraf.id;
+        args = [ "-config" "local/telegraf.config" ];
+
+        labels = [{
+          inherit namespace;
+          name = "faucet";
+          imageTag = dockerImages.telegraf.image.imageTag;
+        }];
+
+        logging = {
+          type = "journald";
+          config = [{
+            tag = "faucet-telegraf";
+            labels = "name,namespace,imageTag";
+          }];
+        };
+      };
+
+      templates = [{
+        data = ''
+          [agent]
+          flush_interval = "10s"
+          interval = "10s"
+          omit_hostname = false
+
+          [global_tags]
+          client_id = "faucet"
+          namespace = "${namespace}"
+
+          [inputs.prometheus]
+          metric_version = 1
+
+          urls = [ "http://{{ env "NOMAD_ADDR_metrics" }}" ]
+
+          [outputs.influxdb]
+          database = "telegraf"
+          urls = ["http://{{with node "monitoring" }}{{ .Node.Address }}{{ end }}:8428"]
+        '';
+
+        destination = "local/telegraf.config";
+      }];
     };
   };
 in {
