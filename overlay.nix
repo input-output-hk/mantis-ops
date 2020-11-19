@@ -10,14 +10,14 @@ in {
   # The branch was `chore/update-sbt-add-nix`, for future reference.
   mantis-source = builtins.fetchGit {
     url = "https://github.com/input-output-hk/mantis";
-    rev = "aaf3c852b4882369ac5a0f518344d9b02e63b8ef";
+    rev = "057f84ca72914c7175a0df1d8e40df9c83a9ed6f";
     ref = "develop";
     submodules = true;
   };
 
   mantis-faucet-source = builtins.fetchGit {
     url = "https://github.com/input-output-hk/mantis";
-    rev = "dcb6d7b714bc1e23f75dd3e62365b316dab68ec3";
+    rev = "057f84ca72914c7175a0df1d8e40df9c83a9ed6f";
     ref = "develop";
     submodules = true;
   };
@@ -37,7 +37,7 @@ in {
     mantisConfigJson = {
       mantis = {
         consensus.mining-enabled = false;
-        blockchains.network = "testnet-internal";
+        blockchains.network = "testnet-internal-nomad";
 
         network.rpc = {
           http = {
@@ -54,7 +54,7 @@ in {
     mantisConfigHocon =
       prev.runCommand "mantis.conf" { buildInputs = [ prev.jq ]; } ''
         cat <<EOF > $out
-        include "${final.mantis}/conf/testnet-internal.conf"
+        include "${final.mantis}/conf/testnet-internal-nomad.conf"
         EOF
 
         jq . < ${
@@ -138,7 +138,7 @@ in {
           len=0
           until [ $len -eq 194 ]; do
             echo "generating key..."
-            len="$( eckeygen -Dconfig.file=${final.mantis}/conf/mantis.conf | tee "$keyFile" | wc -c )"
+            len="$( eckeygen -Dconfig.file=${final.mantis}/conf/app.conf | tee "$keyFile" | wc -c )"
           done
         fi
 
@@ -153,7 +153,7 @@ in {
         coinbase="$(generateCoinbase "$secretKey")"
         vault kv put "$coinbasePath" "value=$coinbase"
 
-        cat $tmpdir/.mantis/testnet-internal/keystore/*$coinbase | vault kv put "$accountPath" -
+        cat $tmpdir/.mantis/testnet-internal-nomad/keystore/*$coinbase | vault kv put "$accountPath" -
       else
         echo "Downloading key for $keyFile from Vault"
         secretKey="$(vault kv get -field value "$secretKeyPath")"
