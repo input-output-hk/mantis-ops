@@ -108,45 +108,48 @@ let
             ApplicationName: morpho-checkpoint
             ApplicationVersion: 1
             CheckpointInterval: 4
-            LastKnownBlockVersion-Major: 0
-            LastKnownBlockVersion-Minor: 2
-            LastKnownBlockVersion-Alt: 0
-            NetworkMagic: 12345
-            NodeId: ${builtins.toString nodeNumber}
             FedPubKeys:
             {{- range service "${namespace}-morpho-node" -}}
             {{- with secret (printf "kv/data/nomad-cluster/${namespace}/%s/obft-public-key" .ServiceMeta.Name) }}
                 - {{ .Data.data.value -}}
                 {{- end -}}
             {{- end }}
-            Protocol: MockedBFT
+            LastKnownBlockVersion-Major: 0
+            LastKnownBlockVersion-Minor: 2
+            LastKnownBlockVersion-Alt: 0
+            NetworkMagic: 12345
+            NodeId: {{ index (split "-" "${name}") 2 }}
+            NodePrivKeyFile: {{ env "NOMAD_SECRETS_DIR" }}/morpho-private-key
             NumCoreNodes: {{ len (service "${namespace}-morpho-node") }}
-            RequiresNetworkMagic: RequiresMagic
-            SystemStart: "2020-11-17T00:00:00Z"
-            SecurityParam: 5
-            TurnOnLogging: True
-            ViewMode: SimpleView
-            TurnOnLogMetrics: True
-            SlotDuration: 5
-            SnapshotsOnDisk: 60
-            SnapshotInterval: 60
             PoWBlockFetchInterval: 5000000
             PoWNodeRpcUrl: http://{{ env "NOMAD_ADDR_rpc" }}
             PrometheusPort: {{ env "NOMAD_PORT_morphoPrometheus" }}
+            Protocol: MockedBFT
             RequiredMajority: {{ len (service "${namespace}-morpho-node") | divide 2 | add 1 }}
-            NodePrivKeyFile: {{ env "NOMAD_SECRETS_DIR" }}/morpho-private-key
-            # MinSeverity: Debug
+            RequiresNetworkMagic: RequiresMagic
+            SecurityParam: 5
+            SlotDuration: 5
+            SnapshotsOnDisk: 60
+            SnapshotInterval: 60
+            SystemStart: "2020-11-17T00:00:00Z"
+            TurnOnLogMetrics: True
+            TurnOnLogging: True
+            ViewMode: SimpleView
+            minSeverity: Debug
+            TracingVerbosity: NormalVerbosity
             setupScribes:
-              - scKind: StdoutSk
-                scName: "stdout"
+              - scKind: StdoutSK
                 scFormat: ScText
+                scName: stdout
             defaultScribes:
-              - - StdoutSk
-                - "stdout"
+              - - StdoutSK
+                - stdout
             setupBackends:
               - KatipBK
             defaultBackends:
               - KatipBK
+            options:
+              mapBackends:
           '';
           destination = "local/morpho-config.yaml";
         }
