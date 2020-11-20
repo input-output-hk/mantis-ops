@@ -1,15 +1,16 @@
 { system, self }:
 final: prev:
-let lib = final.lib;
-    # Little convenience function helping us to containing the bash
-    # madness: forcing our bash scripts to be shellChecked.
-    writeBashChecked = final.writers.makeScriptWriter {
-      interpreter = "${final.bash}/bin/bash";
-      check = final.writers.writeBash "shellcheck-check" ''
-        ${final.shellcheck}/bin/shellcheck "$1"
-      '';
-    };
-    writeBashBinChecked = name: writeBashChecked "/bin/${name}";
+let
+  lib = final.lib;
+  # Little convenience function helping us to containing the bash
+  # madness: forcing our bash scripts to be shellChecked.
+  writeBashChecked = final.writers.makeScriptWriter {
+    interpreter = "${final.bash}/bin/bash";
+    check = final.writers.writeBash "shellcheck-check" ''
+      ${final.shellcheck}/bin/shellcheck "$1"
+    '';
+  };
+  writeBashBinChecked = name: writeBashChecked "/bin/${name}";
 in {
   inherit writeBashChecked writeBashBinChecked;
   # we cannot specify mantis as a flake input due to:
@@ -190,7 +191,7 @@ in {
       # OBFT-related keys for obft nodes
       # Note: a OBFT node needs *both* the mantis and OBFT keys to
       # work.
-      if [[ "$node" =~ ^testnet-obft-[0-9]+$ ]]; then
+      if [[ "$node" =~ ^obft-node-[0-9]+$ ]]; then
         obftPublicKey="$(vault kv get -field value "$obftPublicKeyPath" || true)"
         if [ -z "$obftPublicKey" ]; then
           if ! [ -s "$obftKeyFile" ]; then
@@ -363,7 +364,6 @@ in {
   mantis-explorer = self.inputs.mantis-explorer.defaultPackage.${system};
 
   mantis-faucet-web = self.inputs.mantis-faucet-web.defaultPackage.${system};
-
 
   nixosConfigurations =
     self.inputs.bitte.legacyPackages.${system}.mkNixosConfigurations
