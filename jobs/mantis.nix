@@ -73,7 +73,7 @@ let
 
   mkMorpho = { name, nodeNumber, nbNodes }: {
     services = {
-      "${namespace}-${name}" = {
+      "${namespace}-morpho-node" = {
         addressMode = "host";
         portLabel = "morpho";
 
@@ -105,11 +105,23 @@ let
       templates = [
         {
           data = ''
-            NodeId: {{ index (split "-" "${name}") 2 }}
+            ApplicationName: morpho-checkpoint
+            ApplicationVersion: 1
+            CheckpointInterval: 4
+            LastKnownBlockVersion-Major: 0
+            LastKnownBlockVersion-Minor: 2
+            LastKnownBlockVersion-Alt: 0
+            NetworkMagic: 12345
+            NodeId: ${builtins.toString nodeNumber}
+            FedPubKeys:
+            {{- range service "${namespace}-morpho-node" -}}
+            {{- with secret (printf "kv/data/nomad-cluster/${namespace}/%s/obft-public-key" .ServiceMeta.Name) }}
+                - {{ .Data.data.value -}}
+                {{- end -}}
+            {{- end }}
             Protocol: MockedBFT
             NumCoreNodes: {{ len (service "${namespace}-morpho-node") }}
             RequiresNetworkMagic: RequiresMagic
-            NetworkMagic: 12345
             SystemStart: "2020-11-17T00:00:00Z"
             SecurityParam: 5
             TurnOnLogging: True
@@ -121,50 +133,26 @@ let
             PoWBlockFetchInterval: 5000000
             PoWNodeRpcUrl: http://{{ env "NOMAD_ADDR_rpc" }}
             PrometheusPort: {{ env "NOMAD_PORT_morphoPrometheus" }}
-            CheckpointInterval: 4
             RequiredMajority: {{ len (service "${namespace}-morpho-node") | divide 2 | add 1 }}
-            FedPubKeys:
-            {{- range service "${namespace}-morpho-node" -}}
-            {{- with secret (printf "kv/data/nomad-cluster/${namespace}/%s/obft-public-key") .ServiceMeta.Name }}
-                - {{ .Data.data.value -}}
-                {{- end -}}
-            {{- end }}
             NodePrivKeyFile: {{ env "NOMAD_SECRETS_DIR" }}/morpho-private-key
-            ApplicationName: morpho-checkpoint
-            ApplicationVersion: 1
-            LastKnownBlockVersion-Major: 0
-            LastKnownBlockVersion-Minor: 2
-            LastKnownBlockVersion-Alt: 0
-            TracingVerbosity: NormalVerbosity
-            TraceBlockFetchClient: True
-            TraceBlockFetchDecisions: True
-            TraceBlockFetchProtocol: True
-            TraceBlockFetchProtocolSerialised: False
-            TraceBlockFetchServer: True
-            TraceChainDb: True
-            TraceChainSyncClient: True
-            TraceChainSyncBlockServer: True
-            TraceChainSyncHeaderServer: True
-            TraceChainSyncProtocol: True
-            TraceDNSResolver: False
-            TraceDNSSubscription: False
-            TraceErrorPolicy: False
-            TraceForge: True
-            TraceIpSubscription: False
-            TraceLocalChainSyncProtocol: True
-            TraceLocalTxSubmissionProtocol: True
-            TraceLocalTxSubmissionServer: True
-            TraceMempool: True
-            TraceMux: False
-            TraceTxInbound: True
-            TraceTxOutbound: True
-            TraceTxSubmissionProtocol: True
+            # MinSeverity: Debug
+            setupScribes:
+              - scKind: StdoutSk
+                scName: "stdout"
+                scFormat: ScText
+            defaultScribes:
+              - - StdoutSk
+                - "stdout"
+            setupBackends:
+              - KatipBK
+            defaultBackends:
+              - KatipBK
           '';
           destination = "local/morpho-config.yaml";
         }
         {
           data = ''
-            {{- with secret "kv/data/nomad-cluster/${namespace}/${name}/obft-private-key" -}}
+            {{- with secret "kv/data/nomad-cluster/${namespace}/${name}/obft-secret-key" -}}
             {{- .Data.data.value -}}
             {{- end -}}
           '';
@@ -173,20 +161,21 @@ let
         {
           data = ''
             [
-              {{- range service "${namespace}-morpho-node" -}}
+              {{- range $index1, $service1 := service "${namespace}-morpho-node" -}}
+              {{ if ne $index1 0 }},{{ end }}
                 {
                   "nodeAddress": {
                   "addr": "{{ .Address }}",
-                  "port": 3001,
+                  "port": {{ .Port }},
                   "valency": 1
                   },
                   "nodeId": {{- index (split "-" .ServiceMeta.Name) 2 -}},
                   "producers": [
-                  {{- range $index, $service := service "${namespace}-morpho-node" -}}
-                  {{ if ne $index 0 }},{{ end }}
+                  {{- range $index2, $service2 := service "${namespace}-morpho-node" -}}
+                  {{ if ne $index2 0 }},{{ end }}
                     {
                         "addr": "{{ .Address }}",
-                        "port": 3001,
+                        "port": {{ .Port }},
                         "valency": 1
                     }
                   {{- end -}}
@@ -279,8 +268,8 @@ let
   };
 
   mkMantis = { name, resources, count ? 1, templates, serviceName, tags ? [ ]
-    , meta ? { }, constraints ? [ ], requiredPeerCount, services ? { } }: {
-      inherit count constraints;
+    , meta ? { }, requiredPeerCount, services ? { } }: {
+      inherit count;
 
       networks = [{
         ports = {
@@ -1098,7 +1087,7 @@ in {
 
     taskGroups = let
       minerTaskGroups = lib.listToAttrs (map mkMiner miners);
-      passiveTaskGroups = mkPassive 3;
+      passiveTaskGroups = { passive = mkPassive 3; };
     in minerTaskGroups // passiveTaskGroups;
   };
 
