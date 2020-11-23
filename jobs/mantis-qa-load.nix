@@ -1,4 +1,5 @@
-{ mkNomadJob, lib, mantis, mantis-source, dockerImages }:
+{ mkNomadJob, lib, mantis, mantis-source, mantis-faucet, mantis-faucet-source
+, dockerImages }:
 let
   # NOTE: Copy this file and change the next line if you want to start your own cluster!
   namespace = "mantis-qa-load";
@@ -42,6 +43,9 @@ let
           mantis.network.rpc.http.port = {{ env "NOMAD_PORT_rpc" }}
           mantis.network.server-address.port = {{ env "NOMAD_PORT_server" }}
           mantis.blockchains.testnet-internal-nomad.custom-genesis-file = "{{ env "NOMAD_TASK_DIR" }}/genesis.json"
+
+          mantis.blockchains.testnet-internal-nomad.ecip1098-block-number = 0
+          mantis.blockchains.testnet-internal-nomad.ecip1097-block-number = 0
         '';
         destination = "local/mantis.conf";
         changeMode = "noop";
@@ -207,11 +211,12 @@ let
     lib.nameValuePair name (mkMantis {
       resources = {
         # For c5.2xlarge in clusters/mantis/testnet/default.nix, the url ref below
-        # provides 3.4 GHz * 8 vCPU = 27.2 GHz max.  80% is 21760 MHz.
+        # provides 3.4 GHz * 8 vCPU = 27.2 GHz max.
+        # Mantis mainly uses only one core.
         # Allocating by vCPU or core quantity not yet available.
         # Ref: https://github.com/hashicorp/nomad/blob/master/client/fingerprint/env_aws.go
-        cpu = 21760;
-        memoryMB = 5 * 1024;
+        cpu = 3400;
+        memoryMB = 4 * 1024;
       };
 
       inherit name requiredPeerCount;
@@ -229,7 +234,7 @@ let
         ingressPort = toString publicPort;
         ingressBind = "*:${toString publicPort}";
         ingressMode = "tcp";
-        ingressServer = "${name}.${namespace}-mantis-miner.service.consul";
+        ingressServer = "_${namespace}-mantis-miner._${name}.service.consul";
       };
     });
 
@@ -261,10 +266,12 @@ let
           ingressHost = "${namespace}-explorer.mantis.ws";
           ingressMode = "http";
           ingressBind = "*:443";
-          ingressIf = "{ path_beg -i /rpc/node }";
+          ingressIf =
+            "{ path_beg -i /rpc/node } or { hdr(host) -i ${namespace}-explorer.mantis.ws } { path_beg -i /sockjs-node }";
           ingressServer = "_${name}-rpc._tcp.service.consul";
           ingressBackendExtra = ''
             option tcplog
+            http-response set-header X-Server %s
             http-request set-path /
           '';
         };
@@ -296,6 +303,9 @@ let
             mantis.network.rpc.http.port = {{ env "NOMAD_PORT_rpc" }}
             mantis.network.server-address.port = {{ env "NOMAD_PORT_server" }}
             mantis.blockchains.testnet-internal-nomad.custom-genesis-file = "{{ env "NOMAD_TASK_DIR" }}/genesis.json"
+
+            mantis.blockchains.testnet-internal-nomad.ecip1098-block-number = 0
+            mantis.blockchains.testnet-internal-nomad.ecip1097-block-number = 0
           '';
           changeMode = "restart";
           destination = "local/mantis.conf";
@@ -304,7 +314,7 @@ let
       ];
     };
 
-  amountOfMiners = 10;
+  amountOfMiners = 5;
 
   miners = lib.forEach (lib.range 1 amountOfMiners) (num: {
     name = "mantis-${toString num}";
@@ -326,8 +336,12 @@ let
         ingressHost = "${name}.mantis.ws";
         ingressMode = "http";
         ingressBind = "*:443";
-        ingressIf = "! { path_beg -i /rpc/node }";
+        ingressIf =
+          "! { path_beg -i /rpc/node } ! { path_beg -i /sockjs-node }";
         ingressServer = "_${name}._tcp.service.consul";
+        ingressBackendExtra = ''
+          http-response set-header X-Server %s
+        '';
       };
 
       checks = [{
@@ -348,62 +362,114 @@ let
     tasks.explorer = {
       inherit name;
       driver = "docker";
-      config.image = dockerImages.webfs.id;
-      ports = [ "http" ];
-      labels = [{
-        inherit namespace name;
-        imageTag = dockerImages.webfs.image.imageTag;
-      }];
 
-      logging = {
-        type = "journald";
-        config = [{
-          tag = name;
-          labels = "name,namespace,imageTag";
+      resources = {
+        cpu = 100; # mhz
+        memoryMB = 128;
+      };
+
+      config = {
+        image = dockerImages.darkhttpd.id;
+        ports = [ "http" ];
+        labels = [{
+          inherit namespace name;
+          imageTag = dockerImages.darkhttpd.image.imageTag;
         }];
+
+        logging = {
+          type = "journald";
+          config = [{
+            tag = name;
+            labels = "name,namespace,imageTag";
+          }];
+        };
       };
     };
   };
 
   faucetName = "${namespace}-mantis-faucet";
   faucet = {
-    services."${faucetName}" = {
-      addressMode = "host";
-      portLabel = "rpc";
+    networks = [{
+      ports = {
+        metrics.to = 7000;
+        rpc.to = 8000;
+      };
+    }];
 
-      tags = [ "ingress" namespace "faucet" faucetName ];
+    services = {
+      "${faucetName}" = {
+        addressMode = "host";
+        portLabel = "rpc";
+        task = "faucet";
 
-      meta = {
-        name = faucetName;
-        publicIp = "\${attr.unique.platform.aws.public-ipv4}";
-        ingressHost = "${faucetName}.mantis.ws";
-        ingressBind = "*:443";
-        ingressMode = "http";
-        ingressServer = "_${faucetName}._tcp.service.consul";
+        tags =
+          [ "ingress" namespace "faucet" faucetName mantis-faucet-source.rev ];
+
+        meta = {
+          name = faucetName;
+          publicIp = "\${attr.unique.platform.aws.public-ipv4}";
+          ingressHost = "${faucetName}.mantis.ws";
+          ingressBind = "*:443";
+          ingressMode = "http";
+          ingressServer = "_${faucetName}._tcp.service.consul";
+        };
+
+        # FIXME: this always returns FaucetUnavailable
+        # checks = [{
+        #   taskName = "faucet";
+        #   type = "script";
+        #   name = "faucet_health";
+        #   command = "healthcheck";
+        #   interval = "60s";
+        #   timeout = "5s";
+        #   portLabel = "rpc";
+
+        #   checkRestart = {
+        #     limit = 5;
+        #     grace = "300s";
+        #     ignoreWarnings = false;
+        #   };
+        # }];
+      };
+
+      "${faucetName}-prometheus" = {
+        addressMode = "host";
+        portLabel = "metrics";
+        tags = [
+          "prometheus"
+          namespace
+          "faucet"
+          faucetName
+          mantis-faucet-source.rev
+        ];
       };
     };
 
-    networks = [{ ports = { rpc.to = 8000; }; }];
-
     tasks.faucet = {
-      name = faucetName;
+      name = "faucet";
       driver = "docker";
 
       vault.policies = [ "nomad-cluster" ];
 
+      resources = {
+        cpu = 100;
+        memoryMB = 1024;
+      };
+
       config = {
         image = dockerImages.mantis-faucet.id;
         args = [ "-Dconfig.file=running.conf" ];
+        ports = [ "rpc" "metrics" ];
         labels = [{
           inherit namespace;
-          name = faucetName;
-          imageTag = dockerImages.webfs.mantis-faucet.imageTag;
+          name = "faucet";
+          imageTag = dockerImages.mantis-faucet.image.imageTag;
         }];
 
         logging = {
           type = "journald";
           config = [{
-            tag = faucetName;
+            tag = "faucet";
             labels = "name,namespace,imageTag";
           }];
         };
@@ -420,7 +486,7 @@ let
 
               # Wallet address used to send transactions from
               wallet-address =
-                {{- with secret "kv/nomad-cluster/${namespace}/${namespace}-mantis-1/coinbase" -}}
+                {{- with secret "kv/nomad-cluster/${namespace}/mantis-1/coinbase" -}}
                   "{{.Data.data.value}}"
                 {{- end }}
 
@@ -445,7 +511,7 @@ let
                 {{- end }}
 
               # How often can a single IP address send a request
-              min-request-interval = 0.minute
+              min-request-interval = 0.minutes
             }
 
             logging {
@@ -516,7 +582,7 @@ let
         genesisJson
         {
           data = ''
-            {{- with secret "kv/data/nomad-cluster/${namespace}/${namespace}-mantis-1/account" -}}
+            {{- with secret "kv/data/nomad-cluster/${namespace}/mantis-1/account" -}}
             {{.Data.data | toJSON }}
             {{- end -}}
           '';
@@ -524,12 +590,66 @@ let
         }
         {
           data = ''
-            COINBASE={{- with secret "kv/data/nomad-cluster/${namespace}/${namespace}-mantis-1/coinbase" -}}{{ .Data.data.value }}{{- end -}}
+            COINBASE={{- with secret "kv/data/nomad-cluster/${namespace}/mantis-1/coinbase" -}}{{ .Data.data.value }}{{- end -}}
           '';
           destination = "secrets/env";
           env = true;
         }
       ];
+    };
+
+    tasks.telegraf = {
+      driver = "docker";
+
+      vault.policies = [ "nomad-cluster" ];
+
+      resources = {
+        cpu = 100; # mhz
+        memoryMB = 128;
+      };
+
+      config = {
+        image = dockerImages.telegraf.id;
+        args = [ "-config" "local/telegraf.config" ];
+
+        labels = [{
+          inherit namespace;
+          name = "faucet";
+          imageTag = dockerImages.telegraf.image.imageTag;
+        }];
+
+        logging = {
+          type = "journald";
+          config = [{
+            tag = "faucet-telegraf";
+            labels = "name,namespace,imageTag";
+          }];
+        };
+      };
+
+      templates = [{
+        data = ''
+          [agent]
+          flush_interval = "10s"
+          interval = "10s"
+          omit_hostname = false
+
+          [global_tags]
+          client_id = "faucet"
+          namespace = "${namespace}"
+
+          [inputs.prometheus]
+          metric_version = 1
+
+          urls = [ "http://{{ env "NOMAD_ADDR_metrics" }}" ]
+
+          [outputs.influxdb]
+          database = "telegraf"
+          urls = ["http://{{with node "monitoring" }}{{ .Node.Address }}{{ end }}:8428"]
+        '';
+
+        destination = "local/telegraf.config";
+      }];
     };
   };
 in {
@@ -544,14 +664,14 @@ in {
       minHealthyTime = "30s";
       healthyDeadline = "5m";
       progressDeadline = "10m";
-      autoRevert = true;
-      autoPromote = true;
-      canary = 1;
+      autoRevert = false;
+      autoPromote = false;
+      canary = 0;
       stagger = "30s";
     };
 
     taskGroups = (lib.listToAttrs (map mkMiner miners)) // {
-      passive = mkPassive 20;
+      passive = mkPassive 3;
     };
   };
 
