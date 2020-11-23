@@ -190,7 +190,7 @@ let
         # Allocating by vCPU or core quantity not yet available.
         # Ref: https://github.com/hashicorp/nomad/blob/master/client/fingerprint/env_aws.go
         cpu = 21760;
-        memoryMB = 5 * 1024;
+        memoryMB = 4 * 1024;
       };
 
       inherit name requiredPeerCount;
@@ -298,7 +298,7 @@ in {
     };
 
     taskGroups = (lib.listToAttrs (map mkMiner miners)) // {
-      passive = mkPassive 20;
+      passive = mkPassive 3;
     };
   };
 }
