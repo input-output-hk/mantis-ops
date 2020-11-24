@@ -1,5 +1,5 @@
 { mkNomadJob, lib, mantis, mantis-source, mantis-faucet, mantis-faucet-source
-, dockerImages }:
+, dockerImages, mantis-explorer }:
 let
   # NOTE: Copy this file and change the next line if you want to start your own cluster!
   namespace = "mantis-testnet";
@@ -371,6 +371,7 @@ let
 
       config = {
         image = dockerImages.mantis-explorer-server.id;
+        args = [ "nginx" "-c" "/local/nginx.conf" ];
         ports = [ "http" ];
         labels = [{
           inherit namespace name;
@@ -385,6 +386,44 @@ let
           }];
         };
       };
+
+      templates = [{
+        data = ''
+          user nginx nginx;
+          error_log /dev/stdout info;
+          pid /dev/null;
+          events {}
+          daemon off;
+
+          http {
+            access_log /dev/stdout;
+
+            server {
+              listen 8080;
+
+              location / {
+                root /mantis-explorer;
+                index index.html;
+                try_files $uri $uri/ /index.html;
+              }
+
+              location /rpc/node {
+                proxy_pass {{ range service "mantis-1.${namespace}-mantis-miner-rpc" -}}
+                  "http://{{ .Address }}:{{ .Port }}";
+                {{- end }}
+              }
+
+              location /sockjs-node {
+                proxy_pass {{ range service "mantis-1.${namespace}-mantis-miner-rpc" -}}
+                  "http://{{ .Address }}:{{ .Port }}";
+                {{- end }}
+              }
+            }
+          }
+        '';
+        changeMode = "restart";
+        destination = "local/nginx.conf";
+      }];
     };
   };
 
@@ -717,7 +756,7 @@ in {
     };
   };
 
-  "${namespace}-mantis-explorer" = mkNomadJob "explorer" {
+  "${namespace}-explorer" = mkNomadJob "explorer" {
     datacenters = [ "us-east-2" "eu-central-1" ];
     type = "service";
     inherit namespace;

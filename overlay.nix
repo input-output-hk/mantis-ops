@@ -313,9 +313,8 @@ in {
     tree
   ];
 
-  mantis-explorer = final.callPackage ./pkgs/mantis-explorer.nix {
-    src = self.inputs.mantis-explorer;
-  };
+  mantis-explorer =
+    final.callPackage (self.inputs.mantis-explorer + "/package.nix") { };
 
   nixosConfigurations =
     self.inputs.bitte.legacyPackages.${system}.mkNixosConfigurations
@@ -381,7 +380,7 @@ in {
   '';
 
   inherit ((self.inputs.nixpkgs.legacyPackages.${system}).dockerTools)
-    buildLayeredImage;
+    buildImage buildLayeredImage shadowSetup;
 
   mkEnv = lib.mapAttrsToList (key: value: "${key}=${value}");
 }
