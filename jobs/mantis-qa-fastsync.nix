@@ -377,11 +377,11 @@ let
       };
 
       config = {
-        image = dockerImages.darkhttpd.id;
+        image = dockerImages.mantis-explorer-server.id;
         ports = [ "http" ];
         labels = [{
           inherit namespace name;
-          imageTag = dockerImages.darkhttpd.image.imageTag;
+          imageTag = dockerImages.mantis-explorer-server.image.imageTag;
         }];
 
         logging = {
@@ -604,7 +604,7 @@ let
               }
             }
           '';
-          changeMode = "noop";
+          changeMode = "restart";
           destination = "local/faucet.conf";
         }
         genesisJson
