@@ -229,6 +229,10 @@
           "bitte",
           "bitte-cli"
         ],
+        "inclusive": [
+          "bitte",
+          "inclusive"
+        ],
         "mantis-explorer": "mantis-explorer",
         "midnight-automation": "midnight-automation",
         "nixpkgs": [

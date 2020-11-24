@@ -29,6 +29,10 @@ in {
 
   mantis-faucet = import final.mantis-faucet-source { inherit system; };
 
+  mantis-explorer-server = prev.callPackage ./pkgs/mantis-explorer-server.nix {
+    inherit (self.inputs.inclusive.lib) inclusive;
+  };
+
   # Any:
   # - run of this command with a parameter different than the testnet (currently 10)
   # - change in the genesis file here
@@ -275,6 +279,9 @@ in {
       final.nixFlakes
       final.jq
       final.fd
+      # final.crystal
+      # final.pkgconfig
+      # final.openssl
     ];
   };
 
