@@ -699,7 +699,7 @@ in {
     };
 
     taskGroups = (lib.listToAttrs (map mkMiner miners)) // {
-      passive = mkPassive 0;
+      passive = mkPassive 1;
     };
   };
 
