@@ -4,6 +4,16 @@ let
   # NOTE: Copy this file and change the next line if you want to start your own cluster!
   namespace = "mantis-qa-fastsync";
 
+  genesisJson = {
+    data = ''
+      {{- with secret "kv/nomad-cluster/${namespace}/qa-genesis" -}}
+      {{.Data.data | toJSON }}
+      {{- end -}}
+    '';
+    changeMode = "restart";
+    destination = "local/genesis.json";
+  };
+
   templatesFor = { name ? null, mining-enabled ? false }:
     let secret = key: ''{{ with secret "${key}" }}{{.Data.data.value}}{{end}}'';
     in [
@@ -33,6 +43,7 @@ let
         destination = "local/mantis.conf";
         changeMode = "noop";
       }
+      genesisJson
     ] ++ (lib.optional mining-enabled {
       data = ''
         ${secret "kv/data/nomad-cluster/${namespace}/${name}/secret-key"}
@@ -284,6 +295,7 @@ let
           changeMode = "restart";
           destination = "local/mantis.conf";
         }
+        genesisJson
       ];
     };
 
@@ -572,6 +584,7 @@ let
           changeMode = "restart";
           destination = "local/faucet.conf";
         }
+        genesisJson
         {
           data = ''
             {{- with secret "kv/data/nomad-cluster/${namespace}/mantis-1/account" -}}
