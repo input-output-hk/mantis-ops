@@ -249,7 +249,7 @@ let
 
       inherit count;
 
-      requiredPeerCount = builtins.length miners;
+      requiredPeerCount = 0;
 
       services."${name}-rpc" = {
         addressMode = "host";
@@ -303,7 +303,7 @@ let
 
   miners = lib.forEach (lib.range 1 amountOfMiners) (num: {
     name = "mantis-${toString num}";
-    requiredPeerCount = num - 1;
+    requiredPeerCount = 0;
     publicPort = 9000 + num; # routed through haproxy/ingress
   });
 
