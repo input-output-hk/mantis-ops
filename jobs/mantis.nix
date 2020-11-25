@@ -447,6 +447,14 @@ let
               {{ end -}}
             ]
 
+            mantis.blockchains.testnet-internal-nomad.checkpoint-public-keys = [
+              {{ range secrets "kv/metadata/nomad-cluster/${namespace}/" -}}
+                {{- if . | contains "obft" -}}
+                  "{{- with secret (printf "kv/data/nomad-cluster/mantis-testnet/%s/obft-public-key" . ) -}}{{ .Data.data.value }}{{end}}",
+                {{ end }}
+              {{- end -}}
+            ]
+
             mantis.consensus.mining-enabled = true
             mantis.client-id = "${name}"
             mantis.consensus.coinbase = "{{ with secret "kv/data/nomad-cluster/${namespace}/${name}/coinbase" }}{{ .Data.data.value }}{{ end }}"
@@ -532,6 +540,14 @@ let
                   {{- .Data.data.value -}}
                   {{- end -}}@{{ .Address }}:{{ .Port }}",
               {{ end -}}
+            ]
+
+            mantis.blockchains.testnet-internal-nomad.checkpoint-public-keys = [
+              {{ range secrets "kv/metadata/nomad-cluster/${namespace}/" -}}
+                {{- if . | contains "obft" -}}
+                  "{{- with secret (printf "kv/data/nomad-cluster/mantis-testnet/%s/obft-public-key" . ) -}}{{ .Data.data.value }}{{end}}",
+                {{ end }}
+              {{- end -}}
             ]
 
             mantis.client-id = "${name}"
