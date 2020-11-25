@@ -24,16 +24,9 @@ let
           logging.json-output = true
           logging.logs-file = "logs"
 
-          mantis.blockchains.testnet-internal-nomad.bootstrap-nodes = [
-            {{ range service "${namespace}-mantis-miner" -}}
-              "enode://  {{- with secret (printf "kv/data/nomad-cluster/${namespace}/%s/enode-hash" .ServiceMeta.Name) -}}
-                {{- .Data.data.value -}}
-                {{- end -}}@{{ .Address }}:{{ .Port }}",
-            {{ end -}}
-          ]
-
           mantis.client-id = "${name}"
           mantis.sync.do-fast-sync = true
+          mantis.consensus.mining-enabled = false
           mantis.network.discovery.scan-interval=15.seconds
           mantis.network.discovery.kademlia-bucket-size=16
           mantis.network.discovery.kademlia-alpha=16
@@ -46,10 +39,6 @@ let
           mantis.network.rpc.http.interface = "0.0.0.0"
           mantis.network.rpc.http.port = {{ env "NOMAD_PORT_rpc" }}
           mantis.network.server-address.port = {{ env "NOMAD_PORT_server" }}
-          mantis.blockchains.testnet-internal-nomad.custom-genesis-file = "{{ env "NOMAD_TASK_DIR" }}/genesis.json"
-
-          mantis.blockchains.testnet-internal-nomad.ecip1098-block-number = 0
-          mantis.blockchains.testnet-internal-nomad.ecip1097-block-number = 0
         '';
         destination = "local/mantis.conf";
         changeMode = "noop";
@@ -260,7 +249,7 @@ let
 
       inherit count;
 
-      requiredPeerCount = builtins.length miners;
+      requiredPeerCount = 0;
 
       services."${name}-rpc" = {
         addressMode = "host";
@@ -289,20 +278,12 @@ let
             logging.json-output = true
             logging.logs-file = "logs"
 
-            mantis.blockchains.testnet-internal-nomad.bootstrap-nodes = [
-              {{ range service "${namespace}-mantis-miner" -}}
-                "enode://  {{- with secret (printf "kv/data/nomad-cluster/${namespace}/%s/enode-hash" .ServiceMeta.Name) -}}
-                  {{- .Data.data.value -}}
-                  {{- end -}}@{{ .Address }}:{{ .Port }}",
-              {{ end -}}
-            ]
-
             mantis.client-id = "${name}"
             mantis.sync.do-fast-sync = true
+            mantis.consensus.mining-enabled = false
             mantis.network.discovery.scan-interval=15.seconds
             mantis.network.discovery.kademlia-bucket-size=16
             mantis.network.discovery.kademlia-alpha=16
-            mantis.consensus.mining-enabled = false
             mantis.datadir = "/local/mantis"
             mantis.ethash.ethash-dir = "/local/ethash"
             mantis.metrics.enabled = true
@@ -310,10 +291,6 @@ let
             mantis.network.rpc.http.interface = "0.0.0.0"
             mantis.network.rpc.http.port = {{ env "NOMAD_PORT_rpc" }}
             mantis.network.server-address.port = {{ env "NOMAD_PORT_server" }}
-            mantis.blockchains.testnet-internal-nomad.custom-genesis-file = "{{ env "NOMAD_TASK_DIR" }}/genesis.json"
-
-            mantis.blockchains.testnet-internal-nomad.ecip1098-block-number = 0
-            mantis.blockchains.testnet-internal-nomad.ecip1097-block-number = 0
           '';
           changeMode = "restart";
           destination = "local/mantis.conf";
@@ -326,7 +303,7 @@ let
 
   miners = lib.forEach (lib.range 1 amountOfMiners) (num: {
     name = "mantis-${toString num}";
-    requiredPeerCount = num - 1;
+    requiredPeerCount = 0;
     publicPort = 9000 + num; # routed through haproxy/ingress
   });
 
