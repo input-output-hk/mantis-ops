@@ -26,7 +26,7 @@ let
           logging.logs-file = "logs"
 
           mantis.client-id = "${name}"
-          mantis.network.discovery.host = "${name}"
+          mantis.network.discovery.host = null
           mantis.sync.do-fast-sync = true
           mantis.consensus.mining-enabled = false
           mantis.network.discovery.scan-interval=15.seconds
@@ -281,7 +281,7 @@ let
             logging.logs-file = "logs"
 
             mantis.client-id = "${name}"
-            mantis.network.discovery.host = "${name}"
+            mantis.network.discovery.host = null
             mantis.sync.do-fast-sync = true
             mantis.consensus.mining-enabled = false
             mantis.network.discovery.scan-interval=15.seconds
