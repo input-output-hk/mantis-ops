@@ -283,7 +283,7 @@ let
             logging.logs-file = "logs"
 
             mantis.client-id = "${name}"
-            mantis.network.discovery.host = null
+            mantis.network.discovery.host = "127.0.0.1"
             mantis.sync.do-fast-sync = true
             mantis.consensus.mining-enabled = false
             mantis.network.discovery.scan-interval=15.seconds
