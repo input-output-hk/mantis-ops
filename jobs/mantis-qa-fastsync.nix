@@ -1,3 +1,4 @@
+
 { mkNomadJob, lib, mantis, mantis-source, mantis-faucet, mantis-faucet-source
 , dockerImages }:
 let
@@ -25,6 +26,9 @@ let
           logging.logs-file = "logs"
 
           mantis.client-id = "${name}"
+          mantis.network.discovery.host = {{- range service "${name}.${namespace}-mantis-miner-rpc" -}}
+              "{{ .Address }}"
+            {{- end }}
           mantis.sync.do-fast-sync = true
           mantis.consensus.mining-enabled = false
           mantis.network.discovery.scan-interval=15.seconds
@@ -279,6 +283,7 @@ let
             logging.logs-file = "logs"
 
             mantis.client-id = "${name}"
+            mantis.network.discovery.host = null
             mantis.sync.do-fast-sync = true
             mantis.consensus.mining-enabled = false
             mantis.network.discovery.scan-interval=15.seconds
