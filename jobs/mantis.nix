@@ -14,52 +14,6 @@ let
     destination = "local/genesis.json";
   };
 
-  templatesFor = { name ? null, mining-enabled ? false }:
-    let secret = key: ''{{ with secret "${key}" }}{{.Data.data.value}}{{end}}'';
-    in [
-      {
-        data = ''
-          include "${mantis}/conf/testnet-internal-nomad.conf"
-
-          logging.json-output = true
-          logging.logs-file = "logs"
-
-          mantis.blockchains.testnet-internal-nomad.bootstrap-nodes = [
-            {{ range service "${namespace}-mantis-miner" -}}
-              "enode://  {{- with secret (printf "kv/data/nomad-cluster/${namespace}/%s/enode-hash" .ServiceMeta.Name) -}}
-                {{- .Data.data.value -}}
-                {{- end -}}@{{ .Address }}:{{ .Port }}",
-            {{ end -}}
-          ]
-
-          mantis.consensus.mining-enabled = true
-          mantis.client-id = "${name}"
-          mantis.consensus.coinbase = "{{ with secret "kv/data/nomad-cluster/${namespace}/${name}/coinbase" }}{{ .Data.data.value }}{{ end }}"
-          mantis.node-key-file = "{{ env "NOMAD_SECRETS_DIR" }}/secret-key"
-          mantis.datadir = "/local/mantis"
-          mantis.ethash.ethash-dir = "/local/ethash"
-          mantis.metrics.enabled = true
-          mantis.metrics.port = {{ env "NOMAD_PORT_metrics" }}
-          mantis.network.rpc.http.interface = "0.0.0.0"
-          mantis.network.rpc.http.port = {{ env "NOMAD_PORT_rpc" }}
-          mantis.network.server-address.port = {{ env "NOMAD_PORT_server" }}
-          mantis.blockchains.testnet-internal-nomad.custom-genesis-file = "{{ env "NOMAD_TASK_DIR" }}/genesis.json"
-
-          mantis.blockchains.testnet-internal-nomad.ecip1098-block-number = 0
-          mantis.blockchains.testnet-internal-nomad.ecip1097-block-number = 0
-        '';
-        destination = "local/mantis.conf";
-        changeMode = "noop";
-      }
-      genesisJson
-    ] ++ (lib.optional mining-enabled {
-      data = ''
-        ${secret "kv/data/nomad-cluster/${namespace}/${name}/secret-key"}
-        ${secret "kv/data/nomad-cluster/${namespace}/${name}/enode-hash"}
-      '';
-      destination = "secrets/secret-key";
-    });
-
   mkMantis = { name, resources, count ? 1, templates, serviceName, tags ? [ ]
     , meta ? { }, constraints ? [ ], requiredPeerCount, services ? { } }: {
       inherit count constraints;
@@ -221,10 +175,53 @@ let
       };
 
       inherit name requiredPeerCount;
-      templates = templatesFor {
-        inherit name;
-        mining-enabled = true;
-      };
+      templates = [
+        {
+          data = ''
+            include "${mantis}/conf/testnet-internal-nomad.conf"
+
+            logging.json-output = true
+            logging.logs-file = "logs"
+
+            mantis.blockchains.testnet-internal-nomad.bootstrap-nodes = [
+              {{ range service "${namespace}-mantis-miner" -}}
+                "enode://  {{- with secret (printf "kv/data/nomad-cluster/${namespace}/%s/enode-hash" .ServiceMeta.Name) -}}
+                  {{- .Data.data.value -}}
+                  {{- end -}}@{{ .Address }}:{{ .Port }}",
+              {{ end -}}
+            ]
+
+            mantis.consensus.mining-enabled = true
+            mantis.client-id = "${name}"
+            mantis.consensus.coinbase = "{{ with secret "kv/data/nomad-cluster/${namespace}/${name}/coinbase" }}{{ .Data.data.value }}{{ end }}"
+            mantis.node-key-file = "{{ env "NOMAD_SECRETS_DIR" }}/secret-key"
+            mantis.datadir = "/local/mantis"
+            mantis.ethash.ethash-dir = "/local/ethash"
+            mantis.metrics.enabled = true
+            mantis.metrics.port = {{ env "NOMAD_PORT_metrics" }}
+            mantis.network.rpc.http.interface = "0.0.0.0"
+            mantis.network.rpc.http.port = {{ env "NOMAD_PORT_rpc" }}
+            mantis.network.server-address.port = {{ env "NOMAD_PORT_server" }}
+            mantis.blockchains.testnet-internal-nomad.custom-genesis-file = "{{ env "NOMAD_TASK_DIR" }}/genesis.json"
+
+            mantis.blockchains.testnet-internal-nomad.ecip1098-block-number = 0
+            mantis.blockchains.testnet-internal-nomad.ecip1097-block-number = 0
+          '';
+          destination = "local/mantis.conf";
+          changeMode = "noop";
+        }
+        {
+          data = let
+            secret = key:
+              ''{{ with secret "${key}" }}{{.Data.data.value}}{{end}}'';
+          in ''
+            ${secret "kv/data/nomad-cluster/${namespace}/${name}/secret-key"}
+            ${secret "kv/data/nomad-cluster/${namespace}/${name}/enode-hash"}
+          '';
+          destination = "secrets/secret-key";
+        }
+        genesisJson
+      ];
 
       serviceName = "${namespace}-mantis-miner";
 
@@ -660,7 +657,6 @@ let
           changeMode = "restart";
           destination = "local/faucet.conf";
         }
-        genesisJson
         {
           data = ''
             {{- with secret "kv/data/nomad-cluster/${namespace}/mantis-1/account" -}}
@@ -676,6 +672,7 @@ let
           destination = "secrets/env";
           env = true;
         }
+        genesisJson
       ];
     };
 
@@ -774,6 +771,5 @@ in {
 }
 
 // (import ./mantis-active-gen.nix {
-  inherit mkNomadJob dockerImages;
-  namespace = "mantis-testnet";
+  inherit mkNomadJob dockerImages namespace;
 })
