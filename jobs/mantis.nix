@@ -32,6 +32,7 @@ let
             {{ end -}}
           ]
 
+          mantis.consensus.mining-enabled = true
           mantis.client-id = "${name}"
           mantis.consensus.coinbase = "{{ with secret "kv/data/nomad-cluster/${namespace}/${name}/coinbase" }}{{ .Data.data.value }}{{ end }}"
           mantis.node-key-file = "{{ env "NOMAD_SECRETS_DIR" }}/secret-key"
