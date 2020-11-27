@@ -66,11 +66,11 @@ in {
     autoscalingGroups = listToAttrs (forEach [
       {
         region = "eu-central-1";
-        desiredCapacity = 6;
+        desiredCapacity = 35;
       }
       {
         region = "us-east-2";
-        desiredCapacity = 6;
+        desiredCapacity = 35;
       }
     ] (args:
       let
@@ -88,6 +88,7 @@ in {
         '';
         attrs = ({
           desiredCapacity = 1;
+          maxSize = 40;
           instanceType = "c5.2xlarge";
           associatePublicIP = true;
           maxInstanceLifetime = 604800;
