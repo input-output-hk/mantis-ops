@@ -1,4 +1,3 @@
-
 { mkNomadJob, lib, mantis, mantis-source, mantis-faucet, mantis-faucet-source
 , dockerImages }:
 let

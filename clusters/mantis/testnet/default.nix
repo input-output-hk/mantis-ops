@@ -91,7 +91,7 @@ in {
           maxSize = 40;
           instanceType = "c5.2xlarge";
           associatePublicIP = true;
-          maxInstanceLifetime = 604800;
+          maxInstanceLifetime = 0;
           iam.role = cluster.iam.roles.client;
           iam.instanceProfile.role = cluster.iam.roles.client;
 
