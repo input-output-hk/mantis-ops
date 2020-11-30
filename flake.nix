@@ -16,10 +16,9 @@
         "git+ssh://github.com/input-output-hk/midnight-automation?ref=etcm-99-mantis-agen";
       flake = false;
     };
-    mantis-explorer = {
-      url = "github:input-output-hk/mantis-explorer";
-      flake = false;
-    };
+    mantis-explorer.url = "github:input-output-hk/mantis-explorer";
+    mantis-faucet-web.url =
+      "github:input-output-hk/mantis-faucet-web/nix-build";
   };
 
   outputs = { self, nixpkgs, utils, ops-lib, bitte, ... }:

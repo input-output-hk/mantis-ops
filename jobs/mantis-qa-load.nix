@@ -166,7 +166,7 @@ let
 
             checkRestart = {
               limit = 5;
-              grace = "300s";
+              grace = "400s";
               ignoreWarnings = false;
             };
           }];
@@ -197,10 +197,10 @@ let
         };
 
         restartPolicy = {
-          interval = "30m";
-          attempts = 10;
+          interval = "15m";
+          attempts = 5;
           delay = "1m";
-          mode = "fail";
+          mode = "delay";
         };
 
         env = { REQUIRED_PEER_COUNT = toString requiredPeerCount; };
@@ -256,7 +256,7 @@ let
 
       inherit count;
 
-      requiredPeerCount = builtins.length miners;
+      requiredPeerCount = 5;
 
       services."${name}-rpc" = {
         addressMode = "host";
@@ -307,7 +307,7 @@ let
             mantis.blockchains.testnet-internal-nomad.ecip1098-block-number = 0
             mantis.blockchains.testnet-internal-nomad.ecip1097-block-number = 0
           '';
-          changeMode = "restart";
+          changeMode = "noop";
           destination = "local/mantis.conf";
         }
         genesisJson
@@ -318,7 +318,7 @@ let
 
   miners = lib.forEach (lib.range 1 amountOfMiners) (num: {
     name = "mantis-${toString num}";
-    requiredPeerCount = num - 1;
+    requiredPeerCount = if num > 5 then 5 else num - 1;
     publicPort = 9000 + num; # routed through haproxy/ingress
   });
 

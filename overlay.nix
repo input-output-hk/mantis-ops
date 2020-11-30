@@ -313,8 +313,9 @@ in {
     tree
   ];
 
-  mantis-explorer =
-    final.callPackage (self.inputs.mantis-explorer + "/package.nix") { };
+  mantis-explorer = self.inputs.mantis-explorer.defaultPackage.${system};
+
+  mantis-faucet-web = self.inputs.mantis-faucet-web.defaultPackage.${system};
 
   nixosConfigurations =
     self.inputs.bitte.legacyPackages.${system}.mkNixosConfigurations
