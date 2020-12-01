@@ -311,7 +311,7 @@ let
   in {
     services."${name}" = {
       addressMode = "host";
-      portLabel = "http";
+      portLabel = "explorer";
 
       tags = [ "ingress" namespace "explorer" name ];
 
@@ -330,7 +330,7 @@ let
       checks = [{
         type = "http";
         path = "/";
-        portLabel = "http";
+        portLabel = "explorer";
 
         checkRestart = {
           limit = 5;
@@ -340,7 +340,7 @@ let
       }];
     };
 
-    networks = [{ ports = { http.to = 8080; }; }];
+    networks = [{ ports = { explorer.to = 8080; }; }];
 
     tasks.explorer = {
       inherit name;
@@ -354,7 +354,7 @@ let
       config = {
         image = dockerImages.mantis-explorer-server.id;
         args = [ "nginx" "-c" "/local/nginx.conf" ];
-        ports = [ "http" ];
+        ports = [ "explorer" ];
         labels = [{
           inherit namespace name;
           imageTag = dockerImages.mantis-explorer-server.image.imageTag;
@@ -372,13 +372,20 @@ let
       templates = [{
         data = ''
           user nginx nginx;
-          error_log /dev/stdout info;
+          error_log /dev/stderr info;
           pid /dev/null;
           events {}
           daemon off;
 
           http {
             access_log /dev/stdout;
+
+            upstream backend {
+              least_conn;
+              {{ range service "${namespace}-mantis-passive-rpc" }}
+                server {{ .Address }}:{{ .Port }};
+              {{ end }}
+            }
 
             server {
               listen 8080;
@@ -390,15 +397,11 @@ let
               }
 
               location /rpc/node {
-                proxy_pass {{ range service "mantis-1.${namespace}-mantis-miner-rpc" -}}
-                  "http://{{ .Address }}:{{ .Port }}";
-                {{- end }}
+                proxy_pass http://backend/;
               }
 
               location /sockjs-node {
-                proxy_pass {{ range service "mantis-1.${namespace}-mantis-miner-rpc" -}}
-                  "http://{{ .Address }}:{{ .Port }}";
-                {{- end }}
+                proxy_pass http://backend/;
               }
             }
           }

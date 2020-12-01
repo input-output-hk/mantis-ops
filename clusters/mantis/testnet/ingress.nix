@@ -1,4 +1,8 @@
 { config, ... }: {
+  # services.ingress-config.extraGlobalConfig = ''
+  #   debug
+  # '';
+
   services.ingress-config.extraHttpsBackends = ''
     {{- range services -}}
       {{- if .Tags | contains "ingress" -}}
