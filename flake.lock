@@ -20,11 +20,11 @@
         "utils": "utils_3"
       },
       "locked": {
-        "lastModified": 1606238775,
-        "narHash": "sha256-71fEAZzzhDn8pZGzzP+bdhmIKaIXY+qNeb3dWojcdgY=",
+        "lastModified": 1606849074,
+        "narHash": "sha256-VKSHqxlKpjsCRKpjSkCU8zT+D7/IBNQ5ky59Etfk6aQ=",
         "owner": "input-output-hk",
         "repo": "bitte",
-        "rev": "fda49cec358a31eea67875e74d06fb3c54c577e1",
+        "rev": "d78b4690f04d6a643fcc22ea7ffa9c5f3b2f2d39",
         "type": "github"
       },
       "original": {
