@@ -250,7 +250,7 @@ let
         memoryMB = 5 * 1024;
       };
 
-      tags = [ namespace "passive" "ingress" ];
+      tags = [ namespace "passive" ];
 
       inherit count;
 
@@ -258,21 +258,8 @@ let
 
       services."${name}-rpc" = {
         addressMode = "host";
-        tags = [ "rpc" "ingress" namespace name mantis-source.rev ];
+        tags = [ "rpc" namespace name mantis-source.rev ];
         portLabel = "rpc";
-        meta = {
-          ingressHost = "${namespace}-explorer.mantis.ws";
-          ingressMode = "http";
-          ingressBind = "*:443";
-          ingressIf =
-            "{ path_beg -i /rpc/node } or { hdr(host) -i ${namespace}-explorer.mantis.ws } { path_beg -i /sockjs-node }";
-          ingressServer = "_${name}-rpc._tcp.service.consul";
-          ingressBackendExtra = ''
-            option tcplog
-            http-response set-header X-Server %s
-            http-request set-path /
-          '';
-        };
       };
 
       templates = [
@@ -334,8 +321,6 @@ let
         ingressHost = "${name}.mantis.ws";
         ingressMode = "http";
         ingressBind = "*:443";
-        ingressIf =
-          "! { path_beg -i /rpc/node } ! { path_beg -i /sockjs-node }";
         ingressServer = "_${name}._tcp.service.consul";
         ingressBackendExtra = ''
           http-response set-header X-Server %s
