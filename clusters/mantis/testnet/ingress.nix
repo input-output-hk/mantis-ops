@@ -8,9 +8,7 @@
           {{- end }}
         {{- end -}}
       {{- end -}}
-    {{- end -}}
-
-    # End services
+    {{- end }}
   '';
 
   services.ingress-config.extraConfig = ''
