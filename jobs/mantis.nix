@@ -4,6 +4,11 @@ let
   # NOTE: Copy this file and change the next line if you want to start your own cluster!
   namespace = "mantis-testnet";
 
+  vault = {
+    policies = [ "nomad-cluster" ];
+    changeMode = "noop";
+  };
+
   genesisJson = {
     data = ''
       {{- with secret "kv/nomad-cluster/${namespace}/genesis" -}}
@@ -40,7 +45,7 @@ let
       tasks.telegraf = {
         driver = "docker";
 
-        vault.policies = [ "nomad-cluster" ];
+        inherit vault;
 
         resources = {
           cpu = 100; # mhz
@@ -131,7 +136,7 @@ let
       tasks.${name} = {
         inherit name resources templates;
         driver = "docker";
-        vault.policies = [ "nomad-cluster" ];
+        inherit vault;
 
         config = {
           image = dockerImages.mantis.id;
@@ -418,6 +423,7 @@ let
       ports = {
         metrics.to = 7000;
         rpc.to = 8000;
+        faucet-web.to = 8080;
       };
     }];
 
@@ -468,13 +474,29 @@ let
           mantis-faucet-source.rev
         ];
       };
+
+      "${faucetName}-web" = {
+        addressMode = "host";
+        portLabel = "faucet-web";
+        tags = [
+          "ingress" namespace "faucet" faucetName mantis-faucet-source.rev
+        ];
+        meta = {
+          name = faucetName;
+          publicIp = "\${attr.unique.platform.aws.public-ipv4}";
+          ingressHost = "${faucetName}-web.mantis.ws";
+          ingressBind = "*:443";
+          ingressMode = "http";
+          ingressServer = "_${faucetName}-web._tcp.service.consul";
+        };
+      };
     };
 
     tasks.faucet = {
       name = "faucet";
       driver = "docker";
 
-      vault.policies = [ "nomad-cluster" ];
+      inherit vault;
 
       resources = {
         cpu = 100;
@@ -677,10 +699,71 @@ let
       ];
     };
 
+    tasks.faucet-web = {
+      name = "faucet-web";
+      driver = "docker";
+      resources = {
+        cpu = 100;
+        memoryMB = 128;
+      };
+      config = {
+        image = dockerImages.mantis-faucet-web.id;
+        args = [ "nginx" "-c" "/local/nginx.conf" ];
+        ports = [ "faucet-web" ];
+        labels = [{
+          inherit namespace;
+          name = "faucet-web";
+          imageTag = dockerImages.mantis-faucet-web.image.imageTag;
+        }];
+
+        logging = {
+          type = "journald";
+          config = [{
+            tag = "faucet-web";
+            labels = "name,namespace,imageTag";
+          }];
+        };
+      };
+      templates = [{
+        data = ''
+          user nginx nginx;
+          error_log /dev/stdout info;
+          pid /dev/null;
+          events {}
+          daemon off;
+
+          http {
+            access_log /dev/stdout;
+
+            server {
+              listen 8080;
+
+              location / {
+                root /mantis-faucet-web;
+                index index.html;
+                try_files $uri $uri/ /index.html;
+              }
+
+              {{ range service "${namespace}-mantis-faucet" -}}
+              # https://github.com/input-output-hk/mantis-faucet-web/blob/nix-build/flake.nix#L14
+              # TODO: the above FAUCET_NODE_URL should point to this
+              location /rpc/node {
+                proxy_pass  "http://{{ .Address }}:{{ .Port }}";
+              }
+              {{- end }}
+            }
+          }
+        '';
+        changeMode = "signal";
+        changeSignal = "SIGHUP";
+        destination = "local/nginx.conf";
+      }];
+    };
+
     tasks.telegraf = {
       driver = "docker";
 
-      vault.policies = [ "nomad-cluster" ];
+      inherit vault;
 
       resources = {
         cpu = 100; # mhz
