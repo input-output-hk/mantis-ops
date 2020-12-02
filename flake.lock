@@ -181,11 +181,11 @@
     "midnight-automation": {
       "flake": false,
       "locked": {
-        "lastModified": 1605015042,
-        "narHash": "sha256-y0k5Ixae9b4WuxX/aAVy7aaKca4ILy3z+TOr3YVSH2s=",
+        "lastModified": 1606898646,
+        "narHash": "sha256-IoEKI4aUFAe+Bc82x38AYdGaDwyjbxsO+b7amKclkUs=",
         "ref": "etcm-99-mantis-agen",
         "rev": "8847d25a45808dbfa6c3629d7ab999fd1b4d6414",
-        "revCount": 487,
+        "revCount": 489,
         "type": "git",
         "url": "ssh://github.com/input-output-hk/midnight-automation"
       },
