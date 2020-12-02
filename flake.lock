@@ -164,16 +164,15 @@
         "nixpkgs": "nixpkgs_4"
       },
       "locked": {
-        "lastModified": 1606396978,
-        "narHash": "sha256-EhjfwEDZ42nNaoEGk1p7g54RiGdFYA5bogYxm0vAcno=",
+        "lastModified": 1606937177,
+        "narHash": "sha256-fvTjmT0bkj983uZn4rKO4ggsxzTxq+/fIEKkWpa+kTo=",
         "owner": "input-output-hk",
         "repo": "mantis-faucet-web",
-        "rev": "0e6b362a039244be1d85aa655067cb113e078536",
+        "rev": "07dc2297dd96698d158feadc92ee580f5d2dc433",
         "type": "github"
       },
       "original": {
         "owner": "input-output-hk",
-        "ref": "nix-build",
         "repo": "mantis-faucet-web",
         "type": "github"
       }
