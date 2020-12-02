@@ -735,6 +735,12 @@ let
           http {
             access_log /dev/stdout;
 
+            types {
+              text/css         css;
+              text/javascript  js;
+              text/html        html htm;
+            }
+
             server {
               listen 8080;
 
@@ -754,7 +760,7 @@ let
             }
           }
         '';
-        changeMode = "signal";
+        changeMode = "noop"; # TODO, make it signal when the above proxy_pass is used
         changeSignal = "SIGHUP";
         destination = "local/nginx.conf";
       }];
