@@ -17,8 +17,7 @@
       flake = false;
     };
     mantis-explorer.url = "github:input-output-hk/mantis-explorer";
-    mantis-faucet-web.url =
-      "github:input-output-hk/mantis-faucet-web/nix-build";
+    mantis-faucet-web.url = "github:input-output-hk/mantis-faucet-web";
   };
 
   outputs = { self, nixpkgs, utils, ops-lib, bitte, ... }:
