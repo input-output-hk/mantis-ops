@@ -1,9 +1,10 @@
 { lib, mkEnv, buildImage, buildLayeredImage, writeShellScript, mantis-faucet-web
-, nginx, shadowSetup }: {
+, nginx, shadowSetup, coreutils }:
+{
   mantis-faucet-web = let
     nginx-layered = buildLayeredImage {
       name = "docker.mantis.ws/nginx";
-      contents = [ nginx mantis-faucet-web ];
+      contents = [ nginx mantis-faucet-web coreutils ];
     };
   in buildImage {
     name = "docker.mantis.ws/mantis-faucet-web";
