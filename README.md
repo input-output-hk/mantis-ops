@@ -223,7 +223,11 @@
     ```
 * To update the commit that a mantis job will be run with, update the `rev` and `ref` fields with the appropriate git commit revision and git commit branch.
 * It is a good idea to commit mantis-source updates since a github action will automatically push the build product to cachix for faster job deployments for everyone on the team.
-
+* Other repo sources which are found in `flake.nix` and may need an update, such as `mantis-faucet-web`, can be updated from the nix develop shell and then committed as needed:
+    ```
+      # Update a selected flake repo input (example: mantis-faucet-web)
+      $ nix flake update --update-input mantis-faucet-web
+    ```
 
 ### Deployment: Running a Mantis Job
 
