@@ -653,7 +653,7 @@ let
                     # Limits the amount of request the same ip can perform in a given amount of time
                     rate-limit {
                       # If enabled, restrictions are applied
-                      enabled = false
+                      enabled = true
 
                       # Time that should pass between requests
                       min-request-interval = 10.seconds
