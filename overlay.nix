@@ -1,7 +1,18 @@
 { system, self }:
 final: prev:
-let lib = final.lib;
+let
+  lib = final.lib;
+  # Little convenience function helping us to containing the bash
+  # madness: forcing our bash scripts to be shellChecked.
+  writeBashChecked = final.writers.makeScriptWriter {
+    interpreter = "${final.bash}/bin/bash";
+    check = final.writers.writeBash "shellcheck-check" ''
+      ${final.shellcheck}/bin/shellcheck "$1"
+    '';
+  };
+  writeBashBinChecked = name: writeBashChecked "/bin/${name}";
 in {
+  inherit writeBashChecked writeBashBinChecked;
   # we cannot specify mantis as a flake input due to:
   # * the branch having a slash
   # * the submodules syntax is broken
@@ -32,6 +43,9 @@ in {
   mantis-explorer-server = prev.callPackage ./pkgs/mantis-explorer-server.nix {
     inherit (self.inputs.inclusive.lib) inclusive;
   };
+  morpho-source = self.inputs.morpho-node;
+
+  morpho-node = self.inputs.morpho-node.morpho-node.${system};
 
   # Any:
   # - run of this command with a parameter different than the testnet (currently 10)
@@ -69,7 +83,7 @@ in {
         | sed 's/^  //' \
         >> $out
       '';
-  in final.writeShellScriptBin "generate-mantis-keys" ''
+  in writeBashBinChecked "generate-mantis-keys" ''
     set -xeuo pipefail
 
     export PATH="${
@@ -86,11 +100,12 @@ in {
       ])
     }"
 
-    [ $# -eq 2 ] || { echo "Two arguments are required. Pass the prefix and the number of keys to generate."; exit 1; }
+    [ $# -eq 3 ] || { echo "Three arguments are required. Pass the prefix, the number of mantis keys to generate and the number of OBFT keys to generate."; exit 1; }
 
     prefix="$1"
     desired="$2"
-    mkdir -p secrets
+    desiredObft="$3"
+    mkdir -p secrets/"$prefix"
 
     echo "generating $desired keys"
 
@@ -124,52 +139,85 @@ in {
       ) | jq -e -r .result | sed 's/^0x//'
     }
 
-    for count in $(seq "$desired"); do
-      keyFile="secrets/mantis-$count.key"
-      coinbaseFile="secrets/mantis-$count.coinbase"
-      secretKeyPath="kv/nomad-cluster/$prefix/mantis-$count/secret-key"
-      hashKeyPath="kv/nomad-cluster/$prefix/mantis-$count/enode-hash"
-      coinbasePath="kv/nomad-cluster/$prefix/mantis-$count/coinbase"
-      accountPath="kv/nomad-cluster/$prefix/mantis-$count/account"
+    nodes="$(seq -f "mantis-%g" "$desired"; seq -f "obft-node-%g" "$desiredObft")"
+    for node in $nodes; do
+      mantisKeyFile="secrets/$prefix/mantis-$node.key"
+      coinbaseFile="secrets/$prefix/$node.coinbase"
+      coinbasePath="kv/nomad-cluster/$prefix/$node/coinbase"
+      mantisSecretKeyPath="kv/nomad-cluster/$prefix/$node/secret-key"
+      hashKeyPath="kv/nomad-cluster/$prefix/$node/enode-hash"
+      accountPath="kv/nomad-cluster/$prefix/$node/account"
       genesisPath="kv/nomad-cluster/$prefix/genesis"
+
+      obftKeyFile="secrets/$prefix/obft-$node.key"
+      obftSecretKeyPath="kv/nomad-cluster/$prefix/$node/obft-secret-key"
+      obftPublicKeyPath="kv/nomad-cluster/$prefix/$node/obft-public-key"
 
       hashKey="$(vault kv get -field value "$hashKeyPath" || true)"
 
       if [ -z "$hashKey" ]; then
-        if ! [ -s "$keyFile" ]; then
-          echo "Generating key in $keyFile"
+        if ! [ -s "$mantisKeyFile" ]; then
+          echo "Generating key in $mantisKeyFile"
 
           len=0
           until [ $len -eq 194 ]; do
             echo "generating key..."
-            len="$( eckeygen -Dconfig.file=${final.mantis}/conf/app.conf | tee "$keyFile" | wc -c )"
+            len="$( eckeygen -Dconfig.file=${final.mantis}/conf/app.conf | tee "$mantisKeyFile" | wc -c )"
           done
         fi
 
-        echo "Uploading existing key from $keyFile to Vault"
+        echo "Uploading existing key from $mantisKeyFile to Vault"
 
-        hashKey="$(tail -1 "$keyFile")"
+        hashKey="$(tail -1 "$mantisKeyFile")"
         vault kv put "$hashKeyPath" "value=$hashKey"
 
-        secretKey="$(head -1 "$keyFile")"
-        vault kv put "$secretKeyPath" "value=$secretKey"
+        secretKey="$(head -1 "$mantisKeyFile")"
+        vault kv put "$mantisSecretKeyPath" "value=$secretKey"
 
         coinbase="$(generateCoinbase "$secretKey")"
         vault kv put "$coinbasePath" "value=$coinbase"
 
-        cat $tmpdir/.mantis/testnet-internal-nomad/keystore/*$coinbase | vault kv put "$accountPath" -
+        vault kv put "$accountPath" - < "$tmpdir"/.mantis/testnet-internal-nomad/keystore/*"$coinbase"
       else
-        echo "Downloading key for $keyFile from Vault"
-        secretKey="$(vault kv get -field value "$secretKeyPath")"
-        echo "$secretKey" > "$keyFile"
-        echo "$hashKey" >> "$keyFile"
+        echo "Downloading key for $mantisKeyFile from Vault"
+        secretKey="$(vault kv get -field value "$mantisSecretKeyPath")"
+        echo "$secretKey" > "$mantisKeyFile"
+        echo "$hashKey" >> "$mantisKeyFile"
 
         coinbase="$(vault kv get -field value "$coinbasePath")"
         echo "$coinbase" > "$coinbaseFile"
       fi
+
+      # OBFT-related keys for obft nodes
+      # Note: a OBFT node needs *both* the mantis and OBFT keys to
+      # work.
+      if [[ "$node" =~ ^obft-node-[0-9]+$ ]]; then
+        obftPublicKey="$(vault kv get -field value "$obftPublicKeyPath" || true)"
+        if [ -z "$obftPublicKey" ]; then
+          if ! [ -s "$obftKeyFile" ]; then
+            len=0
+            echo "generating OBFT key..."
+            until [ $len -eq 194 ]; do
+                len="$( eckeygen -Dconfig.file=${final.mantis}/conf/mantis.conf | tee "$obftKeyFile" | wc -c )"
+            done
+          fi
+
+          echo "Uploading OBFT keys"
+          obftPubKey="$(tail -1 "$obftKeyFile")"
+          vault kv put "$obftPublicKeyPath" "value=$obftPubKey"
+          obftSecretKey="$(head -1 "$obftKeyFile")"
+          vault kv put "$obftSecretKeyPath" "value=$obftSecretKey"
+        else
+          echo "Downloading OBFT keys"
+          obftSecretKey="$(vault kv get -field value "obftSecretKeyPath")"
+          echo "$obftSecretKey" > "$obftKeyFile"
+          echo "$obftPublicKey" >> "$obftKeyFile"
+        fi
+      fi
+
     done
 
-    read genesis <<EOF
+    read -r genesis <<EOF
       ${
         builtins.toJSON {
           extraData = "0x00";
@@ -190,13 +238,13 @@ in {
     for count in $(seq "$desired"); do
       updatedGenesis="$(
         echo "$genesis" \
-        | jq --arg address "$(< "secrets/mantis-$count.coinbase")" \
+        | jq --arg address "$(< "secrets/$prefix/mantis-$count.coinbase")" \
           '.alloc[$address] = {"balance": "1606938044258990275541962092341162602522202993782792835301376"}'
       )"
       genesis="$updatedGenesis"
     done
 
-    echo "$genesis" | vault kv put $genesisPath -
+    echo "$genesis" | vault kv put "$genesisPath" -
   '';
 
   generate-mantis-qa-genesis =
