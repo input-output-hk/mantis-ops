@@ -790,6 +790,9 @@ let
                 # null value indicates HTTPS is not being used
                 #  password-file = "tls/password"
                 #}
+
+                # Response time-out from rpc client resolve
+                timeout = 3.seconds
               }
 
               # How often can a single IP address send a request
@@ -799,13 +802,12 @@ let
               handler-timeout = 1.seconds
 
               # Response time-out from actor resolve
-              response-timeout = 3.seconds
+              actor-communication-margin = 1.seconds
 
               # Supervisor with BackoffSupervisor pattern
               supervisor {
                 min-backoff = 3.seconds
-                # max-backoff = 30.seconds
-                man-backoff = 30.seconds
+                max-backoff = 30.seconds
                 random-factor = 0.2
                 auto-reset = 10.seconds
                 attempts = 4
