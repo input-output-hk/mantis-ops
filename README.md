@@ -43,8 +43,8 @@
 * The following configuration lines need to be added to the Nix configuration:
     ```
     experimental-features = nix-command flakes ca-references
-    substituters = https://cache.nixos.org https://mantis-ops.cachix.org
-    trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= mantis-ops.cachix.org-1:SornDcX8/9rFrpTjU+mAAb26sF8mUpnxgXNjmKGcglQ=
+    substituters = https://hydra.iohk.io https://cache.nixos.org https://mantis-ops.cachix.org
+    trusted-public-keys = hydra.iohk.io:f/Ea+s+dFdN+3Y/G+FDgSq+a5NEWhJGzdjvKNGv0/EQ= cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= mantis-ops.cachix.org-1:SornDcX8/9rFrpTjU+mAAb26sF8mUpnxgXNjmKGcglQ=
     ```
 
 * Additionally, for a Nix multi-user install:
@@ -67,10 +67,12 @@
 * For a NixOS installation, the following declarative code snippet in the machine NixOS configuration file, usually found at `/etc/nixos/configuration.nix`, followed by a `sudo nixos-rebuild switch` will add and activate the modified Nix configuration:
     ```
       nix.binaryCaches = [
-        "https://cache.nixos.org/"
+        "https://hydra.iohk.io"
+        "https://cache.nixos.org"
         "https://mantis-ops.cachix.org"
       ];
       nix.binaryCachePublicKeys = [
+        "hydra.iohk.io:f/Ea+s+dFdN+3Y/G+FDgSq+a5NEWhJGzdjvKNGv0/EQ="
         "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
         "mantis-ops.cachix.org-1:SornDcX8/9rFrpTjU+mAAb26sF8mUpnxgXNjmKGcglQ="
       ];
