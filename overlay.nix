@@ -28,7 +28,7 @@ in {
 
   mantis-faucet-source = builtins.fetchGit {
     url = "https://github.com/input-output-hk/mantis";
-    rev = "4fc1d4ab5396f206319387e0283d597ea390f6b8";
+    rev = "07e617cdd1bfc76ad1a8472305f0e5e60e2801e1";
     ref = "develop";
     submodules = true;
   };
