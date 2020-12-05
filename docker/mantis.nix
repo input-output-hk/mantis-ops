@@ -1,81 +1,74 @@
-{ lib, mkEnv, buildLayeredImage, writeShellScript, mantis, mantis-faucet
-, coreutils, gnused, gnugrep, curl, debugUtils }:
+{ lib, mkEnv, buildLayeredImage, writeShellScript, mantis
+, coreutils, gnused, gnugrep, curl, debugUtils, procps, diffutils }:
 let
-  mantis-entrypoint = writeShellScript "mantis" ''
+  entrypoint = writeShellScript "mantis" ''
     set -exuo pipefail
 
     mkdir -p /tmp
     mkdir -p "$NOMAD_TASK_DIR/mantis"
     cd "$NOMAD_TASK_DIR"
+    name="java"
 
-    set +x
-    echo "waiting for $REQUIRED_PEER_COUNT peers"
-    until [ "$(grep -c enode mantis.conf)" -ge "$REQUIRED_PEER_COUNT" ]; do
-      sleep 0.1
-    done
-    set -x
-
-    cp "mantis.conf" running.conf
-    chown --reference . --recursive . || true
     ulimit -c unlimited
-    exec mantis "-Duser.home=$NOMAD_TASK_DIR" "$@"
-  '';
 
-  faucet-entrypoint = writeShellScript "mantis-faucet" ''
-    set -exuo pipefail
+    restartCount=0
 
-    case $1 in
-      healthcheck)
-        test WalletAvailable = "$(
-          curl \
-            http://$NOMAD_ADDR_rpc \
-            -H 'Content-Type: application/json' \
-            -X POST \
-            -d '{"jsonrpc": "2.0", "method": "faucet_status", "params": [], "id": 1}' \
-          | jq -e -r .result.status
-        )"
-      ;;
-      *)
-        mkdir -p /tmp
-        mkdir -p "$NOMAD_TASK_DIR/mantis"
-        mkdir -p "$NOMAD_SECRETS_DIR/keystore"
+    function noop () {
+      echo "redundant hup"
+      diff -u running.conf mantis.conf > /dev/stderr || true
+    }
 
-        cd "$NOMAD_TASK_DIR"
+    function reload () {
+      trap noop HUP
+      echo "reload requested" > /dev/stderr
+      diff -u running.conf mantis.conf > /dev/stderr || true
+      if pgrep -c "$name"; then
+        echo "reloading in 300 seconds" > /dev/stderr
+        sleep 300
+      fi
+      pkill "$name" || true
 
-        cp faucet.conf running.conf
-        cp "$NOMAD_SECRETS_DIR/account" "$NOMAD_SECRETS_DIR/keystore/UTC--2020-10-16T14-48-29.47Z-$COINBASE"
+      count=0
+      restartCount=0
 
-        chown --reference . --recursive . || true
-        ulimit -c unlimited
-        exec mantis faucet "-Duser.home=$NOMAD_TASK_DIR" "$@"
-      ;;
-    esac
+      until ! pgrep -c "$name"; do
+        count="$((count+1))"
+        if [ "$count" -gt 60 ]; then
+          pkill -9 "$name"
+        fi
+        sleep 1
+      done
+      trap reload HUP
+    }
+
+    function report_quit() {
+      code=$?
+      echo exit $code happening > /dev/stderr
+      exit $code
+    }
+
+    trap reload HUP
+    trap report_quit EXIT
+
+    while true; do
+      echo "(re)starting at $(date)" >/dev/stderr
+      diff -u running.conf mantis.conf > /dev/stderr || true
+      cp mantis.conf running.conf
+      mantis "-Duser.home=$NOMAD_TASK_DIR" "$@" &
+      while ! wait; do
+        true
+      done
+      restartCount="$((restartCount+1))"
+      if [ "$((restartCount % 5))" -eq 0 ]; then
+        pkill -9 "$name" || true
+      fi
+      sleep 1
+    done
   '';
 in {
   mantis = buildLayeredImage {
     name = "docker.mantis.ws/mantis";
-
-    contents = debugUtils;
-
-    config = {
-      Entrypoint = [ mantis-entrypoint ];
-
-      Env =
-        mkEnv { PATH = lib.makeBinPath [ coreutils gnugrep gnused mantis ]; };
-    };
-  };
-
-  mantis-faucet = buildLayeredImage {
-    name = "docker.mantis.ws/mantis-faucet";
-
-    contents = debugUtils;
-
-    config = {
-      Entrypoint = [ faucet-entrypoint ];
-
-      Env = mkEnv {
-        PATH = lib.makeBinPath [ coreutils gnugrep gnused mantis-faucet curl ];
-      };
-    };
+    contents = debugUtils ++ [ coreutils gnugrep gnused mantis curl procps diffutils ];
+    config.Entrypoint = [ entrypoint ];
   };
 }
