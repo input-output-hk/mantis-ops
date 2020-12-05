@@ -1,5 +1,5 @@
-{ mkNomadJob, lib, mantis, mantis-source, mantis-faucet, mantis-faucet-source, morpho-node
-, morpho-source, dockerImages, mantis-explorer }:
+{ mkNomadJob, lib, mantis, mantis-source, mantis-faucet, mantis-faucet-source
+, morpho-node, morpho-source, dockerImages, mantis-explorer }:
 let
   # NOTE: Copy this file and change the next line if you want to start your own cluster!
   namespace = "mantis-testnet";
@@ -15,7 +15,9 @@ let
       {{.Data.data | toJSON }}
       {{- end -}}
     '';
-    changeMode = "restart";
+    changeMode = "signal";
+    splay = "2m";
+    changeSignal = "SIGHUP";
     destination = "local/genesis.json";
   };
 
@@ -40,7 +42,14 @@ let
       };
     };
 
+    ephemeralDisk = {
+      sizeMB = 500;
+      migrate = true;
+      sticky = true;
+    };
+
     networks = [{
+      mode = "bridge";
       ports = {
         metrics.to = 7000;
         rpc.to = 8000;
@@ -54,7 +63,6 @@ let
       inherit name vault;
       driver = "docker";
       env = { REQUIRED_PEER_COUNT = builtins.toString nbNodes; };
-      # TODO manveru: port mapping??
 
       templates = [
         {
@@ -76,7 +84,7 @@ let
             NodePrivKeyFile: {{ env "NOMAD_SECRETS_DIR" }}/morpho-private-key
             NumCoreNodes: {{ len (service "${namespace}-morpho-node") }}
             PoWBlockFetchInterval: 5000000
-            PoWNodeRpcUrl: http://{{ env "NOMAD_ADDR_rpc" }}
+            PoWNodeRpcUrl: http://127.0.0.1:{{ env "NOMAD_PORT_rpc" }}
             PrometheusPort: {{ env "NOMAD_PORT_morphoPrometheus" }}
             Protocol: MockedBFT
             RequiredMajority: {{ len (service "${namespace}-morpho-node") | divide 2 | add 1 }}
@@ -105,7 +113,10 @@ let
             options:
               mapBackends:
           '';
+          splay = "30s";
           destination = "local/morpho-config.yaml";
+          changeMode = "signal";
+          changeSignal = "SIGHUP";
         }
         {
           data = ''
@@ -113,7 +124,10 @@ let
             {{- .Data.data.value -}}
             {{- end -}}
           '';
+          splay = "30s";
           destination = "secrets/morpho-private-key";
+          changeMode = "signal";
+          changeSignal = "SIGHUP";
         }
         {
           data = ''
@@ -140,8 +154,10 @@ let
               {{- end }}
               ]
           '';
+          splay = "30s";
           destination = "local/morpho-topology.json";
-          changeMode = "noop";
+          changeMode = "signal";
+          changeSignal = "SIGHUP";
         }
       ];
 
@@ -163,9 +179,9 @@ let
       };
 
       restartPolicy = {
-        interval = "30m";
+        interval = "10m";
         attempts = 10;
-        delay = "1m";
+        delay = "30s";
         mode = "delay";
       };
     };
@@ -212,11 +228,11 @@ let
           [inputs.prometheus]
           metric_version = 1
 
-          urls = [ "http://{{ env "NOMAD_ADDR_morphoPrometheus" }}" ]
+          urls = [ "http://127.0.0.1:{{ env "NOMAD_PORT_morphoPrometheus" }}" ]
 
           [outputs.influxdb]
           database = "telegraf"
-          urls = ["http://{{with node "monitoring" }}{{ .Node.Address }}{{ end }}:8428"]
+          urls = ["http://{{ range node "monitoring" }}{{ .Node.Address }}{{ end }}:8428"]
         '';
 
         destination = "local/telegraf.config";
@@ -229,6 +245,7 @@ let
       inherit count;
 
       networks = [{
+        mode = "bridge";
         ports = {
           metrics.to = 7000;
           rpc.to = 8000;
@@ -289,11 +306,11 @@ let
             [inputs.prometheus]
             metric_version = 1
 
-            urls = [ "http://{{ env "NOMAD_ADDR_metrics" }}" ]
+            urls = [ "http://127.0.0.1:{{ env "NOMAD_PORT_metrics" }}" ]
 
             [outputs.influxdb]
             database = "telegraf"
-            urls = ["http://{{with node "monitoring" }}{{ .Node.Address }}{{ end }}:8428"]
+            urls = ["http://{{ range node "monitoring" }}{{ .Node.Address }}{{ end }}:8428"]
           '';
 
           destination = "local/telegraf.config";
@@ -328,11 +345,12 @@ let
             type = "http";
             path = "/healthcheck";
             portLabel = "rpc";
+            interval = "60s";
 
             checkRestart = {
-              limit = 5;
-              grace = "300s";
-              ignoreWarnings = false;
+              limit = 10;
+              grace = "600s";
+              ignoreWarnings = true;
             };
           }];
         };
@@ -402,9 +420,13 @@ let
             ]
 
             mantis.blockchains.testnet-internal-nomad.checkpoint-public-keys = [
-              ${lib.concatMapStringsSep "," (x: ''
-                {{- with secret "kv/data/nomad-cluster/${namespace}/obft-node-${toString x}/obft-public-key" -}}"{{- .Data.data.value -}}"{{end}}
-              '') (lib.range 1 5)}
+              ${
+                lib.concatMapStringsSep "," (x: ''
+                  {{- with secret "kv/data/nomad-cluster/${namespace}/obft-node-${
+                    toString x
+                  }/obft-public-key" -}}"{{- .Data.data.value -}}"{{end}}
+                '') (lib.range 1 5)
+              }
             ]
 
             mantis.consensus.mining-enabled = true
@@ -424,7 +446,9 @@ let
             mantis.blockchains.testnet-internal-nomad.ecip1097-block-number = 0
           '';
           destination = "local/mantis.conf";
-          changeMode = "noop";
+          splay = "2m";
+          changeMode = "signal";
+          changeSignal = "SIGHUP";
         }
         {
           data = let
@@ -435,6 +459,9 @@ let
             ${secret "kv/data/nomad-cluster/${namespace}/${name}/enode-hash"}
           '';
           destination = "secrets/secret-key";
+          splay = "2m";
+          changeMode = "signal";
+          changeSignal = "SIGHUP";
         }
         genesisJson
       ];
@@ -495,9 +522,13 @@ let
             ]
 
             mantis.blockchains.testnet-internal-nomad.checkpoint-public-keys = [
-              ${lib.concatMapStringsSep "," (x: ''
-                {{- with secret "kv/data/nomad-cluster/${namespace}/obft-node-${toString x}/obft-public-key" -}}"{{- .Data.data.value -}}"{{end}}
-              '') (lib.range 1 5)}
+              ${
+                lib.concatMapStringsSep "," (x: ''
+                  {{- with secret "kv/data/nomad-cluster/${namespace}/obft-node-${
+                    toString x
+                  }/obft-public-key" -}}"{{- .Data.data.value -}}"{{end}}
+                '') (lib.range 1 5)
+              }
             ]
 
             mantis.client-id = "${name}"
@@ -514,7 +545,9 @@ let
             mantis.blockchains.testnet-internal-nomad.ecip1098-block-number = 0
             mantis.blockchains.testnet-internal-nomad.ecip1097-block-number = 0
           '';
-          changeMode = "noop";
+          changeMode = "signal";
+          splay = "2m";
+          changeSignal = "SIGHUP";
           destination = "local/mantis.conf";
         }
         genesisJson
@@ -695,9 +728,8 @@ let
       "${faucetName}-web" = {
         addressMode = "host";
         portLabel = "faucet-web";
-        tags = [
-          "ingress" namespace "faucet" faucetName mantis-faucet-source.rev
-        ];
+        tags =
+          [ "ingress" namespace "faucet" faucetName mantis-faucet-source.rev ];
         meta = {
           name = faucetName;
           publicIp = "\${attr.unique.platform.aws.public-ipv4}";
@@ -979,7 +1011,8 @@ let
             }
           }
         '';
-        changeMode = "noop"; # TODO, make it signal when the above proxy_pass is used
+        changeMode =
+          "noop"; # TODO, make it signal when the above proxy_pass is used
         changeSignal = "SIGHUP";
         destination = "local/nginx.conf";
       }];
@@ -1032,12 +1065,24 @@ let
 
           [outputs.influxdb]
           database = "telegraf"
-          urls = ["http://{{with node "monitoring" }}{{ .Node.Address }}{{ end }}:8428"]
+          urls = ["http://{{ range node "monitoring" }}{{ .Node.Address }}{{ end }}:8428"]
         '';
 
         destination = "local/telegraf.config";
       }];
     };
+  };
+
+  updateOneAtATime = {
+    maxParallel = 1;
+    # healthCheck = "checks"
+    minHealthyTime = "30s";
+    healthyDeadline = "10m";
+    progressDeadline = "20m";
+    autoRevert = false;
+    autoPromote = false;
+    canary = 0;
+    stagger = "1m";
   };
 in {
   "${namespace}-mantis" = mkNomadJob "mantis" {
@@ -1045,17 +1090,7 @@ in {
     type = "service";
     inherit namespace;
 
-    update = {
-      maxParallel = 1;
-      # healthCheck = "checks"
-      minHealthyTime = "30s";
-      healthyDeadline = "5m";
-      progressDeadline = "10m";
-      autoRevert = false;
-      autoPromote = false;
-      canary = 0;
-      stagger = "30s";
-    };
+    update = updateOneAtATime;
 
     taskGroups = let
       minerTaskGroups = lib.listToAttrs (map mkMiner miners);
@@ -1067,6 +1102,8 @@ in {
     datacenters = [ "us-east-2" "eu-central-1" ];
     type = "service";
     inherit namespace;
+
+    update = updateOneAtATime;
 
     taskGroups = let
       generateMorphoTaskGroup = nbNodes: node:
@@ -1091,6 +1128,17 @@ in {
     inherit namespace;
 
     taskGroups.faucet = faucet;
+  };
+
+  "${namespace}-backup" = mkNomadJob "backup" {
+    datacenters = [ "us-east-2" "eu-central-1" ];
+    type = "batch";
+    inherit namespace;
+
+    taskGroups.backup = import ./tasks/backup.nix {
+      inherit lib dockerImages namespace mantis;
+      name = "${namespace}-backup";
+    };
   };
 }
 

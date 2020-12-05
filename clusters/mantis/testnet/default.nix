@@ -66,11 +66,11 @@ in {
     autoscalingGroups = listToAttrs (forEach [
       {
         region = "eu-central-1";
-        desiredCapacity = 35;
+        desiredCapacity = 8;
       }
       {
         region = "us-east-2";
-        desiredCapacity = 35;
+        desiredCapacity = 8;
       }
     ] (args:
       let
@@ -197,6 +197,7 @@ in {
           ./ingress.nix
           "${extraConfig}"
           ./docker-registry.nix
+          ./minio.nix
         ];
 
         securityGroupRules = {
