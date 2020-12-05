@@ -425,7 +425,7 @@ let
                   {{- with secret "kv/data/nomad-cluster/${namespace}/obft-node-${
                     toString x
                   }/obft-public-key" -}}"{{- .Data.data.value -}}"{{end}}
-                '') (lib.range 1 5)
+                '') (lib.range 1 amountOfMorphoNodes)
               }
             ]
 
@@ -527,7 +527,7 @@ let
                   {{- with secret "kv/data/nomad-cluster/${namespace}/obft-node-${
                     toString x
                   }/obft-public-key" -}}"{{- .Data.data.value -}}"{{end}}
-                '') (lib.range 1 5)
+                '') (lib.range 1 amountOfMorphoNodes)
               }
             ]
 
