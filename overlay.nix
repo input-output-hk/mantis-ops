@@ -315,6 +315,7 @@ in {
 
     buildInputs = [
       final.bitte
+      self.inputs.bitte.legacyPackages.${system}.scaler-guard
       final.terraform-with-plugins
       prev.sops
       final.vault-bin
