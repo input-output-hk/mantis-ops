@@ -5,6 +5,7 @@ let
     mkdir -p /tmp
     mkdir -p "$NOMAD_TASK_DIR/mantis"
     cd "$NOMAD_TASK_DIR"
+    ulimit -c unlimited
     exec ${restic-backup}/bin/restic-backup "$@"
   '';
 in {

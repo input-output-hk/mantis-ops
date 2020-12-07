@@ -26,9 +26,15 @@ def fail(msg)
 end
 
 fail "--tag must be set" if tag.empty?
-fail "NOMAD_TASK_DIR must be set" unless ENV["NOMAD_TASK_DIR"]?
-fail "RESTIC_REPOSITORY must be set" unless ENV["RESTIC_REPOSITORY"]?
-fail "RESTIC_PASSWORD must be set" unless ENV["RESTIC_PASSWORD"]?
+%w[
+  MONITORING_URL
+  NOMAD_PORT_metrics
+  NOMAD_TASK_DIR
+  RESTIC_PASSWORD
+  RESTIC_REPOSITORY
+].each do |key|
+  fail "#{key} must be set" unless ENV[key]?
+end
 
 require "./*"
 
