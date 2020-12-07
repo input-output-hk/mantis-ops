@@ -1,5 +1,5 @@
 { lib, buildLayeredImage, mkEnv, morpho-node, coreutils, gnused, gnugrep, procps
-, writeShellScript, jq }:
+, writeShellScript, jq, diffutils }:
 let
   run-morpho-node = writeShellScript "morpho-node" ''
     set -exuo pipefail
@@ -7,51 +7,33 @@ let
     cd "$NOMAD_TASK_DIR"
     name="morpho-checkpoint-node"
 
-    restartCount=0
+    cp morpho-topology.json running-morpho-topology.json
 
-    function reload () {
-      pkill "$name" || true
+    (
+      while true; do
+        while diff -u running-morpho-topology.json morpho-topology.json > /dev/stderr; do
+          sleep 300
+        done
 
-      count=0
-      restartCount=0
-
-      until ! pgrep -c "$name"; do
-        count="$((count+1))"
-        if [ "$count" -gt 60 ]; then
-          pkill -9 "$name"
+        if ! diff -u running-morpho-topology.json morpho-topology.json > /dev/stderr; then
+          cp morpho-topology.json running-morpho-topology.json
+          pkill "$name" || true
         fi
-        sleep 1
       done
-    }
+    ) &
 
-    function report_quit() {
-      code=$?
-      echo exit $code happening > /dev/stderr
-      exit $code
-    }
-
-    trap reload HUP
-    trap report_quit EXIT
-
+    starts=0
     while true; do
-      echo "(re)starting at $(date)" >/dev/stderr
+      starts="$((starts+1))"
+      echo "Start Number $starts" > /dev/stderr
       morpho-checkpoint-node \
-        --topology "$NOMAD_TASK_DIR"/morpho-topology.json \
+        --topology "$NOMAD_TASK_DIR/running-morpho-topology.json" \
         --database-path /local/db \
         --port "$NOMAD_PORT_morpho" \
-        --config "$NOMAD_TASK_DIR"/morpho-config.yaml \
+        --config "$NOMAD_TASK_DIR/morpho-config.yaml" \
         --socket-dir "$NOMAD_TASK_DIR/socket" \
-        "$@" &
-
-      wait -n || true
-      restartCount="$((restartCount+1))"
-
-      sleep 1
-
-      if [ "$((restartCount % 5))" -eq 0 ]; then
-        pkill -9 "$name" || true
-        rm -rf /local/db
-      fi
+        "$@" || true
+      sleep 10
     done
   '';
 in {
@@ -60,8 +42,15 @@ in {
     config = {
       Entrypoint = [ run-morpho-node ];
       Env = mkEnv {
-        PATH =
-          lib.makeBinPath [ coreutils gnugrep gnused morpho-node jq procps ];
+        PATH = lib.makeBinPath [
+          coreutils
+          gnugrep
+          gnused
+          morpho-node
+          jq
+          procps
+          diffutils
+        ];
       };
     };
   };

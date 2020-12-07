@@ -29,7 +29,6 @@ let
   mkMorpho = { name, nodeNumber, nbNodes }: {
     services = {
       "${namespace}-morpho-node" = {
-        addressMode = "host";
         portLabel = "morpho";
 
         tags = [ "morpho" namespace name morpho-source.rev ];
@@ -151,7 +150,7 @@ let
               ]
           '';
           destination = "local/morpho-topology.json";
-          changeMode = "restart";
+          changeMode = "noop";
           splay = "15m";
         }
       ];
@@ -223,7 +222,62 @@ let
           [inputs.prometheus]
           metric_version = 1
 
-          urls = [ "http://127.0.0.1:{{ env "NOMAD_PORT_morphoPrometheus" }}" ]
+          urls = [
+            "http://127.0.0.1:{{ env "NOMAD_PORT_morphoPrometheus" }}"
+          ]
+
+          [outputs.influxdb]
+          database = "telegraf"
+          urls = [ {{ with node "monitoring" }}"http://{{ .Node.Address }}:8428"{{ end }} ]
+        '';
+
+        destination = "local/telegraf.config";
+      }];
+    };
+
+    tasks.telegraf-mantis = {
+      driver = "docker";
+
+      inherit vault;
+
+      resources = {
+        cpu = 100; # mhz
+        memoryMB = 128;
+      };
+
+      config = {
+        image = dockerImages.telegraf.id;
+        args = [ "-config" "local/telegraf.config" ];
+
+        labels = [{
+          inherit namespace name;
+          imageTag = dockerImages.telegraf.image.imageTag;
+        }];
+
+        logging = {
+          type = "journald";
+          config = [{
+            tag = "${name}-telegraf-morpho";
+            labels = "name,namespace,imageTag";
+          }];
+        };
+      };
+
+      templates = [{
+        data = ''
+          [agent]
+          flush_interval = "10s"
+          interval = "10s"
+          omit_hostname = false
+
+          [global_tags]
+          client_id = "${name}-mantis"
+          namespace = "${namespace}"
+
+          [inputs.prometheus]
+          metric_version = 1
+
+          urls = [ "http://127.0.0.1:{{ env "NOMAD_PORT_metrics" }}" ]
 
           [outputs.influxdb]
           database = "telegraf"
@@ -516,7 +570,7 @@ let
             logging.logs-file = "logs"
 
             mantis.blockchains.testnet-internal-nomad.bootstrap-nodes = [
-              {{ range service "${namespace}-mantis-miner" -}}
+              {{ range service "${namespace}-mantis-miner-server" -}}
                 "enode://  {{- with secret (printf "kv/data/nomad-cluster/${namespace}/%s/enode-hash" .ServiceMeta.Name) -}}
                   {{- .Data.data.value -}}
                   {{- end -}}@{{ .Address }}:{{ .Port }}",
