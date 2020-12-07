@@ -203,6 +203,18 @@
     * Requires a vault token for sign-in by providing the Vault token generated in the steps above.
 
 
+### Mantis-Ops Namespaces
+
+* The mantis-ops deployed infrastructure is separated into namespaces where jobs can either run in the main testnet namespace, `mantis-testnet` or a different namespace.
+* In general, use of the appropriate namespace as a parameter will be required when interacting with the mantis-ops projects.
+* Examples of this are:
+  * From the Monitoring webpage, some dashboards may include a Nomad namespace parameter near the top of the dashboard; also some queries may be parameterized with namespace
+  * From the Nomad webpage, a namespace drop-down selector will be visible in the top left of the UI
+  * From the Nomad CLI, a `-namespace $NAMESPACE` parameter is often required to return appropriate results
+  * From the Consul webpage, Consul CLI and consul-template results, registered services will generally have the Nomad namespace embedded in the service name
+  * From the Vault webpage and Vault CLI, in the kv/nomad-cluster path, subpaths will be prefixed by Nomad namespace
+
+
 ### Metrics and Logs
 
 * Metrics and logs can be found from the Grafana web UI at: https://monitoring.mantis.ws
@@ -217,6 +229,19 @@
     # and filter for DAG events:
     {syslog_identifier="mantis-1"} |~ "DAG"
     ```
+
+* Logs can also be obtained from the command line with commands such as:
+   ```
+   # Generalized example:
+   nomad status -namespace $NS $JOB | grep "$TG.*running" | head -1 | awk '{ print $1 }' | xargs -Ix nomad logs -namespace "$NS" [-stderr] [-tail] [-f] [-n LINES] [-verbose] x "$TG"
+
+   # Tail and follow a morpho job taskgroup (obft-node-3) in namespace mantis-testnet:
+   TG="obft-node-3"; NS=mantis-testnet; JOB=morpho; nomad status -namespace "$NS" "$JOB" \
+     | grep "$TG.*running" | head -1 | awk '{ print $1 }' \
+     | xargs -Ix nomad logs -namespace "$NS" -tail -f x "$TG"
+
+   # Output from commands above can be redirected to a local file by appending `> $LOG_OUTPUT_FILENAME` for further grep inspection
+   ```
 
 
 ### Updating the Mantis source used for Deployments
