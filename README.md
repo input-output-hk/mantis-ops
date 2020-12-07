@@ -236,7 +236,7 @@
    nomad status -namespace $NS $JOB | grep "$TG.*running" | head -1 | awk '{ print $1 }' | xargs -Ix nomad logs -namespace "$NS" [-stderr] [-tail] [-f] [-n LINES] [-verbose] x "$TG"
 
    # Tail and follow a morpho job taskgroup (obft-node-3) in namespace mantis-testnet:
-   TG="obft-node-3"; NS=mantis-testnet; JOB=morpho; nomad status -namespace "$NS" "$JOB" \
+   TG="obft-node-3"; NS="mantis-testnet"; JOB="morpho"; nomad status -namespace "$NS" "$JOB" \
      | grep "$TG.*running" | head -1 | awk '{ print $1 }' \
      | xargs -Ix nomad logs -namespace "$NS" -tail -f x "$TG"
 
@@ -268,16 +268,55 @@
 
 * Presently, there is no requirement to commit changes from a mantis job definition to the repository in order to deploy the job.
 * To minimize confusion in the team about what job definition is running on the testnet, any changes to the mantis job made and deployed should be committed.
-* To run a mantis job by deploying it to the testnet, execute the following command:
+* Mantis-ops jobs utilize Docker containers, so a job deployment workflow generally involves:
+  * Push docker images
+  * Run the nomad job which utilizes the docker images
+
+* To run a mantis-ops job by deploying it to the testnet, execute the following command:
     ```
-    $ nix run .#nomadJobs.mantis.run
+    # Build and push all docker images to the project cache
+    #
+    $ nix run .#push-docker-images
+
+    # Build and run the Nomad mantis job where the nix attribute to run is generally of the form:
+    # .#nomadJobs-${NAMESPACE}-${JOB}.run
+    #
+    # Example for building and running only the mantis-testnet explorer job:
+    $ nix run .#nomadJobs.mantis-testnet-explorer.run
+    ```
+
+* Generally, running the `.#push-docker-images` attribute should be complete quickly after the first time, but if it is taking too long and/or you know you only need a specific docker image pushed, you can push only a specific image with:
+    ```
+    # Build and push a specific docker image by using a nix attribute of the form:
+    # .#dockerImages.${IMAGE_NAME}.push
+    #
+    # Example for building and pushing only the mantis image:
+    $ nix run .dockerImages.mantis-explorer-server
     ```
 * Versioning information about the deployment, including changes from the last version deployed, can be viewed in the Nomad UI in the [Versions](https://nomad.mantis.ws/ui/jobs/mantis/versions) section.
 
 
-### The Mantis Job Definition File
+### Nix Repl for Finding Nomad Jobs, Docker Images and Other Nix Attributes
 
-* The mantis job definition is stored in file: `jobs/mantis.nix`
+* Nix repl can be used for finding nix attributes by entering a nix repl environment:
+    ```
+    $ nix repl repl.nix
+    ```
+
+* From this repl environment, you can hit the `tab` key to see available attributes at the current attribute level.
+  * To see available sub-attributes of any available attribute, type the name of the attribute of interest, append a `.` and hit `tab` again.
+  * In this way you can see the available Nomad job attributes (`.nomadJobs.<tab>`), docker image attributes (`legacyPackages.x86_64-linux.dockerImages.<tab>`), and other attributes.
+
+* If auto-complete is also set up correctly for your shell, you may also be able to see attribute information by auto-complete on the command line.
+  * Example: the following may work for you:
+  ```
+  nix run .#dockerImages.<tab><tab>
+  ```
+
+
+### Mantis-Ops Job Definition Files
+
+* The mantis job definition for the `mantis-testnet` namespace is stored in file: `jobs/mantis.nix`
 * Mantis miner and passive nodes are defined in this file, each with definitions of resource requirements, mantis configuration, lifecycle policy and quantity.
 * This file can be edited to reflect the desired definition and then deployed with the command above.
 * A job deployment can be done in a few ways:
@@ -286,12 +325,13 @@
   * In partial deployments where a subset of the full taskgroups in the job definition are deployed incrementally by changing the job definition slightly between each deployment, for example by editing passive node quantity or uncommenting pre-defined miners.
     * An example would be to deploy bootstrap miners first and then once they are running successfully to deploy passive nodes.
     * In the case of partial deployments, be aware that if the definition of taskgroups already deployed in an earlier step are modified, those particular taskgroup jobs will be restarted with the next deployment.
-* Job definition information for the currently deployed job can be viewed in the Nomad UI in the [Definition](https://nomad.mantis.ws/ui/jobs/mantis/definition) section.
+* Job definition information for a currently deployed job can be viewed in the Nomad UI in the [Definition](https://nomad.mantis.ws/ui/jobs/mantis/definition) section under the appropriate namespace.
+* Job definitions for namespaces other than `mantis-testnet` are also stored in the `jobs/` directory with their namespace as part of the filename.
 
 
 ### Lifecycle Definitions: Healthchecks, Restarts and Reschedules
 
-* In the mantis job definition file, a `checks` section and `checkRestart` sub-section define how to determine mantis job health.
+* In the mantis-ops job definition files, a `checks` section and `checkRestart` sub-section define how to determine mantis job health.
   * Presently, mantis health is determined by an http call the `/healthcheck` endpoint.
   * See the [Check](https://www.nomadproject.io/api-docs/json-jobs#checks) and [CheckRestart](https://www.nomadproject.io/api-docs/json-jobs#checkrestart) reference urls for details.
 
@@ -303,8 +343,8 @@
 
 ### Scaling For Performance Testing
 
-* The job definition file can easily be used to scale the number of passive nodes by adjusting the number following the `mkPassive` function call.
-* The job definition file can also be used to scale the number of bootstrap nodes by defining more miners in the `miners` list.
+* The job definition files can easily be used to scale the number of passive nodes by adjusting the number following the `mkPassive` function call.
+* The job definition files can also be used to scale the number of bootstrap nodes by defining more miners in the `miners` list.
   * Pre-existing `enode-hash`, `key` and `coinbase` state needs to be created prior to deploying bootstrap nodes.
   * This state will be re-used across deployments and persists in the Vault `kv` store.
   * Additional bootstrap miner state only needs to be generated if the total number to be scaled to exceeds the number which currently exists (6 at the time of writing).
@@ -313,7 +353,7 @@
     ```
     nix run .#generate-mantis-keys $NAMESPACE $TOTAL_NUM_MANTIS_BOOTSTRAP_NODES $TOTAL_NUM_OBFT_NODES
     ```
-    `NANESPACE` being `"testnet"` for the main testnet or your personal testnet name.
+    `NANESPACE` being `"testnet"` for the main `mantis-testnet` or your personal testnet name.
 
 
 
