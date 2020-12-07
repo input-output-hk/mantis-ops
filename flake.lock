@@ -196,18 +196,13 @@
     "midnight-automation": {
       "flake": false,
       "locked": {
-        "lastModified": 1606898646,
         "narHash": "sha256-IoEKI4aUFAe+Bc82x38AYdGaDwyjbxsO+b7amKclkUs=",
-        "ref": "etcm-99-mantis-agen",
-        "rev": "8847d25a45808dbfa6c3629d7ab999fd1b4d6414",
-        "revCount": 489,
-        "type": "git",
-        "url": "ssh://git@github.com/input-output-hk/midnight-automation"
+        "type": "tarball",
+        "url": "http://github.com/input-output-hk/midnight-automation/archive/etcm-99-mantis-agen.tar.gz"
       },
       "original": {
-        "ref": "etcm-99-mantis-agen",
-        "type": "git",
-        "url": "ssh://git@github.com/input-output-hk/midnight-automation"
+        "type": "tarball",
+        "url": "http://github.com/input-output-hk/midnight-automation/archive/etcm-99-mantis-agen.tar.gz"
       }
     },
     "morpho-node": {

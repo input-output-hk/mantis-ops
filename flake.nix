@@ -13,8 +13,7 @@
     inclusive.follows = "bitte/inclusive";
     morpho-node.url = "github:input-output-hk/ECIP-Checkpointing/master";
     midnight-automation = {
-      url =
-        "git+ssh://git@github.com/input-output-hk/midnight-automation?ref=etcm-99-mantis-agen";
+      url = "http://github.com/input-output-hk/midnight-automation/archive/etcm-99-mantis-agen.tar.gz";
       flake = false;
     };
     mantis-explorer.url = "github:input-output-hk/mantis-explorer";
