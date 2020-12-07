@@ -14,15 +14,17 @@
 * Nix is a requirement for this project.
 * If you don't already have Nix installed, please install it by following the directions at [Nix Installation](https://nixos.org/manual/nix/stable/#chap-installation).
 * A multi-user Nix installation is recommended over a single-user Nix installation as the multi-user install has advantages, such as being able to handle multiple builds in parallel.
-  * To install Nix as a single-user install, the following command can be run as a regular non-root user with `sudo` access:
-    ```
-    $ sh <(curl -L https://nixos.org/nix/install) --no-daemon
-    ```
-  * To install Nix as a multi-user install, the following command can be run as a regular non-root user with `sudo` access:
+* A multi-user Nix installation also avoids some edge case build issues that may be encountered with a single-user Nix installation.
+* In general, unless you have difficulty installing multi-user Nix, or have a specific reason to use a single-user Nix installation, proceed with a multi-user Nix installation.
+  * *RECOMMENDED:* To install Nix as a multi-user install, the following command can be run as a regular non-root user with `sudo` access:
     ```
     $ sh <(curl -L https://nixos.org/nix/install) --daemon
     ```
-* After performing a Nix single or multi-user install, any shells should be exited and re-entered to ensure the new Nix settings take effect in the environment.
+  * *NOT RECOMMENDED:* To install Nix as a single-user install, the following command can be run as a regular non-root user with `sudo` access:
+    ```
+    $ sh <(curl -L https://nixos.org/nix/install) --no-daemon
+    ```
+* After performing a Nix multi-user or single-user install, any shells should be exited and re-entered to ensure the new Nix settings take effect in the environment.
 * Alternatively, the operating system [NixOS](https://nixos.org/manual/nixos/stable/#sec-installation) can be used which includes a Nix installation.
 
 
@@ -111,8 +113,14 @@
     nix develop
     ```
 
+* Users who use `direnv` can skip running the `nix develop` command each time a new development environment is needed by running `direnv allow` once from within the `mantis-ops` directory.
+  * Direnv will then automatically enter the nix development environment each time the `mantis-ops` directory is entered.
+
 
 ### Github Access Token
+
+* Github users who are in the IOHK team `mantis-devs` have the ability to authenticate to the mantis-ops project as developers.
+  * If you are not in the `mantis-devs` github team and require access to the mantis-ops project, request team membership from the Mantis project team.
 
 * To authenticate to the mantis-ops project, use your github ID to create a personal access token for mantis-ops if you don't already have one:
   * Login into github.com with your github work user id.
