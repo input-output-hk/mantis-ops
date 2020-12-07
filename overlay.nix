@@ -311,7 +311,6 @@ in {
     VAULT_ADDR = "https://vault.${domain}";
     NOMAD_ADDR = "https://nomad.${domain}";
     CONSUL_HTTP_ADDR = "https://consul.${domain}";
-    NIX_USER_CONF_FILES = ./nix.conf;
 
     buildInputs = [
       final.bitte
