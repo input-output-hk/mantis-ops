@@ -15,9 +15,7 @@ let
       {{.Data.data | toJSON }}
       {{- end -}}
     '';
-    changeMode = "signal";
-    splay = "2m";
-    changeSignal = "SIGHUP";
+    changeMode = "restart";
     destination = "local/genesis.json";
   };
 
@@ -113,10 +111,9 @@ let
             options:
               mapBackends:
           '';
-          splay = "30s";
           destination = "local/morpho-config.yaml";
-          changeMode = "signal";
-          changeSignal = "SIGHUP";
+          changeMode = "restart";
+          splay = "15m";
         }
         {
           data = ''
@@ -124,10 +121,9 @@ let
             {{- .Data.data.value -}}
             {{- end -}}
           '';
-          splay = "30s";
           destination = "secrets/morpho-private-key";
-          changeMode = "signal";
-          changeSignal = "SIGHUP";
+          changeMode = "restart";
+          splay = "15m";
         }
         {
           data = ''
@@ -154,10 +150,9 @@ let
               {{- end }}
               ]
           '';
-          splay = "30s";
           destination = "local/morpho-topology.json";
-          changeMode = "signal";
-          changeSignal = "SIGHUP";
+          changeMode = "restart";
+          splay = "15m";
         }
       ];
 
@@ -232,7 +227,7 @@ let
 
           [outputs.influxdb]
           database = "telegraf"
-          urls = ["http://{{ range node "monitoring" }}{{ .Node.Address }}{{ end }}:8428"]
+          urls = [ {{ with node "monitoring" }}"http://{{ .Node.Address }}:8428"{{ end }} ]
         '';
 
         destination = "local/telegraf.config";
@@ -310,7 +305,7 @@ let
 
             [outputs.influxdb]
             database = "telegraf"
-            urls = ["http://{{ range node "monitoring" }}{{ .Node.Address }}{{ end }}:8428"]
+            urls = [ {{ with node "monitoring" }}"http://{{ .Node.Address }}:8428"{{ end }} ]
           '';
 
           destination = "local/telegraf.config";
@@ -330,6 +325,16 @@ let
           tags = [ "rpc" namespace serviceName name mantis-source.rev ];
         };
 
+        "${serviceName}-server" = {
+          portLabel = "server";
+          tags = [ "server" namespace serviceName name mantis-source.rev ]
+            ++ tags;
+          meta = {
+            inherit name;
+            publicIp = "\${attr.unique.platform.aws.public-ipv4}";
+          } // meta;
+        };
+
         ${serviceName} = {
           addressMode = "host";
           portLabel = "server";
@@ -345,7 +350,7 @@ let
             type = "http";
             path = "/healthcheck";
             portLabel = "rpc";
-            interval = "60s";
+            interval = "10s";
 
             checkRestart = {
               limit = 10;
@@ -412,7 +417,7 @@ let
             logging.logs-file = "logs"
 
             mantis.blockchains.testnet-internal-nomad.bootstrap-nodes = [
-              {{ range service "${namespace}-mantis-miner" -}}
+              {{ range service "${namespace}-mantis-miner-server" -}}
                 "enode://  {{- with secret (printf "kv/data/nomad-cluster/${namespace}/%s/enode-hash" .ServiceMeta.Name) -}}
                   {{- .Data.data.value -}}
                   {{- end -}}@{{ .Address }}:{{ .Port }}",
@@ -446,9 +451,7 @@ let
             mantis.blockchains.testnet-internal-nomad.ecip1097-block-number = 0
           '';
           destination = "local/mantis.conf";
-          splay = "2m";
-          changeMode = "signal";
-          changeSignal = "SIGHUP";
+          changeMode = "noop";
         }
         {
           data = let
@@ -459,9 +462,8 @@ let
             ${secret "kv/data/nomad-cluster/${namespace}/${name}/enode-hash"}
           '';
           destination = "secrets/secret-key";
-          splay = "2m";
-          changeMode = "signal";
-          changeSignal = "SIGHUP";
+          changeMode = "restart";
+          splay = "15m";
         }
         genesisJson
       ];
@@ -545,10 +547,9 @@ let
             mantis.blockchains.testnet-internal-nomad.ecip1098-block-number = 0
             mantis.blockchains.testnet-internal-nomad.ecip1097-block-number = 0
           '';
-          changeMode = "signal";
-          splay = "2m";
-          changeSignal = "SIGHUP";
+          changeMode = "restart";
           destination = "local/mantis.conf";
+          splay = "15m";
         }
         genesisJson
       ];
@@ -558,7 +559,7 @@ let
 
   miners = lib.forEach (lib.range 1 amountOfMiners) (num: {
     name = "mantis-${toString num}";
-    requiredPeerCount = num - 1;
+    requiredPeerCount = 0;
     publicPort = 9000 + num; # routed through haproxy/ingress
   });
 
@@ -595,7 +596,10 @@ let
       }];
     };
 
-    networks = [{ ports = { explorer.to = 8080; }; }];
+    networks = [{
+      mode = "bridge";
+      ports = { explorer.to = 8080; };
+    }];
 
     tasks.explorer = {
       inherit name;
@@ -670,6 +674,7 @@ let
   faucetName = "${namespace}-mantis-faucet";
   faucet = {
     networks = [{
+      mode = "bridge";
       ports = {
         metrics.to = 7000;
         rpc.to = 8000;
@@ -1011,8 +1016,8 @@ let
             }
           }
         '';
-        changeMode =
-          "noop"; # TODO, make it signal when the above proxy_pass is used
+        # TODO, make it signal when the above proxy_pass is used
+        changeMode = "noop";
         changeSignal = "SIGHUP";
         destination = "local/nginx.conf";
       }];
@@ -1065,7 +1070,7 @@ let
 
           [outputs.influxdb]
           database = "telegraf"
-          urls = ["http://{{ range node "monitoring" }}{{ .Node.Address }}{{ end }}:8428"]
+          urls = [ {{ with node "monitoring" }}"http://{{ .Node.Address }}:8428"{{ end }} ]
         '';
 
         destination = "local/telegraf.config";
@@ -1134,6 +1139,12 @@ in {
     datacenters = [ "us-east-2" "eu-central-1" ];
     type = "batch";
     inherit namespace;
+
+    periodic = {
+      cron = "15 */1 * * * *";
+      prohibitOverlap = true;
+      timeZone = "UTC";
+    };
 
     taskGroups.backup = import ./tasks/backup.nix {
       inherit lib dockerImages namespace mantis;

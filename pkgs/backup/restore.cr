@@ -10,7 +10,7 @@ class Restore
     Process.run "restic", error: STDERR, output: STDOUT, args: [
       "restore", "latest",
       "--tag", tag,
-      "--target", "#{TASK_DIR}/db"
+      "--target", "#{TASK_DIR}/mantis"
     ]
   end
 end

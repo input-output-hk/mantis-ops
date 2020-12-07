@@ -12,7 +12,7 @@ let
 
     crystalBinaries.restic-backup = {
       src = "./restic-backup.cr";
-      options = [ "--verbose" "--release" ];
+      options = [ "--verbose" "--debug" ];
     };
   };
 

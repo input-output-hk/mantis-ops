@@ -1,5 +1,6 @@
 { lib, dockerImages, namespace, name, mantis }: {
   networks = [{
+    mode = "bridge";
     ports = {
       metrics.to = 6000;
       rpc.to = 7000;
@@ -23,6 +24,7 @@
     config = {
       image = dockerImages.backup.id;
       args = [ "--tag" namespace ];
+      ports = [ "metrics" "server" "rpc" ];
 
       labels = [{
         inherit namespace name;
@@ -59,7 +61,7 @@
           logging.logs-file = "logs"
 
           mantis.blockchains.testnet-internal-nomad.bootstrap-nodes = [
-            {{ range service "${namespace}-mantis-miner" -}}
+            {{ range service "${namespace}-mantis-miner-server" -}}
               "enode://  {{- with secret (printf "kv/data/nomad-cluster/${namespace}/%s/enode-hash" .ServiceMeta.Name) -}}
                 {{- .Data.data.value -}}
                 {{- end -}}@{{ .Address }}:{{ .Port }}",
@@ -82,6 +84,8 @@
           mantis.ethash.ethash-dir = "/local/ethash"
           mantis.metrics.enabled = true
           mantis.metrics.port = {{ env "NOMAD_PORT_metrics" }}
+          mantis.network.peer.long-blacklist-duration = 120
+          mantis.network.peer.short-blacklist-duration = 10
           mantis.network.rpc.http.interface = "0.0.0.0"
           mantis.network.rpc.http.port = {{ env "NOMAD_PORT_rpc" }}
           mantis.network.server-address.port = {{ env "NOMAD_PORT_server" }}
