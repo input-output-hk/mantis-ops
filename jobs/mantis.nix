@@ -953,7 +953,9 @@ let
                       enabled = true
 
                       # Time that should pass between requests
-                      min-request-interval = 10.seconds
+                      # Reflecting Faucet Web UI configuration
+                      # https://github.com/input-output-hk/mantis-faucet-web/blob/main/src/index.html#L18
+                      min-request-interval = 24.hours
 
                       # Size of stored timestamps for requests made from each ip
                       latest-timestamp-cache-size = 1024
