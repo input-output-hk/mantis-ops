@@ -1168,7 +1168,7 @@ in {
     taskGroups.explorer = explorer;
   };
 
-  "${faucetName}" = mkNomadJob "faucet" {
+  "${namespace}-faucet" = mkNomadJob "faucet" {
     datacenters = [ "us-east-2" "eu-central-1" ];
     type = "service";
     inherit namespace;
