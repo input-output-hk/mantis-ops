@@ -33,9 +33,6 @@ in {
     submodules = true;
   };
 
-  mantis-automation =
-    import self.inputs.mantis-automation { inherit system; };
-
   restic-backup = final.callPackage ./pkgs/backup { };
 
   mantis = import final.mantis-source { inherit system; };
@@ -337,12 +334,8 @@ in {
 
   # Used for caching
   devShellPath = prev.symlinkJoin {
-    paths = final.devShell.buildInputs ++ [
-      final.mantis
-      final.mantis-faucet
-      final.nixFlakes
-      final.mantis-automation
-    ];
+    paths = final.devShell.buildInputs
+      ++ [ final.mantis final.mantis-faucet final.nixFlakes ];
     name = "devShell";
   };
 

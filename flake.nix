@@ -12,11 +12,6 @@
     ops-lib.url = "github:input-output-hk/ops-lib/zfs-image?dir=zfs";
     inclusive.follows = "bitte/inclusive";
     morpho-node.url = "github:input-output-hk/ECIP-Checkpointing/master";
-    mantis-automation = {
-      url =
-        "git+ssh://git@github.com/input-output-hk/mantis-automation?ref=etcm-99-mantis-agen";
-      flake = false;
-    };
     mantis-explorer.url = "github:input-output-hk/mantis-explorer";
     mantis-faucet-web.url = "github:input-output-hk/mantis-faucet-web";
   };

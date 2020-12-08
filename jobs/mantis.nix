@@ -1206,7 +1206,3 @@ in {
     };
   };
 }
-
-// (import ./mantis-active-gen.nix {
-  inherit mkNomadJob dockerImages namespace;
-})

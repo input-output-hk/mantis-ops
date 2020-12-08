@@ -747,8 +747,3 @@ in {
     taskGroups.faucet = faucet;
   };
 }
-
-// (import ./mantis-active-gen.nix {
-  inherit mkNomadJob dockerImages;
-  namespace = "mantis-qa-load";
-})
