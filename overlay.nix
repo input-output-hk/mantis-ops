@@ -402,9 +402,21 @@ in {
     in final.writeShellScriptBin "push" ''
       set -euo pipefail
 
+      export dockerLoginDone="''${dockerLoginDone:-}"
+      export dockerPassword="''${dockerPassword:-}"
+
+      if [ -z "$dockerPassword" ]; then
+        dockerPassword="$(vault kv get -field value kv/nomad-cluster/docker-developer-password)"
+      fi
+
+      if [ -z "$dockerLoginDone" ]; then
+        echo "$dockerPassword" | docker login docker.mantis.ws -u developer --password-stdin
+        dockerLoginDone=1
+      fi
+
       echo -n "Pushing ${image.imageName}:${image.imageTag} ... "
 
-      if curl -s "https://${registry}/v2/${repo}/tags/list" | grep "${image.imageTag}" &> /dev/null; then
+      if curl -s "https://developer:$dockerPassword@${registry}/v2/${repo}/tags/list" | grep "${image.imageTag}" &> /dev/null; then
         echo "Image already exists in registry"
       else
         docker load -i ${image}
@@ -421,8 +433,9 @@ in {
 
   push-docker-images = final.writeShellScriptBin "push-docker-images" ''
     set -euo pipefail
+
     ${lib.concatStringsSep "\n"
-    (lib.mapAttrsToList (key: value: "${value.push}/bin/push")
+    (lib.mapAttrsToList (key: value: "source ${value.push}/bin/push")
       final.dockerImages)}
   '';
 
