@@ -63,7 +63,6 @@ in {
             port = 8546;
             cors-allowed-origins = "*";
           };
-          apis = "eth,web3,net,personal,daedalus,debug,qa";
         };
       };
     };
@@ -110,9 +109,8 @@ in {
 
     tmpdir="$(mktemp -d)"
 
-    mantis "-Duser.home=$tmpdir" "-Dconfig.file=${mantisConfigHocon}" &
+    mantis "-Duser.home=$tmpdir" "-Dconfig.file=${mantisConfigHocon}" > /dev/null &
     pid="$!"
-
     on_exit() {
       kill "$pid"
       while kill -0 "$pid"; do
@@ -157,11 +155,9 @@ in {
       if [ -z "$hashKey" ]; then
         if ! [ -s "$mantisKeyFile" ]; then
           echo "Generating key in $mantisKeyFile"
-
-          len=0
-          until [ $len -eq 194 ]; do
+          until [ -s "$mantisKeyFile" ]; do
             echo "generating key..."
-            len="$( eckeygen -Dconfig.file=${final.mantis}/conf/app.conf | tee "$mantisKeyFile" | wc -c )"
+            eckeygen 1 | sed -r '/^\s*$/d' > "$mantisKeyFile"
           done
         fi
 
@@ -194,10 +190,10 @@ in {
         obftPublicKey="$(vault kv get -field value "$obftPublicKeyPath" || true)"
         if [ -z "$obftPublicKey" ]; then
           if ! [ -s "$obftKeyFile" ]; then
-            len=0
             echo "generating OBFT key..."
-            until [ $len -eq 194 ]; do
-                len="$( eckeygen -Dconfig.file=${final.mantis}/conf/mantis.conf | tee "$obftKeyFile" | wc -c )"
+            until [ -s "$obftKeyFile" ]; do
+                echo "generating key..."
+                eckeygen 1 | sed -r '/^\s*$/d' > "$obftKeyFile"
             done
           fi
 
