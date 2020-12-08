@@ -600,7 +600,7 @@ let
 
   miners = lib.forEach (lib.range 1 amountOfMiners) (num: {
     name = "mantis-${toString num}";
-    requiredPeerCount = 0;
+    requiredPeerCount = builtins.length miners;
     publicPort = 9000 + num; # routed through haproxy/ingress
   });
 
