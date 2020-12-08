@@ -13,7 +13,8 @@
     inclusive.follows = "bitte/inclusive";
     morpho-node.url = "github:input-output-hk/ECIP-Checkpointing/master";
     mantis-explorer.url = "github:input-output-hk/mantis-explorer";
-    mantis-faucet-web.url = "github:input-output-hk/mantis-faucet-web";
+    mantis-faucet-web.url =
+      "github:input-output-hk/mantis-faucet-web/nix-build";
   };
 
   outputs = { self, nixpkgs, utils, ops-lib, bitte, ... }:

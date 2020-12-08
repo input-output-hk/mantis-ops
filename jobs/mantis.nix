@@ -712,7 +712,7 @@ let
     };
   };
 
-  faucetName = "${namespace}-mantis-faucet";
+  faucetName = "${namespace}-faucet";
   faucet = {
     networks = [{
       mode = "bridge";
