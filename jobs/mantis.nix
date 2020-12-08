@@ -399,19 +399,6 @@ let
             inherit name;
             publicIp = "\${attr.unique.platform.aws.public-ipv4}";
           } // meta;
-
-          checks = [{
-            type = "http";
-            path = "/healthcheck";
-            portLabel = "rpc";
-            interval = "10s";
-
-            checkRestart = {
-              limit = 10;
-              grace = "600s";
-              ignoreWarnings = true;
-            };
-          }];
         };
       } services;
 
