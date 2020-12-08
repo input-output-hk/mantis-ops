@@ -739,6 +739,13 @@ let
           ingressBind = "*:443";
           ingressMode = "http";
           ingressServer = "_${faucetName}._tcp.service.consul";
+          ingressBackendExtra = ''
+            option forwardfor
+            http-response set-header X-Server %s
+          '';
+          ingressFrontendExtra = ''
+            reqidel ^X-Forwarded-For:.*
+          '';
         };
 
         # FIXME: this always returns FaucetUnavailable
