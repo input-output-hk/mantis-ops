@@ -23,4 +23,5 @@ jobs:
       with:
         name: mantis-ops
         signingKey: '${{ secrets.CACHIX_SIGNING_KEY }}'
+    - run: nix run .#checkFmt
     - run: nix -L build .#devShellPath

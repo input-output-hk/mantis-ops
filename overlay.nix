@@ -294,6 +294,11 @@ in {
       echo "$genesis" | vault kv put kv/nomad-cluster/$prefix/qa-genesis -
     '';
 
+  checkFmt = final.writeShellScriptBin "check_fmt.sh" ''
+    export PATH="$PATH:${lib.makeBinPath (with final; [ git nixfmt gnugrep ])}"
+    . ${./pkgs/check_fmt.sh}
+  '';
+
   devShell = let
     cluster = "mantis-testnet";
     domain = final.clusters.${cluster}.proto.config.cluster.domain;
