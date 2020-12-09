@@ -22,7 +22,7 @@
     };
 
     config = {
-      image = dockerImages.backup.id;
+      image = dockerImages.backup;
       args = [ "--tag" namespace ];
       ports = [ "metrics" "server" "rpc" ];
 

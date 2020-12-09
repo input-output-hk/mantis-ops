@@ -156,7 +156,7 @@ let
       ];
 
       config = {
-        image = dockerImages.morpho.id;
+        image = dockerImages.morpho;
         args = [ ];
         labels = [{
           inherit namespace name;
@@ -191,7 +191,7 @@ let
       };
 
       config = {
-        image = dockerImages.telegraf.id;
+        image = dockerImages.telegraf;
         args = [ "-config" "local/telegraf.config" ];
 
         labels = [{
@@ -246,7 +246,7 @@ let
       };
 
       config = {
-        image = dockerImages.telegraf.id;
+        image = dockerImages.telegraf;
         args = [ "-config" "local/telegraf.config" ];
 
         labels = [{
@@ -326,7 +326,7 @@ let
         };
 
         config = {
-          image = dockerImages.telegraf.id;
+          image = dockerImages.telegraf;
           args = [ "-config" "local/telegraf.config" ];
 
           labels = [{
@@ -420,7 +420,7 @@ let
         inherit vault;
 
         config = {
-          image = dockerImages.mantis.id;
+          image = dockerImages.mantis;
           args = [ "-Dconfig.file=running.conf" ];
           ports = [ "rpc" "server" "metrics" ];
           labels = [{
@@ -679,7 +679,7 @@ let
       };
 
       config = {
-        image = dockerImages.mantis-explorer-server.id;
+        image = dockerImages.mantis-explorer-server;
         args = [ "nginx" "-c" "/local/nginx.conf" ];
         ports = [ "explorer" ];
         labels = [{
@@ -833,7 +833,7 @@ let
       };
 
       config = {
-        image = dockerImages.mantis-faucet.id;
+        image = dockerImages.mantis-faucet;
         args = [ "-Dconfig.file=running.conf" ];
         ports = [ "rpc" "metrics" ];
         labels = [{
@@ -1040,7 +1040,7 @@ let
         memoryMB = 128;
       };
       config = {
-        image = dockerImages.mantis-faucet-web.id;
+        image = dockerImages.mantis-faucet-web;
         args = [ "nginx" "-c" "/local/nginx.conf" ];
         ports = [ "faucet-web" ];
         labels = [{
@@ -1111,7 +1111,7 @@ let
       };
 
       config = {
-        image = dockerImages.telegraf.id;
+        image = dockerImages.telegraf;
         args = [ "-config" "local/telegraf.config" ];
 
         labels = [{

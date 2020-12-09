@@ -269,15 +269,10 @@
 * Presently, there is no requirement to commit changes from a mantis job definition to the repository in order to deploy the job.
 * To minimize confusion in the team about what job definition is running on the testnet, any changes to the mantis job made and deployed should be committed.
 * Mantis-ops jobs utilize Docker containers, so a job deployment workflow generally involves:
-  * Push docker images
   * Run the nomad job which utilizes the docker images
 
 * To run a mantis-ops job by deploying it to the testnet, execute the following command:
     ```
-    # Build and push all docker images to the project cache
-    #
-    $ nix run .#push-docker-images
-
     # Build and run the Nomad mantis job where the nix attribute to run is generally of the form:
     # .#nomadJobs-${NAMESPACE}-${JOB}.run
     #
@@ -285,14 +280,6 @@
     $ nix run .#nomadJobs.mantis-testnet-explorer.run
     ```
 
-* Generally, running the `.#push-docker-images` attribute should be complete quickly after the first time, but if it is taking too long and/or you know you only need a specific docker image pushed, you can push only a specific image with:
-    ```
-    # Build and push a specific docker image by using a nix attribute of the form:
-    # .#dockerImages.${IMAGE_NAME}.push
-    #
-    # Example for building and pushing only the mantis image:
-    $ nix run .dockerImages.mantis-explorer-server
-    ```
 * Versioning information about the deployment, including changes from the last version deployed, can be viewed in the Nomad UI in the [Versions](https://nomad.mantis.ws/ui/jobs/mantis/versions) section.
 
 
@@ -305,7 +292,7 @@
 
 * From this repl environment, you can hit the `tab` key to see available attributes at the current attribute level.
   * To see available sub-attributes of any available attribute, type the name of the attribute of interest, append a `.` and hit `tab` again.
-  * In this way you can see the available Nomad job attributes (`.nomadJobs.<tab>`), docker image attributes (`legacyPackages.x86_64-linux.dockerImages.<tab>`), and other attributes.
+  * In this way you can see the available Nomad job attributes (`.nomadJobs.<tab>`), docker image attributes (`dockerImages.<tab>`), and other attributes.
 
 * If auto-complete is also set up correctly for your shell, you may also be able to see attribute information by auto-complete on the command line.
   * Example: the following may work for you:
