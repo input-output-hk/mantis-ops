@@ -709,7 +709,7 @@ let
 
             upstream backend {
               least_conn;
-              {{ range service "mantis-1.${namespace}-mantis-miner-rpc" }}
+              {{ range service "${namespace}-mantis-passive-rpc" }}
                 server {{ .Address }}:{{ .Port }};
               {{ end }}
             }
