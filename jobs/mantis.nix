@@ -290,12 +290,14 @@ let
   };
 
   mkMantis = { name, resources, count ? 1, templates, serviceName, tags ? [ ]
-    , meta ? { }, requiredPeerCount, services ? { } }: {
+    , serverMeta ? { }, meta ? { }, discoveryMeta ? { }, requiredPeerCount
+    , services ? { } }: {
       inherit count;
 
       networks = [{
         mode = "bridge";
         ports = {
+          discovery.to = 6000;
           metrics.to = 7000;
           rpc.to = 8000;
           server.to = 9000;
@@ -379,6 +381,16 @@ let
           tags = [ "rpc" namespace serviceName name mantis-source.rev ];
         };
 
+        "${serviceName}-discovery" = {
+          portLabel = "discovery";
+          tags = [ "discovery" namespace serviceName name mantis-source.rev ]
+            ++ tags;
+          meta = {
+            inherit name;
+            publicIp = "\${attr.unique.platform.aws.public-ipv4}";
+          } // discoveryMeta;
+        };
+
         "${serviceName}-server" = {
           portLabel = "server";
           tags = [ "server" namespace serviceName name mantis-source.rev ]
@@ -386,7 +398,7 @@ let
           meta = {
             inherit name;
             publicIp = "\${attr.unique.platform.aws.public-ipv4}";
-          } // meta;
+          } // serverMeta;
         };
 
         ${serviceName} = {
@@ -436,7 +448,8 @@ let
       };
     };
 
-  mkMiner = { name, publicPort, requiredPeerCount ? 0, instanceId ? null }:
+  mkMiner = { name, publicDiscoveryPort, publicServerPort, requiredPeerCount ? 0
+    , instanceId ? null }:
     lib.nameValuePair name (mkMantis {
       resources = {
         # For c5.2xlarge in clusters/mantis/testnet/default.nix, the url ref below
@@ -483,6 +496,9 @@ let
             mantis.ethash.ethash-dir = "/local/ethash"
             mantis.metrics.enabled = true
             mantis.metrics.port = {{ env "NOMAD_PORT_metrics" }}
+            mantis.network.discovery.discovery-enabled = true
+            mantis.network.discovery.host = {{ with node "monitoring" }}"{{ .Node.Address }}"{{ end }}
+            mantis.network.discovery.port = ${toString publicDiscoveryPort}
             mantis.network.rpc.http.interface = "0.0.0.0"
             mantis.network.rpc.http.port = {{ env "NOMAD_PORT_rpc" }}
             mantis.network.server-address.port = {{ env "NOMAD_PORT_server" }}
@@ -514,12 +530,21 @@ let
 
       tags = [ "ingress" namespace name ];
 
-      meta = {
+      serverMeta = {
         ingressHost = "${name}.mantis.ws";
-        ingressPort = toString publicPort;
-        ingressBind = "*:${toString publicPort}";
+        ingressPort = toString publicServerPort;
+        ingressBind = "*:${toString publicServerPort}";
         ingressMode = "tcp";
         ingressServer = "_${namespace}-mantis-miner._${name}.service.consul";
+      };
+
+      discoveryMeta = {
+        ingressHost = "${name}.mantis.ws";
+        ingressPort = toString publicDiscoveryPort;
+        ingressBind = "*:${toString publicDiscoveryPort}";
+        ingressMode = "tcp";
+        ingressServer =
+          "_${namespace}-mantis-miner._${name}-discovery.service.consul";
       };
     });
 
@@ -602,7 +627,8 @@ let
   miners = lib.forEach (lib.range 1 amountOfMiners) (num: {
     name = "mantis-${toString num}";
     requiredPeerCount = builtins.length miners;
-    publicPort = 9000 + num; # routed through haproxy/ingress
+    publicServerPort = 9000 + num; # routed through haproxy/ingress
+    publicDiscoveryPort = 9500 + num; # routed through haproxy/ingress
   });
 
   explorer = let name = "${namespace}-explorer";
