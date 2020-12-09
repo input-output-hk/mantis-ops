@@ -103,6 +103,7 @@ in {
             "${extraConfig}"
             ./secrets.nix
             ./monitoring.nix
+            ./docker-auth.nix
             # ./seaweedfs.nix
           ];
 
