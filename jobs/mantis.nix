@@ -491,8 +491,9 @@ let
             mantis.blockchains.testnet-internal-nomad.ecip1098-block-number = 0
             mantis.blockchains.testnet-internal-nomad.ecip1097-block-number = 0
           '';
-          destination = "local/mantis.conf";
           changeMode = "noop";
+          destination = "local/mantis.conf";
+          splay = "15m";
         }
         {
           data = let
@@ -588,7 +589,7 @@ let
             mantis.blockchains.testnet-internal-nomad.ecip1098-block-number = 0
             mantis.blockchains.testnet-internal-nomad.ecip1097-block-number = 0
           '';
-          changeMode = "restart";
+          changeMode = "noop";
           destination = "local/mantis.conf";
           splay = "15m";
         }
