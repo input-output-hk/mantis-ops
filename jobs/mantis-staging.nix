@@ -2,7 +2,7 @@
 , morpho-node, morpho-source, dockerImages, mantis-explorer }:
 let
   # NOTE: Copy this file and change the next line if you want to start your own cluster!
-  namespace = "mantis-testnet";
+  namespace = "mantis-staging";
 
   vault = {
     policies = [ "nomad-cluster" ];
@@ -24,17 +24,16 @@ let
   morphoNodes = lib.forEach (lib.range 1 amountOfMorphoNodes) (n: {
     name = "obft-node-${toString n}";
     nodeNumber = n;
+    inherit namespace morpho-source vault dockerImages;
   });
 
   mkMantis = { name, resources, count ? 1, templates, serviceName, tags ? [ ]
-    , serverMeta ? { }, meta ? { }, discoveryMeta ? { }, requiredPeerCount
-    , services ? { } }: {
+    , meta ? { }, requiredPeerCount, services ? { } }: {
       inherit count;
 
       networks = [{
         mode = "bridge";
         ports = {
-          discovery.to = 6000;
           metrics.to = 7000;
           rpc.to = 8000;
           server.to = 9000;
@@ -118,16 +117,6 @@ let
           tags = [ "rpc" namespace serviceName name mantis-source.rev ];
         };
 
-        "${serviceName}-discovery" = {
-          portLabel = "discovery";
-          tags = [ "discovery" namespace serviceName name mantis-source.rev ]
-            ++ tags;
-          meta = {
-            inherit name;
-            publicIp = "\${attr.unique.platform.aws.public-ipv4}";
-          } // discoveryMeta;
-        };
-
         "${serviceName}-server" = {
           portLabel = "server";
           tags = [ "server" namespace serviceName name mantis-source.rev ]
@@ -135,7 +124,7 @@ let
           meta = {
             inherit name;
             publicIp = "\${attr.unique.platform.aws.public-ipv4}";
-          } // serverMeta;
+          } // meta;
         };
 
         ${serviceName} = {
@@ -185,8 +174,7 @@ let
       };
     };
 
-  mkMiner = { name, publicDiscoveryPort, publicServerPort, requiredPeerCount ? 0
-    , instanceId ? null }:
+  mkMiner = { name, publicPort, requiredPeerCount ? 0, instanceId ? null }:
     lib.nameValuePair name (mkMantis {
       resources = {
         # For c5.2xlarge in clusters/mantis/testnet/default.nix, the url ref below
@@ -233,9 +221,6 @@ let
             mantis.ethash.ethash-dir = "/local/ethash"
             mantis.metrics.enabled = true
             mantis.metrics.port = {{ env "NOMAD_PORT_metrics" }}
-            mantis.network.discovery.discovery-enabled = true
-            mantis.network.discovery.host = {{ with node "monitoring" }}"{{ .Node.Address }}"{{ end }}
-            mantis.network.discovery.port = ${toString publicDiscoveryPort}
             mantis.network.rpc.http.interface = "0.0.0.0"
             mantis.network.rpc.http.port = {{ env "NOMAD_PORT_rpc" }}
             mantis.network.server-address.port = {{ env "NOMAD_PORT_server" }}
@@ -244,9 +229,8 @@ let
             mantis.blockchains.testnet-internal-nomad.ecip1098-block-number = 0
             mantis.blockchains.testnet-internal-nomad.ecip1097-block-number = 0
           '';
-          changeMode = "noop";
           destination = "local/mantis.conf";
-          splay = "15m";
+          changeMode = "noop";
         }
         {
           data = let
@@ -265,24 +249,8 @@ let
 
       serviceName = "${namespace}-mantis-miner";
 
-      tags = [ "ingress" namespace name ];
+      tags = [ namespace name ];
 
-      serverMeta = {
-        ingressHost = "${name}.mantis.ws";
-        ingressPort = toString publicServerPort;
-        ingressBind = "*:${toString publicServerPort}";
-        ingressMode = "tcp";
-        ingressServer = "_${namespace}-mantis-miner._${name}.service.consul";
-      };
-
-      discoveryMeta = {
-        ingressHost = "${name}.mantis.ws";
-        ingressPort = toString publicDiscoveryPort;
-        ingressBind = "*:${toString publicDiscoveryPort}";
-        ingressMode = "tcp";
-        ingressServer =
-          "_${namespace}-mantis-miner._${name}-discovery.service.consul";
-      };
     });
 
   mkPassive = count:
@@ -351,7 +319,7 @@ let
             mantis.blockchains.testnet-internal-nomad.ecip1098-block-number = 0
             mantis.blockchains.testnet-internal-nomad.ecip1097-block-number = 0
           '';
-          changeMode = "noop";
+          changeMode = "restart";
           destination = "local/mantis.conf";
           splay = "15m";
         }
@@ -364,8 +332,7 @@ let
   miners = lib.forEach (lib.range 1 amountOfMiners) (num: {
     name = "mantis-${toString num}";
     requiredPeerCount = builtins.length miners;
-    publicServerPort = 9000 + num; # routed through haproxy/ingress
-    publicDiscoveryPort = 9500 + num; # routed through haproxy/ingress
+    publicPort = 9000 + num; # routed through haproxy/ingress
   });
 
   explorer = let name = "${namespace}-explorer";
@@ -446,7 +413,7 @@ let
 
             upstream backend {
               least_conn;
-              {{ range service "${namespace}-mantis-passive-rpc" }}
+              {{ range service "mantis-1.${namespace}-mantis-miner-rpc" }}
                 server {{ .Address }}:{{ .Port }};
               {{ end }}
             }
@@ -721,7 +688,7 @@ let
                     # Limits the amount of request the same ip can perform in a given amount of time
                     rate-limit {
                       # If enabled, restrictions are applied
-                      enabled = true
+                      enabled = false
 
                       # Time that should pass between requests
                       # Reflecting Faucet Web UI configuration
@@ -932,38 +899,5 @@ in {
       morphoTaskGroups =
         map (generateMorphoTaskGroup (builtins.length morphoNodes)) morphoNodes;
     in lib.listToAttrs morphoTaskGroups;
-  };
-
-  "${namespace}-explorer" = mkNomadJob "explorer" {
-    datacenters = [ "us-east-2" "eu-central-1" ];
-    type = "service";
-    inherit namespace;
-
-    taskGroups.explorer = explorer;
-  };
-
-  "${namespace}-faucet" = mkNomadJob "faucet" {
-    datacenters = [ "us-east-2" "eu-central-1" ];
-    type = "service";
-    inherit namespace;
-
-    taskGroups.faucet = faucet;
-  };
-
-  "${namespace}-backup" = mkNomadJob "backup" {
-    datacenters = [ "us-east-2" "eu-central-1" ];
-    type = "batch";
-    inherit namespace;
-
-    periodic = {
-      cron = "15 */1 * * * *";
-      prohibitOverlap = true;
-      timeZone = "UTC";
-    };
-
-    taskGroups.backup = import ./tasks/backup.nix {
-      inherit lib dockerImages namespace mantis;
-      name = "${namespace}-backup";
-    };
   };
 }
