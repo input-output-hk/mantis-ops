@@ -335,8 +335,12 @@ in {
 
   # Used for caching
   devShellPath = prev.symlinkJoin {
-    paths = final.devShell.buildInputs
-      ++ [ final.mantis final.mantis-faucet final.nixFlakes ];
+    paths = final.devShell.buildInputs ++ [
+      final.grafana-loki
+      final.mantis
+      final.mantis-faucet
+      final.nixFlakes
+    ];
     name = "devShell";
   };
 
@@ -372,7 +376,7 @@ in {
 
   inherit (self.inputs.bitte.legacyPackages.${system})
     bitte vault-bin mkNomadJob terraform-with-plugins systemdSandbox nixFlakes
-    nomad consul consul-template;
+    nomad consul consul-template grafana-loki;
 
   nomadJobs = let
     jobsDir = ./jobs;

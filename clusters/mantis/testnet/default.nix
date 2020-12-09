@@ -102,9 +102,7 @@ in {
             "${self.inputs.nixpkgs}/nixos/modules/virtualisation/ec2-data.nix"
             "${extraConfig}"
             ./secrets.nix
-            ./monitoring.nix
             ./docker-auth.nix
-            # ./seaweedfs.nix
           ];
 
           securityGroupRules = {
