@@ -35,6 +35,7 @@ let
     while true; do
       starts="$((starts+1))"
       echo "Start Number $starts" > /dev/stderr
+      cat running.conf > /dev/stderr
       mantis "-Duser.home=$NOMAD_TASK_DIR" "$@" || true
       sleep 10
     done
