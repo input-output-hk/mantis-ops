@@ -203,6 +203,9 @@ let
               {{ end -}}
             ]
 
+            # allow anyone to mine blocks
+            mantis.blockchains.testnet-internal-nomad.allowed-miners = []
+
             mantis.blockchains.testnet-internal-nomad.checkpoint-public-keys = [
               ${
                 lib.concatMapStringsSep "," (x: ''
@@ -294,6 +297,9 @@ let
                   {{- end -}}@{{ .Address }}:{{ .Port }}",
               {{ end -}}
             ]
+
+            # allow anyone to mine blocks
+            mantis.blockchains.testnet-internal-nomad.allowed-miners = []
 
             mantis.blockchains.testnet-internal-nomad.checkpoint-public-keys = [
               ${
