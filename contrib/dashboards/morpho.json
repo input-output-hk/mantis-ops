@@ -15,10 +15,68 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 1,
-  "id": 23,
-  "iteration": 1607459578224,
+  "id": 86,
+  "iteration": 1607698330138,
   "links": [],
   "panels": [
+    {
+      "datasource": "VictoriaMetrics",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {},
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 18,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "last"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "7.3.5",
+      "targets": [
+        {
+          "expr": "morpho_checkpoint_stable_state_pow_block_number_gauge{namespace=\"$namespace\"}",
+          "interval": "",
+          "legendFormat": "{{client_id}}",
+          "queryType": "randomWalk",
+          "refId": "A"
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Checkpoint in Stable Ledger",
+      "type": "stat"
+    },
     {
       "aliasColors": {},
       "bars": false,
@@ -27,7 +85,8 @@
       "datasource": "VictoriaMetrics",
       "fieldConfig": {
         "defaults": {
-          "custom": {}
+          "custom": {},
+          "links": []
         },
         "overrides": []
       },
@@ -37,7 +96,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 0
+        "y": 5
       },
       "hiddenSeries": false,
       "id": 12,
@@ -54,9 +113,10 @@
       "linewidth": 1,
       "nullPointMode": "null",
       "options": {
-        "dataLinks": []
+        "alertThreshold": true
       },
       "percentage": false,
+      "pluginVersion": "7.3.5",
       "pointradius": 2,
       "points": false,
       "renderer": "flot",
@@ -66,7 +126,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "morpho_checkpoint_unstable_state_pow_block_number_gauge",
+          "expr": "morpho_checkpoint_unstable_state_pow_block_number_gauge{namespace=\"$namespace\"}",
           "interval": "",
           "legendFormat": "{{client_id}}",
           "refId": "A"
@@ -76,7 +136,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "Morpho Checkpoint Unstable State PoW Block Number",
+      "title": "Checkpoint in Unstable State",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -92,7 +152,6 @@
       },
       "yaxes": [
         {
-          "$$hashKey": "object:1120",
           "decimals": 0,
           "format": "none",
           "label": "",
@@ -102,7 +161,6 @@
           "show": true
         },
         {
-          "$$hashKey": "object:1121",
           "format": "short",
           "label": null,
           "logBase": 1,
@@ -124,7 +182,8 @@
       "datasource": "VictoriaMetrics",
       "fieldConfig": {
         "defaults": {
-          "custom": {}
+          "custom": {},
+          "links": []
         },
         "overrides": []
       },
@@ -134,7 +193,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 0
+        "y": 5
       },
       "hiddenSeries": false,
       "id": 10,
@@ -151,9 +210,10 @@
       "linewidth": 1,
       "nullPointMode": "null",
       "options": {
-        "dataLinks": []
+        "alertThreshold": true
       },
       "percentage": false,
+      "pluginVersion": "7.3.5",
       "pointradius": 2,
       "points": false,
       "renderer": "flot",
@@ -163,7 +223,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "morpho_checkpoint_stable_state_pow_block_number_gauge",
+          "expr": "morpho_checkpoint_stable_state_pow_block_number_gauge{namespace=\"$namespace\"}",
           "interval": "",
           "legendFormat": "{{client_id}}",
           "refId": "A"
@@ -173,7 +233,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "Morpho Checkpoint Stable State PoW Block Number",
+      "title": "Checkpoint in Stable State",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -189,7 +249,6 @@
       },
       "yaxes": [
         {
-          "$$hashKey": "object:765",
           "decimals": 0,
           "format": "none",
           "label": "",
@@ -199,7 +258,6 @@
           "show": true
         },
         {
-          "$$hashKey": "object:766",
           "format": "short",
           "label": null,
           "logBase": 1,
@@ -221,7 +279,8 @@
       "datasource": "VictoriaMetrics",
       "fieldConfig": {
         "defaults": {
-          "custom": {}
+          "custom": {},
+          "links": []
         },
         "overrides": []
       },
@@ -231,7 +290,104 @@
         "h": 9,
         "w": 12,
         "x": 0,
-        "y": 8
+        "y": 13
+      },
+      "hiddenSeries": false,
+      "id": 8,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "nullPointMode": "null",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "7.3.5",
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "morpho_checkpoint_pushed_pow_block_number_gauge{namespace=\"$namespace\"}",
+          "interval": "",
+          "legendFormat": "{{client_id}}",
+          "refId": "A"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "Latest Checkpoint Pushed to Mantis",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "decimals": 0,
+          "format": "none",
+          "label": "",
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "VictoriaMetrics",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {},
+          "links": []
+        },
+        "overrides": []
+      },
+      "fill": 1,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 13
       },
       "hiddenSeries": false,
       "id": 2,
@@ -248,9 +404,10 @@
       "linewidth": 1,
       "nullPointMode": "null",
       "options": {
-        "dataLinks": []
+        "alertThreshold": true
       },
       "percentage": false,
+      "pluginVersion": "7.3.5",
       "pointradius": 2,
       "points": false,
       "renderer": "flot",
@@ -260,7 +417,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "morpho_latest_pow_block_number_gauge",
+          "expr": "morpho_latest_pow_block_number_gauge{namespace=\"$namespace\"}",
           "interval": "",
           "legendFormat": "{{client_id}}",
           "refId": "A"
@@ -286,7 +443,6 @@
       },
       "yaxes": [
         {
-          "$$hashKey": "object:293",
           "decimals": 0,
           "format": "none",
           "label": "",
@@ -296,7 +452,6 @@
           "show": true
         },
         {
-          "$$hashKey": "object:294",
           "format": "short",
           "label": null,
           "logBase": 1,
@@ -318,7 +473,8 @@
       "datasource": "VictoriaMetrics",
       "fieldConfig": {
         "defaults": {
-          "custom": {}
+          "custom": {},
+          "links": []
         },
         "overrides": []
       },
@@ -327,11 +483,11 @@
       "gridPos": {
         "h": 8,
         "w": 12,
-        "x": 12,
-        "y": 8
+        "x": 0,
+        "y": 22
       },
       "hiddenSeries": false,
-      "id": 8,
+      "id": 6,
       "legend": {
         "avg": false,
         "current": false,
@@ -345,9 +501,10 @@
       "linewidth": 1,
       "nullPointMode": "null",
       "options": {
-        "dataLinks": []
+        "alertThreshold": true
       },
       "percentage": false,
+      "pluginVersion": "7.3.5",
       "pointradius": 2,
       "points": false,
       "renderer": "flot",
@@ -357,7 +514,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "morpho_checkpoint_pushed_pow_block_number_gauge",
+          "expr": "app_sync_block_checkpoint_number_gauge_gauge{namespace=\"$namespace\"}",
           "interval": "",
           "legendFormat": "{{client_id}}",
           "refId": "A"
@@ -367,7 +524,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "Morpho Checkpoint Pushed PoW Block Number",
+      "title": "Checkpoints on Mantis Nodes",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -383,17 +540,15 @@
       },
       "yaxes": [
         {
-          "$$hashKey": "object:539",
           "decimals": 0,
           "format": "none",
-          "label": "",
+          "label": null,
           "logBase": 1,
           "max": null,
           "min": null,
           "show": true
         },
         {
-          "$$hashKey": "object:540",
           "format": "short",
           "label": null,
           "logBase": 1,
@@ -416,7 +571,8 @@
       "description": "",
       "fieldConfig": {
         "defaults": {
-          "custom": {}
+          "custom": {},
+          "links": []
         },
         "overrides": []
       },
@@ -426,7 +582,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 16
+        "y": 22
       },
       "hiddenSeries": false,
       "id": 14,
@@ -443,9 +599,10 @@
       "linewidth": 1,
       "nullPointMode": "null",
       "options": {
-        "dataLinks": []
+        "alertThreshold": true
       },
       "percentage": false,
+      "pluginVersion": "7.3.5",
       "pointradius": 2,
       "points": false,
       "renderer": "flot",
@@ -481,7 +638,6 @@
       },
       "yaxes": [
         {
-          "$$hashKey": "object:151",
           "decimals": 0,
           "format": "none",
           "label": null,
@@ -491,104 +647,6 @@
           "show": true
         },
         {
-          "$$hashKey": "object:152",
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        }
-      ],
-      "yaxis": {
-        "align": false,
-        "alignLevel": null
-      }
-    },
-    {
-      "aliasColors": {},
-      "bars": false,
-      "dashLength": 10,
-      "dashes": false,
-      "datasource": "VictoriaMetrics",
-      "fieldConfig": {
-        "defaults": {
-          "custom": {}
-        },
-        "overrides": []
-      },
-      "fill": 1,
-      "fillGradient": 0,
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 17
-      },
-      "hiddenSeries": false,
-      "id": 6,
-      "legend": {
-        "avg": false,
-        "current": false,
-        "max": false,
-        "min": false,
-        "show": true,
-        "total": false,
-        "values": false
-      },
-      "lines": true,
-      "linewidth": 1,
-      "nullPointMode": "null",
-      "options": {
-        "dataLinks": []
-      },
-      "percentage": false,
-      "pointradius": 2,
-      "points": false,
-      "renderer": "flot",
-      "seriesOverrides": [],
-      "spaceLength": 10,
-      "stack": false,
-      "steppedLine": false,
-      "targets": [
-        {
-          "expr": "app_sync_block_checkpoint_number_gauge_gauge",
-          "interval": "",
-          "legendFormat": "{{client_id}}",
-          "refId": "A"
-        }
-      ],
-      "thresholds": [],
-      "timeFrom": null,
-      "timeRegions": [],
-      "timeShift": null,
-      "title": "Mantis Sync Block Checkpoint Number",
-      "tooltip": {
-        "shared": true,
-        "sort": 0,
-        "value_type": "individual"
-      },
-      "type": "graph",
-      "xaxis": {
-        "buckets": null,
-        "mode": "time",
-        "name": null,
-        "show": true,
-        "values": []
-      },
-      "yaxes": [
-        {
-          "$$hashKey": "object:457",
-          "decimals": 0,
-          "format": "none",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        },
-        {
-          "$$hashKey": "object:458",
           "format": "short",
           "label": null,
           "logBase": 1,
@@ -620,7 +678,103 @@
         "h": 9,
         "w": 12,
         "x": 0,
-        "y": 25
+        "y": 30
+      },
+      "hiddenSeries": false,
+      "id": 16,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "nullPointMode": "null",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "7.3.5",
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "morpho_checkpoint_nb_peers_gauge{namespace=\"$namespace\"}",
+          "interval": "",
+          "legendFormat": "{{client_id}}",
+          "refId": "A"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "Number of Peers",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "VictoriaMetrics",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {},
+          "links": []
+        },
+        "overrides": []
+      },
+      "fill": 1,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 30
       },
       "hiddenSeries": false,
       "id": 4,
@@ -637,9 +791,10 @@
       "linewidth": 1,
       "nullPointMode": "null",
       "options": {
-        "dataLinks": []
+        "alertThreshold": true
       },
       "percentage": false,
+      "pluginVersion": "7.3.5",
       "pointradius": 2,
       "points": false,
       "renderer": "flot",
@@ -649,7 +804,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "morpho_checkpoint_nb_votes_latest_gauge",
+          "expr": "morpho_checkpoint_nb_votes_latest_gauge{namespace=\"$namespace\"}",
           "interval": "",
           "legendFormat": "{{client_id}}",
           "refId": "A"
@@ -659,7 +814,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "Morpho Checkpoint NB Votes Latest",
+      "title": "Number of Votes in Checkpoint",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -675,7 +830,6 @@
       },
       "yaxes": [
         {
-          "$$hashKey": "object:375",
           "decimals": 0,
           "format": "none",
           "label": "",
@@ -685,7 +839,6 @@
           "show": true
         },
         {
-          "$$hashKey": "object:376",
           "format": "short",
           "label": null,
           "logBase": 1,
@@ -701,7 +854,7 @@
     }
   ],
   "refresh": "10s",
-  "schemaVersion": 25,
+  "schemaVersion": 26,
   "style": "dark",
   "tags": [],
   "templating": {
@@ -709,46 +862,21 @@
       {
         "allValue": null,
         "current": {
-          "selected": true,
-          "text": "mantis-testnet",
-          "value": "mantis-testnet"
+          "selected": false,
+          "text": "mantis-staging",
+          "value": "mantis-staging"
         },
         "datasource": "VictoriaMetrics",
         "definition": "label_values(namespace)",
+        "error": null,
         "hide": 0,
         "includeAll": false,
         "label": null,
         "multi": false,
         "name": "namespace",
-        "options": [
-          {
-            "selected": false,
-            "text": "default",
-            "value": "default"
-          },
-          {
-            "selected": false,
-            "text": "mantis-qa-fastsync",
-            "value": "mantis-qa-fastsync"
-          },
-          {
-            "selected": false,
-            "text": "mantis-qa-load",
-            "value": "mantis-qa-load"
-          },
-          {
-            "selected": true,
-            "text": "mantis-testnet",
-            "value": "mantis-testnet"
-          },
-          {
-            "selected": false,
-            "text": "root",
-            "value": "root"
-          }
-        ],
+        "options": [],
         "query": "label_values(namespace)",
-        "refresh": 0,
+        "refresh": 2,
         "regex": "",
         "skipUrlSync": false,
         "sort": 0,
@@ -780,6 +908,6 @@
   },
   "timezone": "",
   "title": "Morpho [mantis-ops]",
-  "uid": "2LLZi_0Mz",
-  "version": 8
+  "uid": "IBuJxvJMk",
+  "version": 9
 }
