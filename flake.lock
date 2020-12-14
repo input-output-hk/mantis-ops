@@ -20,11 +20,11 @@
         "utils": "utils_3"
       },
       "locked": {
-        "lastModified": 1607699614,
-        "narHash": "sha256-EcAKO+REM2FjlFhhF2D5qW0m2TTTDZqjkgXSZsjbWx4=",
+        "lastModified": 1607619844,
+        "narHash": "sha256-irgqD0jWKCeKmmBpuy2xqpIPEPT/YTGJDKzjzAXDsis=",
         "owner": "input-output-hk",
         "repo": "bitte",
-        "rev": "1b91e11c716532635256a680330c8082862fd93e",
+        "rev": "8782765f8fbcfb6fea5b4a0266dcdbedfd7a0571",
         "type": "github"
       },
       "original": {
@@ -204,11 +204,11 @@
         "utils": "utils_4"
       },
       "locked": {
-        "lastModified": 1606918237,
-        "narHash": "sha256-j4e28iwDXS3kPbCT33QLrEae4ZSVpvwO1FdERCoiygE=",
+        "lastModified": 1607529671,
+        "narHash": "sha256-K/40BWqaGORpVviunTdnNHjZEN60116mLTRjxb9bG0c=",
         "owner": "input-output-hk",
         "repo": "ECIP-Checkpointing",
-        "rev": "bd7905a839de9768c619ed1f5e20b7e860613eae",
+        "rev": "4dce3b36ddac9eacabeaf7d32d243b847fdae2f0",
         "type": "github"
       },
       "original": {
