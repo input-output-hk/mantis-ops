@@ -296,14 +296,14 @@ in {
   '';
 
   devShell = let
-    cluster = "mantis-testnet";
+    cluster = "mantis-kevm";
     domain = final.clusters.${cluster}.proto.config.cluster.domain;
   in prev.mkShell {
     # for bitte-cli
     LOG_LEVEL = "debug";
 
     BITTE_CLUSTER = cluster;
-    AWS_PROFILE = "mantis";
+    AWS_PROFILE = "mantis-kevm";
     AWS_DEFAULT_REGION = final.clusters.${cluster}.proto.config.cluster.region;
 
     VAULT_ADDR = "https://vault.${domain}";
