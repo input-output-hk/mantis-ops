@@ -468,7 +468,7 @@ let
       templates = [
         {
           data = ''
-            include "/conf/base.conf"
+            include "/conf/app.conf"
 
             logging.json-output = true
 
@@ -484,6 +484,11 @@ let
                 discovery {
                   discovery-enabled = false
                   bootstrap-nodes = []
+                }
+
+                peer {
+                  short-blacklist-duration = 0
+                  long-blacklist-duration = 0
                 }
 
                 rpc {
@@ -686,42 +691,152 @@ let
       templates = [
         {
           data = ''
-            include "${mantis}/conf/testnet-internal-nomad.conf"
+            include "/conf/app.conf"
 
             logging.json-output = true
-            logging.logs-file = "logs"
 
-            mantis.blockchains.testnet-internal-nomad.bootstrap-nodes = [
-              {{ range service "${namespace}-mantis-miner-server" -}}
-                "enode://  {{- with secret (printf "kv/data/nomad-cluster/${namespace}/%s/enode-hash" .ServiceMeta.Name) -}}
-                  {{- .Data.data.value -}}
-                  {{- end -}}@{{ .Address }}:{{ .Port }}",
-              {{ end -}}
-            ]
+            mantis {
+              datadir = "/local/mantis"
 
-            mantis.blockchains.testnet-internal-nomad.checkpoint-public-keys = [
-              ${
-                lib.concatMapStringsSep "," (x: ''
-                  {{- with secret "kv/data/nomad-cluster/${namespace}/obft-node-${
-                    toString x
-                  }/obft-public-key" -}}"{{- .Data.data.value -}}"{{end}}
-                '') (lib.range 1 amountOfMorphoNodes)
+              network {
+                server-address {
+                  interface = "0.0.0.0"
+                  port = {{ env "NOMAD_PORT_server" }}
+                }
+
+                discovery {
+                  discovery-enabled = false
+                  bootstrap-nodes = []
+                }
+
+                rpc {
+                  http {
+                    mode = "http"
+                    interface = "0.0.0.0"
+                    port = {{ env "NOMAD_PORT_rpc" }}
+                    cors-allowed-origins = "*"
+
+                    apis = "eth,web3,net,iele"
+                    disabled-methods = [
+                      "iele_sendTransaction",
+                      "eth_accounts",
+                      "eth_sendTransaction",
+                      "eth_sign"
+
+                      # not sure why those were disabled
+                      #"net_peerCount",
+                      #"net_listening",
+                      #"eth_syncing",
+                      #"eth_hashrate",
+                      #"eth_mining",
+                      #"eth_getWork",
+                      #"eth_submitWork",
+                      #"eth_coinbase"
+                    ]
+                  }
+                }
               }
-            ]
 
-            mantis.client-id = "${name}"
-            mantis.consensus.mining-enabled = false
-            mantis.datadir = "/local/mantis"
-            mantis.ethash.ethash-dir = "/local/ethash"
-            mantis.metrics.enabled = true
-            mantis.metrics.port = {{ env "NOMAD_PORT_metrics" }}
-            mantis.network.rpc.http.interface = "0.0.0.0"
-            mantis.network.rpc.http.port = {{ env "NOMAD_PORT_rpc" }}
-            mantis.network.server-address.port = {{ env "NOMAD_PORT_server" }}
-            mantis.blockchains.testnet-internal-nomad.custom-genesis-file = "{{ env "NOMAD_TASK_DIR" }}/genesis.json"
+              consensus {
+                protocol = ethash
+                mining-enabled = false
 
-            mantis.blockchains.testnet-internal-nomad.ecip1098-block-number = 0
-            mantis.blockchains.testnet-internal-nomad.ecip1097-block-number = 0
+                require-signed-blocks = false
+              }
+
+              blockchains {
+                network = "mantis-kevm"
+
+                mantis-kevm {
+                  dao = null
+                  custom-genesis-file = "{{ env "NOMAD_TASK_DIR" }}/genesis.json"
+                  network-id = 4139
+                  chain-id = "0x69"
+                  pow-target-time = 30 seconds
+
+                  frontier-block-number = 0
+                  homestead-block-number = 455000
+                  eip106-block-number = 1000000000000000000
+                  eip150-block-number = 725000
+                  eip155-block-number = 725000
+                  eip160-block-number = 725000
+                  eip161-block-number = 1000000000000000000
+                  max-code-size = "24576"
+                  difficulty-bomb-pause-block-number = 1000000000000000000
+                  difficulty-bomb-continue-block-number = 1000000000000000000
+
+                  difficulty-bomb-removal-block-number = "0"
+                  byzantium-block-number = "1000000000000000000"
+                  atlantis-block-number = "1000000000000000000"
+                  agharta-block-number = "1000000000000000000"
+                  phoenix-block-number = "1000000000000000000"
+                  constantinople-block-number = "1000000000000000000"
+                  petersburg-block-number = "1000000000000000000"
+                  istanbul-block-number = "1000000000000000000"
+                  treasury-address = "0358e65dfe67b350eb827ffa17a82e7bb5f4c0c6"
+                  ecip1098-block-number = "1000000000000000000"
+                  ecip1097-block-number = "1000000000000000000"
+                  ecip1099-block-number = "1000000000000000000"
+
+                  account-start-nonce = "0"
+                  gas-tie-breaker = false
+
+                  monetary-policy {
+                      first-era-block-reward = 5000000000000000000
+                      first-era-reduced-block-reward = "3000000000000000000"
+                      first-era-constantinople-reduced-block-reward = "2000000000000000000"
+                      era-duration = 1000000000
+                      reward-reduction-rate = 0.200000
+                  }
+
+                  eth-compatible-storage = true
+
+                  bootstrap-nodes = [
+                    {{ range service "${namespace}-mantis-miner-server" -}}
+                      "enode://  {{- with secret (printf "kv/data/nomad-cluster/${namespace}/%s/enode-hash" .ServiceMeta.Name) -}}
+                        {{- .Data.data.value -}}
+                        {{- end -}}@{{ .Address }}:{{ .Port }}",
+                    {{ end -}}
+                  ]
+
+                  allowed-miners = []
+
+                  checkpoint-public-keys = []
+                }
+              }
+
+              vm {
+                mode = "external"
+                external {
+                  vm-type = "kevm"
+                  run-vm = true
+                  executable-path = "/bin/kevm-vm"
+                  host = "0.0.0.0"
+                  port = {{ env "NOMAD_PORT_vm" }}
+                }
+              }
+
+              ethash {
+                mine-rounds = 1000000000
+                ethash-dir = "/local/ethash"
+              }
+
+              sync {
+                do-fast-sync = false
+                broadcast-new-block-hashes = false
+                sync-retry-interval = 100 days
+              }
+
+              metrics {
+                # Set to `true` iff your deployment supports metrics collection.
+                # We expose metrics using a Prometheus server
+                # We default to `false` here because we do not expect all deployments to support metrics collection.
+                enabled = true
+
+                # The port for setting up a Prometheus server over localhost.
+                port = {{ env "NOMAD_PORT_metrics" }}
+              }
+            }
           '';
           changeMode = "noop";
           destination = "local/mantis.conf";
