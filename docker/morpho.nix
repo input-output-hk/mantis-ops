@@ -1,5 +1,5 @@
-{ lib, buildLayeredImage, mkEnv, morpho-node, coreutils, gnused, gnugrep, procps
-, writeShellScript, jq, diffutils }:
+{ lib, domain, buildLayeredImage, mkEnv, morpho-node, coreutils, gnused, gnugrep
+, procps, writeShellScript, jq, diffutils }:
 let
   run-morpho-node = writeShellScript "morpho-node" ''
     set -exuo pipefail
@@ -38,7 +38,7 @@ let
   '';
 in {
   morpho = buildLayeredImage {
-    name = "docker.mantis.ws/morpho-node";
+    name = "docker.${domain}/morpho-node";
     config = {
       Entrypoint = [ run-morpho-node ];
       Env = mkEnv {

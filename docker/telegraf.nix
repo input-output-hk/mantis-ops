@@ -1,6 +1,6 @@
-{ buildLayeredImage, telegraf }: {
+{ buildLayeredImage, domain, telegraf }: {
   telegraf = buildLayeredImage {
-    name = "docker.mantis.ws/telegraf";
+    name = "docker.${domain}/telegraf";
     config.Entrypoint = [ "${telegraf}/bin/telegraf" ];
   };
 }

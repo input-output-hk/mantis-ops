@@ -1,5 +1,5 @@
-{ lib, mkEnv, buildImage, pullImage, writeShellScript, mantis, coreutils, gnused
-, gnugrep, curl, debugUtils, procps, diffutils }:
+{ lib, domain, mkEnv, buildImage, pullImage, writeShellScript, mantis, coreutils
+, gnused, gnugrep, curl, debugUtils, procps, diffutils }:
 let
   entrypoint = writeShellScript "mantis" ''
     set -exuo pipefail
@@ -50,7 +50,7 @@ let
   };
 in {
   mantis-kevm = buildImage {
-    name = "docker.mantis.ws/mantis-kevm";
+    name = "docker.${domain}/mantis-kevm";
     fromImage = mantis-kevm-base;
     contents = debugUtils ++ [ coreutils gnugrep gnused curl procps diffutils ];
     config.Entrypoint = [ entrypoint ];

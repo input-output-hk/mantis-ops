@@ -6,14 +6,6 @@
 * Mantis ops utilizes the [bitte](https://github.com/input-output-hk/bitte) tool stack to implement a cluster of Mantis nodes.
 * See the [bitte](https://github.com/input-output-hk/bitte) and [bitte-cli](https://github.com/input-output-hk/bitte-cli) repos for information on the underlying stack technology which includes: Vault, Consul, Nomad, Grafana, Telegraf, VictoriaMetrics, Loki and more.
 
-
-make encrypted/nix-public-key-file
-bitte terraform network plan
-bitte terraform network apply
-bitte terraform core plan
-bitte terraform core apply
-
-
 ## Getting Started for Developers
 
 ### Nix Installation
@@ -180,7 +172,7 @@ bitte terraform core apply
     # etc.
     ```
 
-* The nomad token is also used to authenticate to the mantis-ops Nomad web UI at: https://nomad.mantis.ws/
+* The nomad token is also used to authenticate to the mantis-ops Nomad web UI at: https://nomad.kevm.dev.cardano.org/
   * In the upper right hand corner of the Nomad web UI, click "ACL Tokens".
   * Enter the nomad token in "Secret ID" field and click "Set Token".
   * You will now have access to the full Nomad web UI.
@@ -197,15 +189,15 @@ bitte terraform core apply
 ### Mantis Ops Web UI Resources
 
 * The following resources are available in the mantis-ops ecosystem, all behind oauth2 proxy authentication.
-  * [Monitoring webpage](https://monitoring.mantis.ws)
+  * [Monitoring webpage](https://monitoring.kevm.dev.cardano.org)
     * Used to review and query metrics and logs for mantis processes and nodes.
-  * [Nomad webpage](https://nomad.mantis.ws)
+  * [Nomad webpage](https://nomad.kevm.dev.cardano.org)
     * Used to review Nomad job status and related information.
-    * Requires ACL token [authentication](https://nomad.mantis.ws/ui/settings/tokens) by providing the Nomad token generated in the steps above.
+    * Requires ACL token [authentication](https://nomad.kevm.dev.cardano.org/ui/settings/tokens) by providing the Nomad token generated in the steps above.
     * Provides UI capability to control Nomad job lifecycle (`Stop`, `Restart`) and interactive inspection (`Exec`) for specific allocations and/or jobs.
-  * [Consul webpage](https://consul.mantis.ws)
+  * [Consul webpage](https://consul.kevm.dev.cardano.org)
     * Used to review mantis-ops cluster and service status.
-  * [Vault webpage](https://vault.mantis.ws)
+  * [Vault webpage](https://vault.kevm.dev.cardano.org)
     * Used to review key-value paths utilized in ops configuration.
     * Requires a vault token for sign-in by providing the Vault token generated in the steps above.
 
@@ -224,7 +216,7 @@ bitte terraform core apply
 
 ### Metrics and Logs
 
-* Metrics and logs can be found from the Grafana web UI at: https://monitoring.mantis.ws
+* Metrics and logs can be found from the Grafana web UI at: https://monitoring.kevm.dev.cardano.org
 * Querying logs by job identifier can be done through the "Explore" icon in the left vertical panel.
 * If you don't see this "Explore" icon which looks like a compass, request "Editor" access from DevOps.
 * Examples of log queries to the `Loki` log datasource in Grafana are:
@@ -287,7 +279,7 @@ bitte terraform core apply
     $ nix run .#nomadJobs.mantis-testnet-explorer.run
     ```
 
-* Versioning information about the deployment, including changes from the last version deployed, can be viewed in the Nomad UI in the [Versions](https://nomad.mantis.ws/ui/jobs/mantis/versions) section.
+* Versioning information about the deployment, including changes from the last version deployed, can be viewed in the Nomad UI in the [Versions](https://nomad.kevm.dev.cardano.org/ui/jobs/mantis/versions) section.
 
 
 ### Nix Repl for Finding Nomad Jobs, Docker Images and Other Nix Attributes
@@ -319,7 +311,7 @@ bitte terraform core apply
   * In partial deployments where a subset of the full taskgroups in the job definition are deployed incrementally by changing the job definition slightly between each deployment, for example by editing passive node quantity or uncommenting pre-defined miners.
     * An example would be to deploy bootstrap miners first and then once they are running successfully to deploy passive nodes.
     * In the case of partial deployments, be aware that if the definition of taskgroups already deployed in an earlier step are modified, those particular taskgroup jobs will be restarted with the next deployment.
-* Job definition information for a currently deployed job can be viewed in the Nomad UI in the [Definition](https://nomad.mantis.ws/ui/jobs/mantis/definition) section under the appropriate namespace.
+* Job definition information for a currently deployed job can be viewed in the Nomad UI in the [Definition](https://nomad.kevm.dev.cardano.org/ui/jobs/mantis/definition) section under the appropriate namespace.
 * Job definitions for namespaces other than `mantis-testnet` are also stored in the `jobs/` directory with their namespace as part of the filename.
 
 
@@ -342,7 +334,7 @@ bitte terraform core apply
   * Pre-existing `enode-hash`, `key` and `coinbase` state needs to be created prior to deploying bootstrap nodes.
   * This state will be re-used across deployments and persists in the Vault `kv` store.
   * Additional bootstrap miner state only needs to be generated if the total number to be scaled to exceeds the number which currently exists (6 at the time of writing).
-  * Pre-existing bootstrap node state can be viewed at the [testnet Vault kv](https://vault.mantis.ws/ui/vault/secrets/kv/list/nomad-cluster/testnet/) path.
+  * Pre-existing bootstrap node state can be viewed at the [testnet Vault kv](https://vault.kevm.dev.cardano.org/ui/vault/secrets/kv/list/nomad-cluster/testnet/) path.
   * This state pre-generation is done with the following command:
     ```
     nix run .#generate-mantis-keys $NAMESPACE $TOTAL_NUM_MANTIS_BOOTSTRAP_NODES $TOTAL_NUM_OBFT_NODES

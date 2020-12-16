@@ -1,5 +1,5 @@
-{ lib, mkEnv, buildLayeredImage, writeShellScript, mantis, coreutils, gnused
-, gnugrep, curl, debugUtils, procps, diffutils }:
+{ lib, domain, mkEnv, buildLayeredImage, writeShellScript, mantis, coreutils
+, gnused, gnugrep, curl, debugUtils, procps, diffutils }:
 let
   entrypoint = writeShellScript "mantis" ''
     set -exuo pipefail
@@ -41,7 +41,7 @@ let
   '';
 in {
   mantis = buildLayeredImage {
-    name = "docker.mantis.ws/mantis";
+    name = "docker.${domain}/mantis";
     contents = debugUtils
       ++ [ coreutils gnugrep gnused mantis curl procps diffutils ];
     config.Entrypoint = [ entrypoint ];

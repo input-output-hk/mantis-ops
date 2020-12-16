@@ -1,12 +1,12 @@
-{ lib, mkEnv, buildImage, buildLayeredImage, writeShellScript, mantis-explorer
-, nginx, shadowSetup }: {
+{ lib, domain, mkEnv, buildImage, buildLayeredImage, writeShellScript
+, mantis-explorer, nginx, shadowSetup }: {
   mantis-explorer-server = let
     nginx-layered = buildLayeredImage {
-      name = "docker.mantis.ws/nginx";
+      name = "docker.${domain}/nginx";
       contents = [ nginx mantis-explorer ];
     };
   in buildImage {
-    name = "docker.mantis.ws/mantis-explorer-server";
+    name = "docker.${domain}/mantis-explorer-server";
 
     fromImage = nginx-layered;
 

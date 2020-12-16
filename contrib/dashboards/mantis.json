@@ -72,7 +72,7 @@
           {
             "targetBlank": true,
             "title": "Logs",
-            "url": "https://monitoring.mantis.ws/d/AD0cPtTMz/mantis-log?orgId=1&${__url_time_range}&var-namespace=${namespace}&var-node=${node}"
+            "url": "https://monitoring.kevm.dev.cardano.org/d/AD0cPtTMz/mantis-log?orgId=1&${__url_time_range}&var-namespace=${namespace}&var-node=${node}"
           }
         ]
       },

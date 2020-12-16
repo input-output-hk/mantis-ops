@@ -1,6 +1,8 @@
 { system, self }:
 final: prev:
 let
+  cluster = "mantis-kevm";
+  domain = final.clusters.${cluster}.proto.config.cluster.domain;
   lib = final.lib;
   # Little convenience function helping us to containing the bash
   # madness: forcing our bash scripts to be shellChecked.
@@ -295,10 +297,7 @@ in {
     . ${./pkgs/check_fmt.sh}
   '';
 
-  devShell = let
-    cluster = "mantis-kevm";
-    domain = final.clusters.${cluster}.proto.config.cluster.domain;
-  in prev.mkShell {
+  devShell = prev.mkShell {
     # for bitte-cli
     LOG_LEVEL = "debug";
 
@@ -383,8 +382,8 @@ in {
     contents = builtins.readDir jobsDir;
     toImport = name: type: type == "regular" && lib.hasSuffix ".nix" name;
     fileNames = builtins.attrNames (lib.filterAttrs toImport contents);
-    imported = lib.forEach fileNames
-      (fileName: final.callPackage (jobsDir + "/${fileName}") { });
+    imported = lib.forEach fileNames (fileName:
+      final.callPackage (jobsDir + "/${fileName}") { inherit domain; });
   in lib.foldl' lib.recursiveUpdate { } imported;
 
   dockerImages = let
@@ -392,8 +391,8 @@ in {
     contents = builtins.readDir imageDir;
     toImport = name: type: type == "regular" && lib.hasSuffix ".nix" name;
     fileNames = builtins.attrNames (lib.filterAttrs toImport contents);
-    imported = lib.forEach fileNames
-      (fileName: final.callPackages (imageDir + "/${fileName}") { });
+    imported = lib.forEach fileNames (fileName:
+      final.callPackages (imageDir + "/${fileName}") { inherit domain; });
     merged = lib.foldl' lib.recursiveUpdate { } imported;
   in lib.flip lib.mapAttrs merged (key: image:
     let id = "${image.imageName}:${image.imageTag}";
@@ -418,7 +417,7 @@ in {
         fi
 
         if [ -z "$dockerLoginDone" ]; then
-          echo "$dockerPassword" | docker login docker.mantis.ws -u developer --password-stdin
+          echo "$dockerPassword" | docker login docker.${domain} -u developer --password-stdin
           dockerLoginDone=1
         fi
 
