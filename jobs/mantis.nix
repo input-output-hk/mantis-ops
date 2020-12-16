@@ -2,7 +2,7 @@
 , morpho-node, morpho-source, dockerImages, mantis-explorer }:
 let
   # NOTE: Copy this file and change the next line if you want to start your own cluster!
-  namespace = "mantis-testnet";
+  namespace = "mantis-kevm";
 
   vault = {
     policies = [ "nomad-cluster" ];
@@ -297,10 +297,11 @@ let
       networks = [{
         mode = "bridge";
         ports = {
-          discovery.to = 6000;
-          metrics.to = 7000;
-          rpc.to = 8000;
-          server.to = 9000;
+          discovery.to = 2000;
+          metrics.to = 3000;
+          rpc.to = 4000;
+          server.to = 5000;
+          vm.to = 6000;
         };
       }];
 
@@ -420,12 +421,12 @@ let
         inherit vault;
 
         config = {
-          image = dockerImages.mantis;
+          image = dockerImages.mantis-kevm;
           args = [ "-Dconfig.file=running.conf" ];
           ports = [ "rpc" "server" "metrics" ];
           labels = [{
             inherit namespace name;
-            imageTag = dockerImages.mantis.image.imageTag;
+            imageTag = dockerImages.mantis-kevm.image.imageTag;
           }];
 
           logging = {
@@ -478,6 +479,9 @@ let
               {{ end -}}
             ]
 
+            mantis.blockchains.testnet-internal-nomad.custom-genesis-file = "{{ env "NOMAD_TASK_DIR" }}/genesis.json"
+            mantis.blockchains.testnet-internal-nomad.ecip1098-block-number = 0
+            mantis.blockchains.testnet-internal-nomad.ecip1097-block-number = 0
             mantis.blockchains.testnet-internal-nomad.checkpoint-public-keys = [
               ${
                 lib.concatMapStringsSep "," (x: ''
@@ -488,10 +492,9 @@ let
               }
             ]
 
-            mantis.consensus.mining-enabled = true
             mantis.client-id = "${name}"
             mantis.consensus.coinbase = "{{ with secret "kv/data/nomad-cluster/${namespace}/${name}/coinbase" }}{{ .Data.data.value }}{{ end }}"
-            mantis.node-key-file = "{{ env "NOMAD_SECRETS_DIR" }}/secret-key"
+            mantis.consensus.mining-enabled = true
             mantis.datadir = "/local/mantis"
             mantis.ethash.ethash-dir = "/local/ethash"
             mantis.metrics.enabled = true
@@ -502,10 +505,13 @@ let
             mantis.network.rpc.http.interface = "0.0.0.0"
             mantis.network.rpc.http.port = {{ env "NOMAD_PORT_rpc" }}
             mantis.network.server-address.port = {{ env "NOMAD_PORT_server" }}
-            mantis.blockchains.testnet-internal-nomad.custom-genesis-file = "{{ env "NOMAD_TASK_DIR" }}/genesis.json"
-
-            mantis.blockchains.testnet-internal-nomad.ecip1098-block-number = 0
-            mantis.blockchains.testnet-internal-nomad.ecip1097-block-number = 0
+            mantis.node-key-file = "{{ env "NOMAD_SECRETS_DIR" }}/secret-key"
+            mantis.vm.external.executable-path = "/bin/kevm-vm"
+            mantis.vm.external.host = "0.0.0.0"
+            mantis.vm.external.port = {{ env "NOMAD_PORT_VM" }}
+            mantis.vm.external.run-vm = true
+            mantis.vm.external.vm-type = "kevm"
+            mantis.vm.mode = "external"
           '';
           changeMode = "noop";
           destination = "local/mantis.conf";

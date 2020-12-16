@@ -7,6 +7,13 @@
 * See the [bitte](https://github.com/input-output-hk/bitte) and [bitte-cli](https://github.com/input-output-hk/bitte-cli) repos for information on the underlying stack technology which includes: Vault, Consul, Nomad, Grafana, Telegraf, VictoriaMetrics, Loki and more.
 
 
+make encrypted/nix-public-key-file
+bitte terraform network plan
+bitte terraform network apply
+bitte terraform core plan
+bitte terraform core apply
+
+
 ## Getting Started for Developers
 
 ### Nix Installation

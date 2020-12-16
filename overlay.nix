@@ -455,7 +455,7 @@ in {
   '';
 
   inherit ((self.inputs.nixpkgs.legacyPackages.${system}).dockerTools)
-    buildImage buildLayeredImage shadowSetup;
+    buildImage buildLayeredImage pullImage shadowSetup;
 
   mkEnv = lib.mapAttrsToList (key: value: "${key}=${value}");
 }

@@ -26,20 +26,18 @@ in {
     };
   };
 
-  services.nomad.namespaces = {
-    mantis-kevm.description = "Mantis KEVM";
-  };
+  services.nomad.namespaces = { mantis-kevm.description = "Mantis KEVM"; };
 
   cluster = {
     name = "mantis-kevm";
 
-    adminNames = [ ];
+    adminNames = [ "michael.fellinger" ];
     developerGithubNames = [ ];
     developerGithubTeamNames = [ ];
     domain = "kevm.dev.cardano.org";
     kms =
       "arn:aws:kms:eu-west-1:685182209482:key/94396370-fc8f-4892-98f8-1990429885b9";
-    s3Bucket = "iohk-mantis-kevm-bitte";
+    s3Bucket = "iohk-mantis-kevm";
     terraformOrganization = "mantis-kevm";
 
     s3CachePubKey = lib.fileContents ../../../encrypted/nix-public-key-file;
@@ -48,6 +46,10 @@ in {
     autoscalingGroups = listToAttrs (forEach [
       {
         region = "eu-central-1";
+        desiredCapacity = 1;
+      }
+      {
+        region = "us-east-2";
         desiredCapacity = 1;
       }
       {
