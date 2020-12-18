@@ -1,5 +1,5 @@
-{ lib, domain, mkEnv, buildImage, pullImage, writeShellScript, mantis, coreutils
-, gnused, gnugrep, curl, debugUtils, procps, diffutils }:
+{ lib, domain, mkEnv, buildImage, pullImage, writeShellScript, debugUtils
+, awscli }:
 let
   entrypoint = writeShellScript "mantis" ''
     set -exuo pipefail
@@ -9,10 +9,27 @@ let
     cd "$NOMAD_TASK_DIR"
     name="java"
 
+    if [ -f "ethash/$DAG_NAME" ]; then
+      echo "found existing DAG"
+      sha256sum "ethash/$DAG_NAME"
+    else
+      mkdir -p ethash
+      aws \
+        --endpoint-url "$MONITORING_ADDR" \
+        s3 cp \
+        "s3://mantis-kevm-dag/$DAG_NAME" \
+        "ethash/$DAG_NAME" \
+      || echo "Unable to download DAG, skipping."
+    fi
+
     set +x
     until [ "$(grep -c enode mantis.conf)" -ge "$REQUIRED_PEER_COUNT" ]; do
       sleep 1
     done
+
+    delay="$((REQUIRED_PEER_COUNT * 100))"
+    echo "waiting for $delay seconds before start"
+    sleep "$delay"
     set -x
 
     ulimit -c unlimited
@@ -20,11 +37,14 @@ let
 
     (
       while true; do
+        set +x
         while diff -u running.conf mantis.conf > /dev/stderr; do
-          sleep 300
+          sleep 900
         done
+        set -x
 
         if ! diff -u running.conf mantis.conf > /dev/stderr; then
+          echo "Found updated config file, restarting Mantis"
           cp mantis.conf running.conf
           pkill "$name" || true
         fi
@@ -48,12 +68,16 @@ let
     finalImageTag = "2020-kevm";
     finalImageName = "inputoutput/mantis";
   };
+
+  mantis-kevm-deps = buildImage {
+    name = "docker.${domain}/mantis-kevm-deps";
+    fromImage = mantis-kevm-base;
+    contents = debugUtils ++ [ awscli ];
+  };
 in {
   mantis-kevm = buildImage {
     name = "docker.${domain}/mantis-kevm";
-    fromImage = mantis-kevm-base;
-    contents = debugUtils ++ [ coreutils gnugrep gnused curl procps diffutils ];
+    fromImage = mantis-kevm-deps;
     config.Entrypoint = [ entrypoint ];
   };
 }
-

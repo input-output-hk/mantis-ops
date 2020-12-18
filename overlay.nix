@@ -53,6 +53,32 @@ in {
   # - change in the genesis file here
   # Requires an update on the mantis repository and viceversa
   generate-mantis-keys = let
+    genesis = {
+      difficulty = "0x1000";
+      extraData =
+        "0x11bbe8db4e347b4e8c937c1c8370e4b5ed33adb3db69cbdb7a38e1e50b1b82fa";
+      gasLimit = "0x5000000";
+      nonce = "0x0000000000000042";
+      ommersHash =
+        "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347";
+      timestamp = "0x5FDB2B16";
+      coinbase = "0x0000000000000000000000000000000000000000";
+      mixHash =
+        "0x0000000000000000000000000000000000000000000000000000000000000000";
+      alloc = {
+        "25c0bb1a5203af87869951aef7cf3fedd8e330fc" = {
+          _comment = {
+            prvKey =
+              "1167a41c432d1a494408b8fdeecd79bff89a5689925606dff8adf01f4bf92922";
+            pubKey =
+              "3dfbd16d74816ad656f6c98e2a6634ca1930b5fc450eb93ca0a92574a30d00ff8eefd9d1cc3cd81cbb021b3f29abbbabfd29da7feef93f40f63a1e512c240517";
+          };
+          balance =
+            "1606938044258990275541962092341162602522202993782792835301376";
+        };
+      };
+    };
+
     mantisConfigJson = {
       mantis = {
         consensus.mining-enabled = false;
@@ -173,6 +199,7 @@ in {
 
         coinbase="$(generateCoinbase "$secretKey")"
         vault kv put "$coinbasePath" "value=$coinbase"
+        echo "$coinbase" > "$coinbaseFile"
 
         vault kv put "$accountPath" - < "$tmpdir"/.mantis/testnet-internal-nomad/keystore/*"$coinbase"
       else
@@ -206,7 +233,7 @@ in {
           vault kv put "$obftSecretKeyPath" "value=$obftSecretKey"
         else
           echo "Downloading OBFT keys"
-          obftSecretKey="$(vault kv get -field value "obftSecretKeyPath")"
+          obftSecretKey="$(vault kv get -field value "$obftSecretKeyPath")"
           echo "$obftSecretKey" > "$obftKeyFile"
           echo "$obftPublicKey" >> "$obftKeyFile"
         fi
@@ -215,21 +242,7 @@ in {
     done
 
     read -r genesis <<EOF
-      ${
-        builtins.toJSON {
-          extraData = "0x00";
-          nonce = "0x0000000000000042";
-          gasLimit = "0x7A1200";
-          difficulty = "0xF4240";
-          ommersHash =
-            "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347";
-          timestamp = "0x5FA34080";
-          coinbase = "0x0000000000000000000000000000000000000000";
-          mixHash =
-            "0x0000000000000000000000000000000000000000000000000000000000000000";
-          alloc = { };
-        }
-      }
+      ${builtins.toJSON genesis}
     EOF
 
     for count in $(seq "$desired"); do
@@ -241,7 +254,9 @@ in {
       genesis="$updatedGenesis"
     done
 
-    echo "$genesis" | vault kv put "$genesisPath" -
+    echo "$genesis" | jq . \
+    | tee "secrets/$prefix/genesis.json" \
+    | vault kv put "$genesisPath" -
   '';
 
   generate-mantis-qa-genesis =
@@ -326,6 +341,9 @@ in {
       final.nixFlakes
       final.jq
       final.fd
+      final.go
+      final.gopls
+      final.gocode
       # final.crystal
       # final.pkgconfig
       # final.openssl

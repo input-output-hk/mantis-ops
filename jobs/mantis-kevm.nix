@@ -292,8 +292,8 @@ let
   };
 
   mkMantis = { name, resources, count ? 1, templates, serviceName, tags ? [ ]
-    , serverMeta ? { }, meta ? { }, discoveryMeta ? { }, requiredPeerCount
-    , services ? { } }: {
+    , serverMeta ? { }, meta ? { }, discoveryMeta ? { }, rpcMeta ? { }
+    , requiredPeerCount, services ? { } }: {
       inherit count;
 
       networks = [{
@@ -381,7 +381,11 @@ let
         "${serviceName}-rpc" = {
           addressMode = "host";
           portLabel = "rpc";
-          tags = [ "rpc" namespace serviceName name mantis-source.rev ];
+          tags = [ "rpc" namespace serviceName name mantis-source.rev ] ++ tags;
+          meta = {
+            inherit name;
+            publicIp = "\${attr.unique.platform.aws.public-ipv4}";
+          } // rpcMeta;
         };
 
         "${serviceName}-discovery" = {
@@ -451,8 +455,8 @@ let
       };
     };
 
-  mkMiner = { name, publicDiscoveryPort, publicServerPort, requiredPeerCount ? 0
-    , instanceId ? null }:
+  mkMiner = { name, publicDiscoveryPort, publicServerPort, publicRpcPort
+    , requiredPeerCount ? 0, instanceId ? null }:
     lib.nameValuePair name (mkMantis {
       resources = {
         # For c5.2xlarge in clusters/mantis/testnet/default.nix, the url ref below
@@ -474,6 +478,8 @@ let
 
             mantis {
               datadir = "/local/mantis"
+
+              node-key-file = "{{ env "NOMAD_SECRETS_DIR" }}/secret-key"
 
               network {
                 server-address {
@@ -606,8 +612,7 @@ let
 
               sync {
                 do-fast-sync = false
-                broadcast-new-block-hashes = false
-                sync-retry-interval = 100 days
+                broadcast-new-block-hashes = true
               }
 
               metrics {
@@ -637,6 +642,19 @@ let
           changeMode = "restart";
           splay = "15m";
         }
+        {
+          data = ''
+            AWS_ACCESS_KEY_ID="{{with secret "kv/data/nomad-cluster/restic"}}{{.Data.data.aws_access_key_id}}{{end}}"
+            AWS_DEFAULT_REGION="us-east-1"
+            AWS_SECRET_ACCESS_KEY="{{with secret "kv/data/nomad-cluster/restic"}}{{.Data.data.aws_secret_access_key}}{{end}}"
+            MONITORING_ADDR="http://{{ with node "monitoring" }}{{ .Node.Address }}{{ end }}:9000"
+            MONITORING_URL="http://{{ with node "monitoring" }}{{ .Node.Address }}{{ end }}:8428/api/v1/query"
+            DAG_NAME="full-R23-0000000000000000"
+          '';
+          env = true;
+          destination = "secrets/env.txt";
+          changeMode = "noop";
+        }
         genesisJson
       ];
 
@@ -659,6 +677,15 @@ let
         ingressMode = "tcp";
         ingressServer =
           "_${namespace}-mantis-miner._${name}-discovery.service.consul";
+      };
+
+      rpcMeta = {
+        ingressHost = "${name}.${domain}";
+        ingressPort = toString publicRpcPort;
+        ingressBind = "*:443";
+        ingressMode = "http";
+        ingressServer =
+          "_${namespace}-mantis-miner-rpc._${name}.service.consul";
       };
     });
 
@@ -823,8 +850,7 @@ let
 
               sync {
                 do-fast-sync = false
-                broadcast-new-block-hashes = false
-                sync-retry-interval = 100 days
+                broadcast-new-block-hashes = true
               }
 
               metrics {
@@ -845,15 +871,6 @@ let
         genesisJson
       ];
     };
-
-  amountOfMiners = 5;
-
-  miners = lib.forEach (lib.range 1 amountOfMiners) (num: {
-    name = "mantis-${toString num}";
-    requiredPeerCount = builtins.length miners;
-    publicServerPort = 9000 + num; # routed through haproxy/ingress
-    publicDiscoveryPort = 9500 + num; # routed through haproxy/ingress
-  });
 
   explorer = let name = "${namespace}-explorer";
   in {
@@ -1390,18 +1407,51 @@ let
     canary = 0;
     stagger = "1m";
   };
-in {
-  "${namespace}-mantis" = mkNomadJob "mantis" {
+
+  amountOfMiners = 5;
+
+  miners = lib.forEach (lib.range 1 amountOfMiners) (num: {
+    name = "mantis-${toString num}";
+    requiredPeerCount = num - 1;
+    publicServerPort = 9000 + num; # routed through haproxy/ingress
+    publicDiscoveryPort = 9500 + num; # routed through haproxy/ingress
+    publicRpcPort = 10000 + num; # routed through haproxy/ingress
+  });
+
+  minerJobs = lib.listToAttrs (lib.forEach miners (miner: {
+    name = "${namespace}-${miner.name}";
+    value = mkNomadJob miner.name {
+      datacenters = [ "us-east-2" "eu-central-1" ];
+      type = "service";
+      inherit namespace;
+
+      update = updateOneAtATime;
+
+      taskGroups = lib.listToAttrs [ (mkMiner miner) ];
+    };
+  }));
+in minerJobs // {
+  # "${namespace}-mantis" = mkNomadJob "mantis-1" {
+  #   datacenters = [ "us-east-2" "eu-central-1" ];
+  #   type = "service";
+  #   inherit namespace;
+  #
+  #   update = updateOneAtATime;
+  #
+  #   taskGroups = let
+  #     minerTaskGroups = lib.listToAttrs (map mkMiner miners);
+  #     passiveTaskGroups = { passive = mkPassive 3; };
+  #   in minerTaskGroups // passiveTaskGroups;
+  # };
+
+  "${namespace}-mantis-passive" = mkNomadJob "mantis-passive" {
     datacenters = [ "us-east-2" "eu-central-1" ];
     type = "service";
     inherit namespace;
 
     update = updateOneAtATime;
 
-    taskGroups = let
-      minerTaskGroups = lib.listToAttrs (map mkMiner miners);
-      passiveTaskGroups = { passive = mkPassive 3; };
-    in minerTaskGroups // passiveTaskGroups;
+    taskGroups = { passive = mkPassive 3; };
   };
 
   "${namespace}-morpho" = mkNomadJob "morpho" {
