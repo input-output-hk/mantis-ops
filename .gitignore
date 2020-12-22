@@ -4,3 +4,4 @@ secrets/
 cert.config
 config.tf.json
 result/
+result
