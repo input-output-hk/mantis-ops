@@ -15,8 +15,8 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": 6,
-  "iteration": 1607459558539,
+  "id": null,
+  "iteration": 1608333340896,
   "links": [],
   "panels": [
     {
@@ -34,6 +34,46 @@
       "type": "row"
     },
     {
+      "alert": {
+        "alertRuleTags": {},
+        "conditions": [
+          {
+            "evaluator": {
+              "params": [
+                1
+              ],
+              "type": "lt"
+            },
+            "operator": {
+              "type": "and"
+            },
+            "query": {
+              "params": [
+                "B",
+                "5m",
+                "now"
+              ]
+            },
+            "reducer": {
+              "params": [],
+              "type": "avg"
+            },
+            "type": "query"
+          }
+        ],
+        "executionErrorState": "alerting",
+        "for": "10m",
+        "frequency": "1m",
+        "handler": 1,
+        "message": "mantis-testnet: The average cluster block rate per minute is under 1 for a 10 minute period",
+        "name": "[Mantis] Cluster Block Alert",
+        "noDataState": "alerting",
+        "notifications": [
+          {
+            "uid": "LYnzSR0Gk"
+          }
+        ]
+      },
       "aliasColors": {},
       "bars": false,
       "dashLength": 10,
@@ -41,7 +81,14 @@
       "datasource": "VictoriaMetrics",
       "fieldConfig": {
         "defaults": {
-          "custom": {}
+          "custom": {},
+          "links": [
+            {
+              "targetBlank": true,
+              "title": "Logs",
+              "url": "https://monitoring.mantis.ws/d/AD0cPtTMz/mantis-log?orgId=1&${__url_time_range}&var-namespace=${namespace}&var-node=${node}"
+            }
+          ]
         },
         "overrides": []
       },
@@ -54,7 +101,7 @@
         "y": 1
       },
       "hiddenSeries": false,
-      "id": 48,
+      "id": 121,
       "legend": {
         "avg": false,
         "current": false,
@@ -68,15 +115,10 @@
       "linewidth": 1,
       "nullPointMode": "null",
       "options": {
-        "dataLinks": [
-          {
-            "targetBlank": true,
-            "title": "Logs",
-            "url": "https://monitoring.kevm.dev.cardano.org/d/AD0cPtTMz/mantis-log?orgId=1&${__url_time_range}&var-namespace=${namespace}&var-node=${node}"
-          }
-        ]
+        "alertThreshold": true
       },
       "percentage": false,
+      "pluginVersion": "7.3.5",
       "pointradius": 2,
       "points": false,
       "renderer": "flot",
@@ -87,12 +129,28 @@
       "targets": [
         {
           "expr": "app_sync_block_number_gauge_gauge{namespace=\"$namespace\"}",
+          "hide": false,
           "interval": "",
           "legendFormat": "{{client_id}}",
           "refId": "A"
+        },
+        {
+          "expr": "avg(rate(app_sync_block_number_gauge_gauge{namespace=\"mantis-testnet\"}[5m]) * 60)",
+          "hide": true,
+          "interval": "",
+          "legendFormat": "{{client_id}}",
+          "refId": "B"
         }
       ],
-      "thresholds": [],
+      "thresholds": [
+        {
+          "colorMode": "critical",
+          "fill": true,
+          "line": true,
+          "op": "lt",
+          "value": 1
+        }
+      ],
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
@@ -144,7 +202,8 @@
       "datasource": "VictoriaMetrics",
       "fieldConfig": {
         "defaults": {
-          "custom": {}
+          "custom": {},
+          "links": []
         },
         "overrides": []
       },
@@ -171,9 +230,10 @@
       "linewidth": 1,
       "nullPointMode": "null",
       "options": {
-        "dataLinks": []
+        "alertThreshold": true
       },
       "percentage": false,
+      "pluginVersion": "7.3.5",
       "pointradius": 2,
       "points": false,
       "renderer": "flot",
@@ -185,7 +245,7 @@
         {
           "expr": "app_sync_block_checkpoint_number_gauge_gauge",
           "interval": "",
-          "legendFormat": "",
+          "legendFormat": "{{client_id}}",
           "refId": "A"
         }
       ],
@@ -243,7 +303,8 @@
       "description": "",
       "fieldConfig": {
         "defaults": {
-          "custom": {}
+          "custom": {},
+          "links": []
         },
         "overrides": []
       },
@@ -271,9 +332,10 @@
       "links": [],
       "nullPointMode": "null",
       "options": {
-        "dataLinks": []
+        "alertThreshold": true
       },
       "percentage": false,
+      "pluginVersion": "7.3.5",
       "pointradius": 2,
       "points": false,
       "renderer": "flot",
@@ -334,14 +396,62 @@
       }
     },
     {
+      "alert": {
+        "alertRuleTags": {},
+        "conditions": [
+          {
+            "evaluator": {
+              "params": [
+                100
+              ],
+              "type": "gt"
+            },
+            "operator": {
+              "type": "and"
+            },
+            "query": {
+              "params": [
+                "B",
+                "5m",
+                "now"
+              ]
+            },
+            "reducer": {
+              "params": [],
+              "type": "avg"
+            },
+            "type": "query"
+          }
+        ],
+        "executionErrorState": "alerting",
+        "for": "5m",
+        "frequency": "1m",
+        "handler": 1,
+        "message": "mantis-testnet: The average block time between blocks for a node in the cluster is above 100 seconds for a 5 minute period",
+        "name": "[Mantis] Block Alert",
+        "noDataState": "alerting",
+        "notifications": [
+          {
+            "uid": "LYnzSR0Gk"
+          }
+        ]
+      },
       "aliasColors": {},
       "bars": false,
       "dashLength": 10,
       "dashes": false,
       "datasource": "VictoriaMetrics",
+      "description": "The time between mined blocks in seconds",
       "fieldConfig": {
         "defaults": {
-          "custom": {}
+          "custom": {},
+          "links": [
+            {
+              "targetBlank": true,
+              "title": "Logs",
+              "url": "https://monitoring.mantis.ws/d/AD0cPtTMz/mantis-log?orgId=1&${__url_time_range}&var-namespace=${namespace}&var-node=${node}"
+            }
+          ]
         },
         "overrides": []
       },
@@ -352,6 +462,620 @@
         "w": 12,
         "x": 0,
         "y": 15
+      },
+      "hiddenSeries": false,
+      "id": 119,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "nullPointMode": "null",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "7.3.5",
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "app_sync_block_timeBetweenParent_seconds_gauge_gauge{namespace=\"$namespace\"}",
+          "hide": false,
+          "interval": "",
+          "legendFormat": "{{client_id}}",
+          "refId": "A"
+        },
+        {
+          "expr": "app_sync_block_timeBetweenParent_seconds_gauge_gauge{namespace=\"mantis-testnet\"}",
+          "hide": true,
+          "interval": "",
+          "legendFormat": "{{client_id}}",
+          "refId": "B"
+        }
+      ],
+      "thresholds": [
+        {
+          "colorMode": "critical",
+          "fill": true,
+          "line": true,
+          "op": "gt",
+          "value": 100
+        }
+      ],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "Time between blocks",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "$$hashKey": "object:76",
+          "decimals": 0,
+          "format": "none",
+          "label": "",
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "$$hashKey": "object:77",
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": false
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "alert": {
+        "alertRuleTags": {},
+        "conditions": [
+          {
+            "evaluator": {
+              "params": [
+                5
+              ],
+              "type": "gt"
+            },
+            "operator": {
+              "type": "and"
+            },
+            "query": {
+              "params": [
+                "B",
+                "5m",
+                "now"
+              ]
+            },
+            "reducer": {
+              "params": [],
+              "type": "avg"
+            },
+            "type": "query"
+          },
+          {
+            "evaluator": {
+              "params": [
+                10
+              ],
+              "type": "gt"
+            },
+            "operator": {
+              "type": "or"
+            },
+            "query": {
+              "params": [
+                "C",
+                "5m",
+                "now"
+              ]
+            },
+            "reducer": {
+              "params": [],
+              "type": "avg"
+            },
+            "type": "query"
+          }
+        ],
+        "executionErrorState": "alerting",
+        "for": "5m",
+        "frequency": "1m",
+        "handler": 1,
+        "message": "mantis-ops: There have been more than 5 single node or 10 cluster wide data absences in the past hour on mantis-testnet.",
+        "name": "[Mantis] Data Gaps in 1 hr alert",
+        "noDataState": "alerting",
+        "notifications": []
+      },
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "VictoriaMetrics",
+      "description": "Shows the number of absences in the block number metric that occur over a 1 hour period",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {},
+          "links": [
+            {
+              "targetBlank": true,
+              "title": "Logs",
+              "url": "https://monitoring.mantis.ws/d/AD0cPtTMz/mantis-log?orgId=1&${__url_time_range}&var-namespace=${namespace}&var-node=${node}"
+            }
+          ]
+        },
+        "overrides": []
+      },
+      "fill": 0,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 12,
+        "y": 15
+      },
+      "hiddenSeries": false,
+      "id": 122,
+      "interval": "",
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "maxDataPoints": 10000,
+      "nullPointMode": "null",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "7.3.5",
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "increase((absent(app_sync_block_number_gauge_gauge{namespace=\"$namespace\"}) default 0)[1h]) default 0",
+          "hide": false,
+          "interval": "",
+          "legendFormat": "{{client_id}}",
+          "refId": "A"
+        },
+        {
+          "expr": "increase((absent(app_sync_block_number_gauge_gauge{namespace=\"mantis-testnet\"}) default 0)[1h:10s]) default 0",
+          "hide": true,
+          "interval": "",
+          "legendFormat": "{{client_id}}",
+          "refId": "B"
+        },
+        {
+          "expr": "sum(increase((absent(app_sync_block_number_gauge_gauge{namespace=\"mantis-testnet\"}) default 0)[1h:10s])) default 0",
+          "hide": true,
+          "instant": false,
+          "interval": "",
+          "legendFormat": "{{client_id}}",
+          "refId": "C"
+        }
+      ],
+      "thresholds": [
+        {
+          "colorMode": "critical",
+          "fill": true,
+          "line": true,
+          "op": "gt",
+          "value": 5
+        }
+      ],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "Data Absences in 1 hr",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "$$hashKey": "object:76",
+          "decimals": 0,
+          "format": "none",
+          "label": "",
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "$$hashKey": "object:77",
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": false
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "alert": {
+        "alertRuleTags": {},
+        "conditions": [
+          {
+            "evaluator": {
+              "params": [
+                0.1
+              ],
+              "type": "lt"
+            },
+            "operator": {
+              "type": "and"
+            },
+            "query": {
+              "params": [
+                "B",
+                "5m",
+                "now"
+              ]
+            },
+            "reducer": {
+              "params": [],
+              "type": "avg"
+            },
+            "type": "query"
+          }
+        ],
+        "executionErrorState": "alerting",
+        "for": "15m",
+        "frequency": "1m",
+        "handler": 1,
+        "message": "mantis-testnet: Mantis testnet cluster has failed to complete an hourly backup.",
+        "name": "[Mantis] Completed Backup Jobs alert",
+        "noDataState": "alerting",
+        "notifications": []
+      },
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "VictoriaMetrics",
+      "description": "Mantis completed backups in a 1 hr period",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {},
+          "links": [],
+          "unit": "jobs/hr"
+        },
+        "overrides": []
+      },
+      "fill": 0,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 0,
+        "y": 22
+      },
+      "hiddenSeries": false,
+      "id": 125,
+      "interval": "",
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "nullPointMode": "null",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "7.3.5",
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "increase(sum by (namespace) (nomad_client_allocs_complete_value{job=~\"backup.*\", namespace=\"$namespace\"} default 0)[1h])",
+          "hide": false,
+          "interval": "",
+          "legendFormat": "{{namespace}}",
+          "refId": "A"
+        },
+        {
+          "expr": "increase(sum by (namespace) (nomad_client_allocs_complete_value{job=~\"backup.*\", namespace=\"mantis-testnet\"} default 0)[1h])",
+          "hide": true,
+          "interval": "",
+          "legendFormat": "{{namespace}}",
+          "refId": "B"
+        }
+      ],
+      "thresholds": [
+        {
+          "colorMode": "critical",
+          "fill": true,
+          "line": true,
+          "op": "lt",
+          "value": 0.1
+        }
+      ],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "Mantis Completed Backup Jobs",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "$$hashKey": "object:76",
+          "decimals": 0,
+          "format": "jobs/hr",
+          "label": "",
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "$$hashKey": "object:77",
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": false
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "alert": {
+        "alertRuleTags": {},
+        "conditions": [
+          {
+            "evaluator": {
+              "params": [
+                0
+              ],
+              "type": "gt"
+            },
+            "operator": {
+              "type": "and"
+            },
+            "query": {
+              "params": [
+                "B",
+                "5m",
+                "now"
+              ]
+            },
+            "reducer": {
+              "params": [],
+              "type": "avg"
+            },
+            "type": "query"
+          }
+        ],
+        "executionErrorState": "alerting",
+        "for": "5m",
+        "frequency": "1m",
+        "handler": 1,
+        "message": "mantis-testnet: Mantis testnet cluster has failed an hourly backup job.",
+        "name": "[Mantis] Failed Backup Jobs alert",
+        "noDataState": "alerting",
+        "notifications": []
+      },
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "VictoriaMetrics",
+      "description": "Mantis failed backups in a 1 hr period",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {},
+          "links": [],
+          "unit": "jobs/hr"
+        },
+        "overrides": []
+      },
+      "fill": 0,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 12,
+        "y": 22
+      },
+      "hiddenSeries": false,
+      "id": 126,
+      "interval": "",
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "nullPointMode": "null",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "7.3.5",
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "increase(sum by (namespace) (union(nomad_client_allocs_failed_value{job=~\"backup.*\", namespace=\"$namespace\"},0))[1h])",
+          "hide": false,
+          "interval": "",
+          "legendFormat": "{{namespace}}",
+          "refId": "A"
+        },
+        {
+          "expr": "increase(sum by (namespace) (union(nomad_client_allocs_failed_value{job=~\"backup.*\", namespace=\"mantis-testnet\"},0))[1h])",
+          "hide": true,
+          "interval": "",
+          "legendFormat": "{{namespace}}",
+          "refId": "B"
+        }
+      ],
+      "thresholds": [
+        {
+          "colorMode": "critical",
+          "fill": true,
+          "line": true,
+          "op": "gt",
+          "value": 0
+        }
+      ],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "Mantis Failed Backup Jobs",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "$$hashKey": "object:76",
+          "decimals": 0,
+          "format": "jobs/hr",
+          "label": "",
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "$$hashKey": "object:77",
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": false
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "VictoriaMetrics",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {},
+          "links": []
+        },
+        "overrides": []
+      },
+      "fill": 0,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 0,
+        "y": 29
       },
       "hiddenSeries": false,
       "id": 117,
@@ -368,9 +1092,10 @@
       "linewidth": 1,
       "nullPointMode": "null",
       "options": {
-        "dataLinks": []
+        "alertThreshold": true
       },
       "percentage": false,
+      "pluginVersion": "7.3.5",
       "pointradius": 2,
       "points": false,
       "renderer": "flot",
@@ -408,7 +1133,7 @@
         {
           "$$hashKey": "object:432",
           "format": "none",
-          "label": "# of transactions",
+          "label": "",
           "logBase": 1,
           "max": null,
           "min": null,
@@ -437,7 +1162,8 @@
       "datasource": "VictoriaMetrics",
       "fieldConfig": {
         "defaults": {
-          "custom": {}
+          "custom": {},
+          "links": []
         },
         "overrides": []
       },
@@ -447,7 +1173,7 @@
         "h": 7,
         "w": 12,
         "x": 12,
-        "y": 15
+        "y": 29
       },
       "hiddenSeries": false,
       "id": 58,
@@ -464,9 +1190,10 @@
       "linewidth": 1,
       "nullPointMode": "null",
       "options": {
-        "dataLinks": []
+        "alertThreshold": true
       },
       "percentage": false,
+      "pluginVersion": "7.3.5",
       "pointradius": 2,
       "points": false,
       "renderer": "flot",
@@ -528,14 +1255,13 @@
     {
       "aliasColors": {},
       "bars": false,
-      "cacheTimeout": null,
       "dashLength": 10,
       "dashes": false,
       "datasource": "VictoriaMetrics",
-      "description": "",
       "fieldConfig": {
         "defaults": {
-          "custom": {}
+          "custom": {},
+          "links": []
         },
         "overrides": []
       },
@@ -545,10 +1271,10 @@
         "h": 7,
         "w": 12,
         "x": 0,
-        "y": 22
+        "y": 36
       },
       "hiddenSeries": false,
-      "id": 64,
+      "id": 56,
       "legend": {
         "avg": false,
         "current": false,
@@ -560,12 +1286,12 @@
       },
       "lines": true,
       "linewidth": 1,
-      "links": [],
       "nullPointMode": "null",
       "options": {
-        "dataLinks": []
+        "alertThreshold": true
       },
       "percentage": false,
+      "pluginVersion": "7.3.5",
       "pointradius": 2,
       "points": false,
       "renderer": "flot",
@@ -575,7 +1301,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "app_sync_block_timeBetweenParent_seconds_gauge_gauge{namespace=\"$namespace\"}",
+          "expr": "app_sync_block_gasUsed_gauge_gauge{namespace=\"$namespace\"}",
           "interval": "",
           "legendFormat": "{{client_id}}",
           "refId": "A"
@@ -585,7 +1311,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "Block time / Time",
+      "title": "Gas used / Time",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -601,22 +1327,22 @@
       },
       "yaxes": [
         {
-          "$$hashKey": "object:574",
-          "format": "s",
-          "label": "block time",
+          "$$hashKey": "object:710",
+          "format": "none",
+          "label": "gas used",
           "logBase": 1,
           "max": null,
           "min": null,
           "show": true
         },
         {
-          "$$hashKey": "object:575",
+          "$$hashKey": "object:711",
           "format": "short",
           "label": null,
           "logBase": 1,
           "max": null,
           "min": null,
-          "show": false
+          "show": true
         }
       ],
       "yaxis": {
@@ -633,7 +1359,8 @@
       "datasource": "VictoriaMetrics",
       "fieldConfig": {
         "defaults": {
-          "custom": {}
+          "custom": {},
+          "links": []
         },
         "overrides": []
       },
@@ -643,7 +1370,7 @@
         "h": 7,
         "w": 12,
         "x": 12,
-        "y": 22
+        "y": 36
       },
       "hiddenSeries": false,
       "id": 52,
@@ -661,10 +1388,10 @@
       "links": [],
       "nullPointMode": "null",
       "options": {
-        "dataLinks": []
+        "alertThreshold": true
       },
       "percentage": false,
-      "pluginVersion": "6.4.4",
+      "pluginVersion": "7.3.5",
       "pointradius": 2,
       "points": false,
       "renderer": "flot",
@@ -735,103 +1462,8 @@
       "datasource": "VictoriaMetrics",
       "fieldConfig": {
         "defaults": {
-          "custom": {}
-        },
-        "overrides": []
-      },
-      "fill": 0,
-      "fillGradient": 0,
-      "gridPos": {
-        "h": 7,
-        "w": 12,
-        "x": 0,
-        "y": 29
-      },
-      "hiddenSeries": false,
-      "id": 56,
-      "legend": {
-        "avg": false,
-        "current": false,
-        "max": false,
-        "min": false,
-        "show": true,
-        "total": false,
-        "values": false
-      },
-      "lines": true,
-      "linewidth": 1,
-      "nullPointMode": "null",
-      "options": {
-        "dataLinks": []
-      },
-      "percentage": false,
-      "pointradius": 2,
-      "points": false,
-      "renderer": "flot",
-      "seriesOverrides": [],
-      "spaceLength": 10,
-      "stack": false,
-      "steppedLine": false,
-      "targets": [
-        {
-          "expr": "app_sync_block_gasUsed_gauge_gauge{namespace=\"$namespace\"}",
-          "interval": "",
-          "legendFormat": "{{client_id}}",
-          "refId": "A"
-        }
-      ],
-      "thresholds": [],
-      "timeFrom": null,
-      "timeRegions": [],
-      "timeShift": null,
-      "title": "Gas used / Time",
-      "tooltip": {
-        "shared": true,
-        "sort": 0,
-        "value_type": "individual"
-      },
-      "type": "graph",
-      "xaxis": {
-        "buckets": null,
-        "mode": "time",
-        "name": null,
-        "show": true,
-        "values": []
-      },
-      "yaxes": [
-        {
-          "$$hashKey": "object:710",
-          "format": "none",
-          "label": "gas used",
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        },
-        {
-          "$$hashKey": "object:711",
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        }
-      ],
-      "yaxis": {
-        "align": false,
-        "alignLevel": null
-      }
-    },
-    {
-      "aliasColors": {},
-      "bars": false,
-      "dashLength": 10,
-      "dashes": false,
-      "datasource": "VictoriaMetrics",
-      "fieldConfig": {
-        "defaults": {
-          "custom": {}
+          "custom": {},
+          "links": []
         },
         "overrides": []
       },
@@ -841,7 +1473,7 @@
         "h": 7,
         "w": 12,
         "x": 12,
-        "y": 29
+        "y": 43
       },
       "hiddenSeries": false,
       "id": 54,
@@ -858,9 +1490,10 @@
       "linewidth": 1,
       "nullPointMode": "null",
       "options": {
-        "dataLinks": []
+        "alertThreshold": true
       },
       "percentage": false,
+      "pluginVersion": "7.3.5",
       "pointradius": 2,
       "points": false,
       "renderer": "flot",
@@ -926,7 +1559,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 36
+        "y": 50
       },
       "id": 99,
       "panels": [
@@ -1465,193 +2098,12 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 37
+        "y": 51
       },
       "id": 77,
       "panels": [],
-      "title": "network",
+      "title": "Network",
       "type": "row"
-    },
-    {
-      "cacheTimeout": null,
-      "colorBackground": false,
-      "colorValue": true,
-      "colors": [
-        "#299c46",
-        "rgba(237, 129, 40, 0.89)",
-        "#d44a3a"
-      ],
-      "datasource": "prometheus",
-      "description": "Apdex given:\n- satisfied count = sent + received - low - high\n- tolerant count = low\n- total count = sent + received\n",
-      "fieldConfig": {
-        "defaults": {
-          "custom": {}
-        },
-        "overrides": []
-      },
-      "format": "none",
-      "gauge": {
-        "maxValue": 100,
-        "minValue": 0,
-        "show": false,
-        "thresholdLabels": false,
-        "thresholdMarkers": true
-      },
-      "gridPos": {
-        "h": 2,
-        "w": 12,
-        "x": 0,
-        "y": 38
-      },
-      "id": 95,
-      "interval": null,
-      "links": [],
-      "mappingType": 1,
-      "mappingTypes": [
-        {
-          "name": "value to text",
-          "value": 1
-        },
-        {
-          "name": "range to text",
-          "value": 2
-        }
-      ],
-      "maxDataPoints": 100,
-      "nullPointMode": "connected",
-      "nullText": null,
-      "postfix": "",
-      "postfixFontSize": "50%",
-      "prefix": "",
-      "prefixFontSize": "50%",
-      "rangeMaps": [
-        {
-          "from": "null",
-          "text": "N/A",
-          "to": "null"
-        }
-      ],
-      "sparkline": {
-        "fillColor": "rgba(31, 118, 189, 0.18)",
-        "full": false,
-        "lineColor": "rgb(31, 120, 193)",
-        "show": false,
-        "ymax": null,
-        "ymin": null
-      },
-      "tableColumn": "",
-      "targets": [
-        {
-          "expr": "(sum(increase(app_network_messages_received_counter_total{instance=\"$node\"}[$__range])) + sum(increase(app_network_messages_sent_counter_total{instance=\"$node\"}[$__range])) - sum(increase(app_network_peers_highSeverityOffense_counter_total{instance=\"$node\"}[$__range])) - sum(increase(app_network_peers_lowSeverityOffense_counter_total{instance=\"$node\"}[$__range])) + sum(increase(app_network_peers_lowSeverityOffense_counter_total{instance=\"$node\"}[$__range])) / 2) / (sum(increase(app_network_messages_received_counter_total{instance=\"$node\"}[$__range])) + sum(increase(app_network_messages_sent_counter_total{instance=\"$node\"}[$__range])))",
-          "interval": "",
-          "legendFormat": "",
-          "refId": "A"
-        }
-      ],
-      "thresholds": "0-1",
-      "timeFrom": null,
-      "timeShift": null,
-      "title": "apdex_network_healthy $node",
-      "type": "singlestat",
-      "valueFontSize": "80%",
-      "valueMaps": [
-        {
-          "op": "=",
-          "text": "N/A",
-          "value": "null"
-        }
-      ],
-      "valueName": "avg"
-    },
-    {
-      "cacheTimeout": null,
-      "colorBackground": false,
-      "colorValue": true,
-      "colors": [
-        "#299c46",
-        "rgba(237, 129, 40, 0.89)",
-        "#C4162A"
-      ],
-      "datasource": "prometheus",
-      "fieldConfig": {
-        "defaults": {
-          "custom": {}
-        },
-        "overrides": []
-      },
-      "format": "none",
-      "gauge": {
-        "maxValue": 100,
-        "minValue": 0,
-        "show": false,
-        "thresholdLabels": false,
-        "thresholdMarkers": true
-      },
-      "gridPos": {
-        "h": 2,
-        "w": 12,
-        "x": 12,
-        "y": 38
-      },
-      "id": 85,
-      "interval": null,
-      "links": [],
-      "mappingType": 1,
-      "mappingTypes": [
-        {
-          "name": "value to text",
-          "value": 1
-        },
-        {
-          "name": "range to text",
-          "value": 2
-        }
-      ],
-      "maxDataPoints": 100,
-      "nullPointMode": "connected",
-      "nullText": null,
-      "postfix": "",
-      "postfixFontSize": "50%",
-      "prefix": "",
-      "prefixFontSize": "50%",
-      "rangeMaps": [
-        {
-          "from": "null",
-          "text": "N/A",
-          "to": "null"
-        }
-      ],
-      "sparkline": {
-        "fillColor": "rgba(31, 118, 189, 0.18)",
-        "full": false,
-        "lineColor": "rgb(31, 120, 193)",
-        "show": false,
-        "ymax": null,
-        "ymin": null
-      },
-      "tableColumn": "",
-      "targets": [
-        {
-          "expr": "app_network_peers_blacklisted_gauge{instance=\"$node\"}",
-          "interval": "",
-          "legendFormat": "",
-          "refId": "A"
-        }
-      ],
-      "thresholds": "",
-      "timeFrom": null,
-      "timeShift": null,
-      "title": "Blacklisted peers $node",
-      "type": "singlestat",
-      "valueFontSize": "80%",
-      "valueMaps": [
-        {
-          "op": "=",
-          "text": "N/A",
-          "value": "null"
-        }
-      ],
-      "valueName": "current"
     },
     {
       "aliasColors": {},
@@ -1661,7 +2113,8 @@
       "datasource": "VictoriaMetrics",
       "fieldConfig": {
         "defaults": {
-          "custom": {}
+          "custom": {},
+          "links": []
         },
         "overrides": []
       },
@@ -1671,7 +2124,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 40
+        "y": 52
       },
       "hiddenSeries": false,
       "id": 83,
@@ -1689,9 +2142,10 @@
       "linewidth": 1,
       "nullPointMode": "connected",
       "options": {
-        "dataLinks": []
+        "alertThreshold": true
       },
       "percentage": false,
+      "pluginVersion": "7.3.5",
       "pointradius": 0.5,
       "points": false,
       "renderer": "flot",
@@ -1759,7 +2213,8 @@
       "datasource": "VictoriaMetrics",
       "fieldConfig": {
         "defaults": {
-          "custom": {}
+          "custom": {},
+          "links": []
         },
         "overrides": []
       },
@@ -1769,7 +2224,7 @@
         "h": 10,
         "w": 8,
         "x": 0,
-        "y": 48
+        "y": 60
       },
       "hiddenSeries": false,
       "id": 87,
@@ -1786,9 +2241,10 @@
       "linewidth": 1,
       "nullPointMode": "null",
       "options": {
-        "dataLinks": []
+        "alertThreshold": true
       },
       "percentage": false,
+      "pluginVersion": "7.3.5",
       "pointradius": 2,
       "points": false,
       "renderer": "flot",
@@ -1798,9 +2254,9 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "",
+          "expr": "app_network_peers_pending_gauge_gauge{namespace=\"$namespace\"}",
           "interval": "",
-          "legendFormat": "",
+          "legendFormat": "{{client_id}}",
           "refId": "A"
         }
       ],
@@ -1808,7 +2264,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "Incoming total peers",
+      "title": "Pending total peers",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -1853,7 +2309,8 @@
       "datasource": "VictoriaMetrics",
       "fieldConfig": {
         "defaults": {
-          "custom": {}
+          "custom": {},
+          "links": []
         },
         "overrides": []
       },
@@ -1863,7 +2320,7 @@
         "h": 10,
         "w": 8,
         "x": 8,
-        "y": 48
+        "y": 60
       },
       "hiddenSeries": false,
       "id": 89,
@@ -1880,9 +2337,10 @@
       "linewidth": 1,
       "nullPointMode": "null",
       "options": {
-        "dataLinks": []
+        "alertThreshold": true
       },
       "percentage": false,
+      "pluginVersion": "7.3.5",
       "pointradius": 2,
       "points": false,
       "renderer": "flot",
@@ -1946,10 +2404,11 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "prometheus",
+      "datasource": "VictoriaMetrics",
       "fieldConfig": {
         "defaults": {
-          "custom": {}
+          "custom": {},
+          "links": []
         },
         "overrides": []
       },
@@ -1959,7 +2418,7 @@
         "h": 10,
         "w": 8,
         "x": 16,
-        "y": 48
+        "y": 60
       },
       "hiddenSeries": false,
       "id": 116,
@@ -1976,9 +2435,10 @@
       "linewidth": 1,
       "nullPointMode": "null",
       "options": {
-        "dataLinks": []
+        "alertThreshold": true
       },
       "percentage": false,
+      "pluginVersion": "7.3.5",
       "pointradius": 2,
       "points": false,
       "renderer": "flot",
@@ -1988,9 +2448,10 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "app_network_peers_incoming_total_gauge - app_network_peers_incoming_handshaked_gauge",
+          "expr": "app_network_peers_incoming_handshaked_gauge_gauge{client_id=\"$node\",namespace=\"$namespace\"}",
           "interval": "",
-          "legendFormat": "{{instance}}",
+          "legendFormat": "{{client_id}}",
+          "queryType": "randomWalk",
           "refId": "A"
         }
       ],
@@ -1998,7 +2459,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "Incoming pending peers",
+      "title": "Incoming $node handshaked peers",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -2043,7 +2504,8 @@
       "datasource": "VictoriaMetrics",
       "fieldConfig": {
         "defaults": {
-          "custom": {}
+          "custom": {},
+          "links": []
         },
         "overrides": []
       },
@@ -2053,7 +2515,7 @@
         "h": 11,
         "w": 8,
         "x": 0,
-        "y": 58
+        "y": 70
       },
       "hiddenSeries": false,
       "id": 91,
@@ -2070,9 +2532,10 @@
       "linewidth": 1,
       "nullPointMode": "null",
       "options": {
-        "dataLinks": []
+        "alertThreshold": true
       },
       "percentage": false,
+      "pluginVersion": "7.3.5",
       "pointradius": 2,
       "points": false,
       "renderer": "flot",
@@ -2080,11 +2543,19 @@
       "spaceLength": 10,
       "stack": false,
       "steppedLine": false,
+      "targets": [
+        {
+          "expr": "app_network_peers_blacklisted_gauge_gauge{namespace=\"$namespace\"}",
+          "interval": "",
+          "legendFormat": "{{client_id}}",
+          "refId": "A"
+        }
+      ],
       "thresholds": [],
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "Outgoing total peers",
+      "title": "Deny listed peers",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -2129,7 +2600,8 @@
       "datasource": "VictoriaMetrics",
       "fieldConfig": {
         "defaults": {
-          "custom": {}
+          "custom": {},
+          "links": []
         },
         "overrides": []
       },
@@ -2139,7 +2611,7 @@
         "h": 11,
         "w": 8,
         "x": 8,
-        "y": 58
+        "y": 70
       },
       "hiddenSeries": false,
       "id": 93,
@@ -2156,9 +2628,10 @@
       "linewidth": 1,
       "nullPointMode": "null",
       "options": {
-        "dataLinks": []
+        "alertThreshold": true
       },
       "percentage": false,
+      "pluginVersion": "7.3.5",
       "pointradius": 2,
       "points": false,
       "renderer": "flot",
@@ -2222,10 +2695,11 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "prometheus",
+      "datasource": "VictoriaMetrics",
       "fieldConfig": {
         "defaults": {
-          "custom": {}
+          "custom": {},
+          "links": []
         },
         "overrides": []
       },
@@ -2235,7 +2709,7 @@
         "h": 11,
         "w": 8,
         "x": 16,
-        "y": 58
+        "y": 70
       },
       "hiddenSeries": false,
       "id": 115,
@@ -2252,9 +2726,10 @@
       "linewidth": 1,
       "nullPointMode": "null",
       "options": {
-        "dataLinks": []
+        "alertThreshold": true
       },
       "percentage": false,
+      "pluginVersion": "7.3.5",
       "pointradius": 2,
       "points": false,
       "renderer": "flot",
@@ -2264,9 +2739,10 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "app_network_peers_outgoing_total_gauge - app_network_peers_outgoing_handshaked_gauge",
+          "expr": "app_network_peers_outgoing_handshaked_gauge_gauge{client_id=\"$node\",namespace=\"$namespace\"}",
           "interval": "",
-          "legendFormat": "{{instance}}",
+          "legendFormat": "{{client_id}}",
+          "queryType": "randomWalk",
           "refId": "A"
         }
       ],
@@ -2274,7 +2750,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "Outgoing pending peers",
+      "title": "Outgoing $node handshaked peers",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -2321,7 +2797,8 @@
       "description": "",
       "fieldConfig": {
         "defaults": {
-          "custom": {}
+          "custom": {},
+          "links": []
         },
         "overrides": []
       },
@@ -2331,7 +2808,7 @@
         "h": 9,
         "w": 24,
         "x": 0,
-        "y": 69
+        "y": 81
       },
       "hiddenSeries": false,
       "id": 79,
@@ -2349,9 +2826,10 @@
       "links": [],
       "nullPointMode": "null",
       "options": {
-        "dataLinks": []
+        "alertThreshold": true
       },
       "percentage": false,
+      "pluginVersion": "7.3.5",
       "pointradius": 2,
       "points": false,
       "renderer": "flot",
@@ -2421,7 +2899,8 @@
       "datasource": "VictoriaMetrics",
       "fieldConfig": {
         "defaults": {
-          "custom": {}
+          "custom": {},
+          "links": []
         },
         "overrides": []
       },
@@ -2431,7 +2910,7 @@
         "h": 9,
         "w": 24,
         "x": 0,
-        "y": 78
+        "y": 90
       },
       "hiddenSeries": false,
       "id": 81,
@@ -2450,10 +2929,10 @@
       "links": [],
       "nullPointMode": "null",
       "options": {
-        "dataLinks": []
+        "alertThreshold": true
       },
       "percentage": false,
-      "pluginVersion": "6.7.2",
+      "pluginVersion": "7.3.5",
       "pointradius": 2,
       "points": false,
       "renderer": "flot",
@@ -2522,7 +3001,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 87
+        "y": 99
       },
       "id": 72,
       "panels": [
@@ -2554,7 +3033,7 @@
             "h": 3,
             "w": 6,
             "x": 0,
-            "y": 39
+            "y": 88
           },
           "id": 74,
           "interval": null,
@@ -2624,7 +3103,8 @@
           "datasource": "prometheus",
           "fieldConfig": {
             "defaults": {
-              "custom": {}
+              "custom": {},
+              "links": []
             },
             "overrides": []
           },
@@ -2634,7 +3114,7 @@
             "h": 6,
             "w": 18,
             "x": 6,
-            "y": 39
+            "y": 88
           },
           "hiddenSeries": false,
           "id": 97,
@@ -2652,9 +3132,10 @@
           "linewidth": 1,
           "nullPointMode": "null",
           "options": {
-            "dataLinks": []
+            "alertThreshold": true
           },
           "percentage": false,
+          "pluginVersion": "7.3.5",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -2745,7 +3226,7 @@
             "h": 3,
             "w": 6,
             "x": 0,
-            "y": 42
+            "y": 91
           },
           "id": 70,
           "interval": null,
@@ -2854,7 +3335,7 @@
             "h": 5,
             "w": 24,
             "x": 0,
-            "y": 45
+            "y": 94
           },
           "id": 113,
           "options": {
@@ -2869,7 +3350,7 @@
             "showThresholdLabels": false,
             "showThresholdMarkers": false
           },
-          "pluginVersion": "7.0.4",
+          "pluginVersion": "7.3.5",
           "targets": [
             {
               "expr": "",
@@ -2891,7 +3372,8 @@
           "datasource": "prometheus",
           "fieldConfig": {
             "defaults": {
-              "custom": {}
+              "custom": {},
+              "links": []
             },
             "overrides": []
           },
@@ -2901,7 +3383,7 @@
             "h": 7,
             "w": 24,
             "x": 0,
-            "y": 50
+            "y": 99
           },
           "hiddenSeries": false,
           "id": 114,
@@ -2919,10 +3401,10 @@
           "linewidth": 1,
           "nullPointMode": "null",
           "options": {
-            "dataLinks": []
+            "alertThreshold": true
           },
           "percentage": false,
-          "pluginVersion": "6.7.2",
+          "pluginVersion": "7.3.5",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -2994,7 +3476,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 88
+        "y": 100
       },
       "id": 34,
       "panels": [],
@@ -3004,7 +3486,8 @@
     {
       "cacheTimeout": null,
       "colorBackground": false,
-      "colorValue": true,
+      "colorPrefix": false,
+      "colorValue": false,
       "colors": [
         "rgba(245, 54, 54, 0.9)",
         "rgba(237, 129, 40, 0.89)",
@@ -3012,6 +3495,7 @@
       ],
       "datasource": "VictoriaMetrics",
       "decimals": null,
+      "description": "The start time of the process from up to 7 days ago",
       "editable": true,
       "error": false,
       "fieldConfig": {
@@ -3032,7 +3516,7 @@
         "h": 4,
         "w": 6,
         "x": 0,
-        "y": 89
+        "y": 101
       },
       "height": "",
       "id": 18,
@@ -3041,10 +3525,12 @@
       "mappingType": 1,
       "mappingTypes": [
         {
+          "$$hashKey": "object:237",
           "name": "value to text",
           "value": 1
         },
         {
+          "$$hashKey": "object:238",
           "name": "range to text",
           "value": 2
         }
@@ -3069,23 +3555,24 @@
         "lineColor": "rgb(31, 120, 193)",
         "show": false
       },
-      "tableColumn": "{client_id=\"mantis-2\", db=\"telegraf\", host=\"484b4ceb51ba\", namespace=\"mantis-testnet\", url=\"http://10.24.3.235:30104/metrics\"}",
+      "tableColumn": "",
       "targets": [
         {
-          "expr": "process_start_time_seconds_gauge{client_id=\"$node\"}*1000",
+          "expr": "max_over_time(timestamp(absent(app_sync_block_number_gauge_gauge{namespace=\"mantis-testnet\",client_id=~\"mantis-1\"}))[7d:1m]) * 1000",
           "interval": "",
           "legendFormat": "",
           "refId": "A"
         }
       ],
       "thresholds": "",
-      "title": "Start time $node",
+      "title": "Start time",
       "type": "singlestat",
       "valueFontSize": "70%",
       "valueMaps": [
         {
+          "$$hashKey": "object:240",
           "op": "=",
-          "text": "N/A",
+          "text": "> 7 d ago or NA",
           "value": "null"
         }
       ],
@@ -3102,6 +3589,7 @@
       ],
       "datasource": "VictoriaMetrics",
       "decimals": null,
+      "description": "Shows uptime as long as 7 days",
       "editable": true,
       "error": false,
       "fieldConfig": {
@@ -3110,7 +3598,7 @@
         },
         "overrides": []
       },
-      "format": "dateTimeFromNow",
+      "format": "dtdhms",
       "gauge": {
         "maxValue": 100,
         "minValue": 0,
@@ -3122,24 +3610,26 @@
         "h": 4,
         "w": 5,
         "x": 6,
-        "y": 89
+        "y": 101
       },
       "height": "",
       "id": 32,
-      "interval": null,
+      "interval": "1m",
       "links": [],
       "mappingType": 1,
       "mappingTypes": [
         {
+          "$$hashKey": "object:196",
           "name": "value to text",
           "value": 1
         },
         {
+          "$$hashKey": "object:197",
           "name": "range to text",
           "value": 2
         }
       ],
-      "maxDataPoints": 100,
+      "maxDataPoints": 10000,
       "nullPointMode": "connected",
       "nullText": null,
       "postfix": "",
@@ -3159,23 +3649,25 @@
         "lineColor": "rgb(31, 120, 193)",
         "show": false
       },
-      "tableColumn": "{client_id=\"mantis-2\", db=\"telegraf\", host=\"484b4ceb51ba\", namespace=\"mantis-testnet\", url=\"http://10.24.3.235:30104/metrics\"}",
+      "tableColumn": "",
       "targets": [
         {
-          "expr": "process_start_time_seconds_gauge{client_id=\"$node\"}*1000",
+          "expr": "time() - max_over_time(timestamp(absent(app_sync_block_number_gauge_gauge{client_id=\"$node\",namespace=\"$namespace\"}))[7d:30s])",
           "interval": "",
           "legendFormat": "",
           "refId": "A"
         }
       ],
-      "thresholds": "",
+      "thresholds": "3600,86400",
+      "timeFrom": null,
       "title": "Uptime",
       "type": "singlestat",
       "valueFontSize": "70%",
       "valueMaps": [
         {
+          "$$hashKey": "object:199",
           "op": "=",
-          "text": "N/A",
+          "text": "> 7 d or NA",
           "value": "null"
         }
       ],
@@ -3212,7 +3704,7 @@
         "h": 2,
         "w": 5,
         "x": 11,
-        "y": 89
+        "y": 101
       },
       "id": 44,
       "interval": null,
@@ -3250,10 +3742,10 @@
         "ymax": null,
         "ymin": null
       },
-      "tableColumn": "app_sync_block_number_gauge_gauge{client_id=\"mantis-2\", db=\"telegraf\", host=\"484b4ceb51ba\", namespace=\"mantis-testnet\", url=\"http://10.24.3.235:30104/metrics\"}",
+      "tableColumn": "",
       "targets": [
         {
-          "expr": "app_sync_block_number_gauge_gauge{client_id=\"$node\"}",
+          "expr": "max(app_sync_block_number_gauge_gauge{client_id=\"$node\",namespace=\"$namespace\"})",
           "interval": "",
           "legendFormat": "",
           "refId": "A"
@@ -3305,7 +3797,7 @@
         "h": 4,
         "w": 4,
         "x": 16,
-        "y": 89
+        "y": 101
       },
       "id": 60,
       "interval": null,
@@ -3343,10 +3835,10 @@
         "ymax": null,
         "ymin": null
       },
-      "tableColumn": "app_sync_block_timeBetweenParent_seconds_gauge_gauge{client_id=\"mantis-2\", db=\"telegraf\", host=\"484b4ceb51ba\", namespace=\"mantis-testnet\", url=\"http://10.24.3.235:30104/metrics\"}",
+      "tableColumn": "",
       "targets": [
         {
-          "expr": "app_sync_block_timeBetweenParent_seconds_gauge_gauge{client_id=\"$node\"}",
+          "expr": "max(app_sync_block_timeBetweenParent_seconds_gauge_gauge{client_id=\"$node\",namespace=\"$namespace\"})",
           "interval": "",
           "legendFormat": "",
           "refId": "A"
@@ -3397,7 +3889,7 @@
         "h": 4,
         "w": 4,
         "x": 20,
-        "y": 89
+        "y": 101
       },
       "id": 62,
       "interval": null,
@@ -3435,10 +3927,10 @@
         "ymax": null,
         "ymin": null
       },
-      "tableColumn": "app_sync_block_timeBetweenParent_seconds_gauge_gauge{client_id=\"mantis-2\", db=\"telegraf\", host=\"484b4ceb51ba\", namespace=\"mantis-testnet\", url=\"http://10.24.3.235:30104/metrics\"}",
+      "tableColumn": "",
       "targets": [
         {
-          "expr": "app_sync_block_timeBetweenParent_seconds_gauge_gauge{client_id=\"$node\"}",
+          "expr": "max(app_sync_block_timeBetweenParent_seconds_gauge_gauge{client_id=\"$node\",namespace=\"$namespace\"})",
           "interval": "",
           "legendFormat": "",
           "refId": "A"
@@ -3468,7 +3960,7 @@
         "rgba(237, 129, 40, 0.89)",
         "#d44a3a"
       ],
-      "datasource": "prometheus",
+      "datasource": "VictoriaMetrics",
       "description": "",
       "fieldConfig": {
         "defaults": {
@@ -3488,7 +3980,7 @@
         "h": 2,
         "w": 5,
         "x": 11,
-        "y": 91
+        "y": 103
       },
       "id": 46,
       "interval": null,
@@ -3529,7 +4021,10 @@
       "tableColumn": "",
       "targets": [
         {
-          "expr": "(app_sync_block_checkpoint_number_gauge{instance=\"$node\"})",
+          "expr": "max(app_sync_block_checkpoint_number_gauge_gauge{client_id=\"$node\",namespace=\"$namespace\"})",
+          "interval": "",
+          "legendFormat": "",
+          "queryType": "randomWalk",
           "refId": "A"
         }
       ],
@@ -3565,7 +4060,8 @@
       "error": false,
       "fieldConfig": {
         "defaults": {
-          "custom": {}
+          "custom": {},
+          "links": []
         },
         "overrides": []
       },
@@ -3583,7 +4079,7 @@
         "h": 5,
         "w": 16,
         "x": 0,
-        "y": 93
+        "y": 105
       },
       "height": "",
       "hiddenSeries": false,
@@ -3606,9 +4102,10 @@
       "links": [],
       "nullPointMode": "null",
       "options": {
-        "dataLinks": []
+        "alertThreshold": true
       },
       "percentage": true,
+      "pluginVersion": "7.3.5",
       "pointradius": 5,
       "points": false,
       "renderer": "flot",
@@ -3693,7 +4190,7 @@
         "rgba(237, 129, 40, 0.89)",
         "#73BF69"
       ],
-      "datasource": "prometheus",
+      "datasource": "VictoriaMetrics",
       "description": "- Apdex RPC_responses = (SatisfiedCount + ToleratingCount / 2) / TotalSamples\n\nSatisfiedCount = MethodsSuccessCounter\nToleratingCount = MethodsErrorCounter\nTotalSamples = MethodsSuccessCounter + MethodsErrorCounter + MethodsExceptionCounter",
       "fieldConfig": {
         "defaults": {
@@ -3713,7 +4210,7 @@
         "h": 5,
         "w": 4,
         "x": 16,
-        "y": 93
+        "y": 105
       },
       "id": 30,
       "interval": null,
@@ -3754,9 +4251,10 @@
       "tableColumn": "",
       "targets": [
         {
-          "expr": "(sum(increase(app_json_rpc_methods_success_counter_total{instance=\"$node\"}[$__range])) + sum(increase(app_json_rpc_methods_error_counter_total{instance=\"$node\"}[$__range])) / 2) / (sum(increase(app_json_rpc_methods_success_counter_total{instance=\"$node\"}[$__range])) + sum(increase(app_json_rpc_methods_error_counter_total{instance=\"$node\"}[$__range])) + sum(increase(app_json_rpc_methods_exception_counter_total{instance=\"$node\"}[$__range])))",
+          "expr": "((max(app_json_rpc_methods_success_counter_total_counter{client_id=\"$node\",namespace=\"$namespace\"}) + max(app_json_rpc_methods_error_counter_total_counter{client_id=\"$node\",namespace=\"$namespace\"})) / 2) / (max(app_json_rpc_methods_success_counter_total_counter{client_id=\"$node\",namespace=\"$namespace\"}) + max(app_json_rpc_methods_error_counter_total_counter{client_id=\"$node\",namespace=\"$namespace\"}) + max(app_json_rpc_methods_exception_counter_total_counter{client_id=\"$node\",namespace=\"$namespace\"}))",
           "interval": "",
-          "legendFormat": "apdex_rpc_responses",
+          "legendFormat": "",
+          "queryType": "randomWalk",
           "refId": "A"
         }
       ],
@@ -3786,7 +4284,7 @@
         "rgba(237, 129, 40, 0.89)",
         "#d44a3a"
       ],
-      "datasource": "prometheus",
+      "datasource": "VictoriaMetrics",
       "description": "",
       "fieldConfig": {
         "defaults": {
@@ -3806,7 +4304,7 @@
         "h": 2,
         "w": 4,
         "x": 20,
-        "y": 93
+        "y": 105
       },
       "id": 38,
       "interval": null,
@@ -3847,9 +4345,10 @@
       "tableColumn": "",
       "targets": [
         {
-          "expr": "(sum(increase(app_json_rpc_methods_error_counter_total{instance=\"$node\"}[$__range])) / (sum(increase(app_json_rpc_methods_success_counter_total{instance=\"$node\"}[$__range])) + sum(increase(app_json_rpc_methods_error_counter_total{instance=\"$node\"}[$__range])) + sum(increase(app_json_rpc_methods_exception_counter_total{instance=\"$node\"}[$__range])))) * 100",
+          "expr": "max(app_json_rpc_methods_error_counter_total_counter{client_id=\"$node\",namespace=\"$namespace\"}) / (max(app_json_rpc_methods_success_counter_total_counter{client_id=\"$node\",namespace=\"$namespace\"}) + max(app_json_rpc_methods_error_counter_total_counter{client_id=\"$node\",namespace=\"$namespace\"}) + max(app_json_rpc_methods_exception_counter_total_counter{client_id=\"$node\",namespace=\"$namespace\"}))",
           "interval": "",
-          "legendFormat": "rpc_error_responses",
+          "legendFormat": "",
+          "queryType": "randomWalk",
           "refId": "A"
         }
       ],
@@ -3879,7 +4378,7 @@
         "rgba(237, 129, 40, 0.89)",
         "#d44a3a"
       ],
-      "datasource": "prometheus",
+      "datasource": "VictoriaMetrics",
       "description": "",
       "fieldConfig": {
         "defaults": {
@@ -3899,7 +4398,7 @@
         "h": 3,
         "w": 4,
         "x": 20,
-        "y": 95
+        "y": 107
       },
       "id": 36,
       "interval": null,
@@ -3940,9 +4439,10 @@
       "tableColumn": "",
       "targets": [
         {
-          "expr": "(sum(increase(app_json_rpc_methods_exception_counter_total{instance=\"$node\"}[$__range])) / (sum(increase(app_json_rpc_methods_success_counter_total{instance=\"$node\"}[$__range])) + sum(increase(app_json_rpc_methods_error_counter_total{instance=\"$node\"}[$__range])) + sum(increase(app_json_rpc_methods_exception_counter_total{instance=\"$node\"}[$__range])))) * 100",
+          "expr": "max(app_json_rpc_methods_exception_counter_total_counter{client_id=\"$node\",namespace=\"$namespace\"}) / (max(app_json_rpc_methods_exception_counter_total_counter{client_id=\"$node\",namespace=\"$namespace\"}) + max(app_json_rpc_methods_error_counter_total_counter{client_id=\"$node\",namespace=\"$namespace\"}) + max(app_json_rpc_methods_exception_counter_total_counter{client_id=\"$node\",namespace=\"$namespace\"}))",
           "interval": "",
-          "legendFormat": "rpc_fatal_errors_responses",
+          "legendFormat": "",
+          "queryType": "randomWalk",
           "refId": "A"
         }
       ],
@@ -3968,7 +4468,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 98
+        "y": 110
       },
       "id": 8,
       "panels": [],
@@ -3983,7 +4483,8 @@
       "datasource": "VictoriaMetrics",
       "fieldConfig": {
         "defaults": {
-          "custom": {}
+          "custom": {},
+          "links": []
         },
         "overrides": []
       },
@@ -3993,7 +4494,7 @@
         "h": 7,
         "w": 12,
         "x": 0,
-        "y": 99
+        "y": 111
       },
       "hiddenSeries": false,
       "id": 20,
@@ -4012,9 +4513,10 @@
       "links": [],
       "nullPointMode": "null",
       "options": {
-        "dataLinks": []
+        "alertThreshold": true
       },
       "percentage": false,
+      "pluginVersion": "7.3.5",
       "pointradius": 5,
       "points": false,
       "renderer": "flot",
@@ -4086,7 +4588,8 @@
       "datasource": "VictoriaMetrics",
       "fieldConfig": {
         "defaults": {
-          "custom": {}
+          "custom": {},
+          "links": []
         },
         "overrides": []
       },
@@ -4096,7 +4599,7 @@
         "h": 7,
         "w": 12,
         "x": 12,
-        "y": 99
+        "y": 111
       },
       "hiddenSeries": false,
       "id": 26,
@@ -4116,9 +4619,10 @@
       "links": [],
       "nullPointMode": "null",
       "options": {
-        "dataLinks": []
+        "alertThreshold": true
       },
       "percentage": false,
+      "pluginVersion": "7.3.5",
       "pointradius": 5,
       "points": false,
       "renderer": "flot",
@@ -4183,7 +4687,8 @@
       "datasource": "VictoriaMetrics",
       "fieldConfig": {
         "defaults": {
-          "custom": {}
+          "custom": {},
+          "links": []
         },
         "overrides": []
       },
@@ -4193,7 +4698,7 @@
         "h": 7,
         "w": 8,
         "x": 0,
-        "y": 106
+        "y": 118
       },
       "hiddenSeries": false,
       "id": 12,
@@ -4211,9 +4716,10 @@
       "links": [],
       "nullPointMode": "null",
       "options": {
-        "dataLinks": []
+        "alertThreshold": true
       },
       "percentage": false,
+      "pluginVersion": "7.3.5",
       "pointradius": 5,
       "points": false,
       "renderer": "flot",
@@ -4284,7 +4790,8 @@
       "datasource": "VictoriaMetrics",
       "fieldConfig": {
         "defaults": {
-          "custom": {}
+          "custom": {},
+          "links": []
         },
         "overrides": []
       },
@@ -4294,7 +4801,7 @@
         "h": 7,
         "w": 8,
         "x": 8,
-        "y": 106
+        "y": 118
       },
       "hiddenSeries": false,
       "id": 6,
@@ -4312,9 +4819,10 @@
       "links": [],
       "nullPointMode": "null",
       "options": {
-        "dataLinks": []
+        "alertThreshold": true
       },
       "percentage": false,
+      "pluginVersion": "7.3.5",
       "pointradius": 5,
       "points": false,
       "renderer": "flot",
@@ -4379,7 +4887,8 @@
       "datasource": "VictoriaMetrics",
       "fieldConfig": {
         "defaults": {
-          "custom": {}
+          "custom": {},
+          "links": []
         },
         "overrides": []
       },
@@ -4389,7 +4898,7 @@
         "h": 7,
         "w": 8,
         "x": 16,
-        "y": 106
+        "y": 118
       },
       "hiddenSeries": false,
       "id": 22,
@@ -4407,9 +4916,10 @@
       "links": [],
       "nullPointMode": "null",
       "options": {
-        "dataLinks": []
+        "alertThreshold": true
       },
       "percentage": false,
+      "pluginVersion": "7.3.5",
       "pointradius": 5,
       "points": false,
       "renderer": "flot",
@@ -4475,7 +4985,8 @@
       "datasource": "VictoriaMetrics",
       "fieldConfig": {
         "defaults": {
-          "custom": {}
+          "custom": {},
+          "links": []
         },
         "overrides": []
       },
@@ -4485,7 +4996,7 @@
         "h": 7,
         "w": 8,
         "x": 0,
-        "y": 113
+        "y": 125
       },
       "hiddenSeries": false,
       "id": 16,
@@ -4503,9 +5014,10 @@
       "links": [],
       "nullPointMode": "null",
       "options": {
-        "dataLinks": []
+        "alertThreshold": true
       },
       "percentage": false,
+      "pluginVersion": "7.3.5",
       "pointradius": 5,
       "points": false,
       "renderer": "flot",
@@ -4570,7 +5082,8 @@
       "datasource": "VictoriaMetrics",
       "fieldConfig": {
         "defaults": {
-          "custom": {}
+          "custom": {},
+          "links": []
         },
         "overrides": []
       },
@@ -4580,7 +5093,7 @@
         "h": 7,
         "w": 8,
         "x": 8,
-        "y": 113
+        "y": 125
       },
       "hiddenSeries": false,
       "id": 14,
@@ -4598,9 +5111,10 @@
       "links": [],
       "nullPointMode": "null",
       "options": {
-        "dataLinks": []
+        "alertThreshold": true
       },
       "percentage": false,
+      "pluginVersion": "7.3.5",
       "pointradius": 5,
       "points": false,
       "renderer": "flot",
@@ -4670,7 +5184,8 @@
       "error": false,
       "fieldConfig": {
         "defaults": {
-          "custom": {}
+          "custom": {},
+          "links": []
         },
         "overrides": []
       },
@@ -4688,7 +5203,7 @@
         "h": 7,
         "w": 8,
         "x": 16,
-        "y": 113
+        "y": 125
       },
       "hiddenSeries": false,
       "id": 28,
@@ -4706,9 +5221,10 @@
       "links": [],
       "nullPointMode": "null",
       "options": {
-        "dataLinks": []
+        "alertThreshold": true
       },
       "percentage": false,
+      "pluginVersion": "7.3.5",
       "pointradius": 5,
       "points": false,
       "renderer": "flot",
@@ -4781,7 +5297,7 @@
     }
   ],
   "refresh": false,
-  "schemaVersion": 25,
+  "schemaVersion": 26,
   "style": "dark",
   "tags": [],
   "templating": {
@@ -4789,66 +5305,21 @@
       {
         "allValue": null,
         "current": {
-          "selected": true,
+          "selected": false,
           "text": "mantis-1",
           "value": "mantis-1"
         },
         "datasource": "VictoriaMetrics",
         "definition": "label_values(client_id)",
+        "error": null,
         "hide": 0,
         "includeAll": false,
         "label": null,
         "multi": false,
         "name": "node",
-        "options": [
-          {
-            "selected": false,
-            "text": "mantis-1",
-            "value": "mantis-1"
-          },
-          {
-            "selected": true,
-            "text": "mantis-2",
-            "value": "mantis-2"
-          },
-          {
-            "selected": false,
-            "text": "mantis-3",
-            "value": "mantis-3"
-          },
-          {
-            "selected": false,
-            "text": "mantis-qa-fastsync-mantis-passive",
-            "value": "mantis-qa-fastsync-mantis-passive"
-          },
-          {
-            "selected": false,
-            "text": "mantis-testnet-mantis-passive",
-            "value": "mantis-testnet-mantis-passive"
-          },
-          {
-            "selected": false,
-            "text": "testnet-mantis-1",
-            "value": "testnet-mantis-1"
-          },
-          {
-            "selected": false,
-            "text": "testnet-mantis-2",
-            "value": "testnet-mantis-2"
-          },
-          {
-            "selected": false,
-            "text": "testnet-mantis-3",
-            "value": "testnet-mantis-3"
-          },
-          {
-            "selected": false,
-            "text": "testnet-mantis-passive",
-            "value": "testnet-mantis-passive"
-          }
-        ],
+        "options": [],
         "query": "label_values(client_id)",
-        "refresh": 0,
+        "refresh": 2,
         "regex": "",
         "skipUrlSync": false,
         "sort": 0,
@@ -4861,46 +5332,21 @@
       {
         "allValue": null,
         "current": {
-          "selected": true,
+          "selected": false,
           "text": "mantis-testnet",
           "value": "mantis-testnet"
         },
         "datasource": "VictoriaMetrics",
         "definition": "label_values(namespace)",
+        "error": null,
         "hide": 0,
         "includeAll": false,
         "label": null,
         "multi": false,
         "name": "namespace",
-        "options": [
-          {
-            "selected": false,
-            "text": "default",
-            "value": "default"
-          },
-          {
-            "selected": false,
-            "text": "mantis-qa-fastsync",
-            "value": "mantis-qa-fastsync"
-          },
-          {
-            "selected": false,
-            "text": "mantis-qa-load",
-            "value": "mantis-qa-load"
-          },
-          {
-            "selected": true,
-            "text": "mantis-testnet",
-            "value": "mantis-testnet"
-          },
-          {
-            "selected": false,
-            "text": "root",
-            "value": "root"
-          }
-        ],
+        "options": [],
         "query": "label_values(namespace)",
-        "refresh": 0,
+        "refresh": 2,
         "regex": "",
         "skipUrlSync": false,
         "sort": 0,
@@ -4913,7 +5359,7 @@
     ]
   },
   "time": {
-    "from": "now-6h",
+    "from": "now-24h",
     "to": "now"
   },
   "timepicker": {
@@ -4932,5 +5378,5 @@
   "timezone": "utc",
   "title": "Mantis [mantis-ops]",
   "uid": "L3y-GTyWk",
-  "version": 13
+  "version": 1
 }
