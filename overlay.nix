@@ -54,7 +54,7 @@ in {
   # Requires an update on the mantis repository and viceversa
   generate-mantis-keys = let
     genesis = {
-      difficulty = "0x1000";
+      difficulty = "0x80000";
       extraData =
         "0x11bbe8db4e347b4e8c937c1c8370e4b5ed33adb3db69cbdb7a38e1e50b1b82fa";
       gasLimit = "0x5000000";
@@ -475,4 +475,33 @@ in {
     buildImage buildLayeredImage pullImage shadowSetup;
 
   mkEnv = lib.mapAttrsToList (key: value: "${key}=${value}");
+
+  consul-templates = let
+    sources = lib.pipe final.nomadJobs [
+      (lib.filterAttrs (n: v: v ? evaluated))
+      (lib.mapAttrsToList (n: v: {
+        path = [ n v.evaluated.Job.Namespace ];
+        taskGroups = v.evaluated.Job.TaskGroups;
+      }))
+      (map (e:
+        map (tg:
+          map (t:
+            if t.Templates != null then
+              map (tpl: {
+                name = lib.concatStringsSep "/"
+                  (e.path ++ [ tg.Name t.Name tpl.DestPath ]);
+                tmpl = tpl.EmbeddedTmpl;
+              }) t.Templates
+            else
+              null) tg.Tasks) e.taskGroups))
+      builtins.concatLists
+      builtins.concatLists
+      (lib.filter (e: e != null))
+      builtins.concatLists
+      (map (t: {
+        name = t.name;
+        path = final.writeText t.name t.tmpl;
+      }))
+    ];
+  in final.linkFarm "consul-templates" sources;
 }

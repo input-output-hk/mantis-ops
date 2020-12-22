@@ -20,11 +20,11 @@
         "utils": "utils_3"
       },
       "locked": {
-        "lastModified": 1608078358,
-        "narHash": "sha256-ivdccKYhymvTdAvxdcd/QAq5gGDcZuzcY5nInSpoQ4w=",
+        "lastModified": 1608318372,
+        "narHash": "sha256-u2++6Jeirm6xn2vZpXTNphyCRqLJvmgHKy69ALnDs2A=",
         "owner": "input-output-hk",
         "repo": "bitte",
-        "rev": "6ad2ed6459b784eb275ef5030d96535c0c8621bb",
+        "rev": "95ac2e7072e4d3ad3ca5e1df322549b13421e1e3",
         "type": "github"
       },
       "original": {
@@ -161,15 +161,16 @@
         "nixpkgs": "nixpkgs_3"
       },
       "locked": {
-        "lastModified": 1606398004,
-        "narHash": "sha256-DSHugqfkEgHlz5Ce28eW/V+k50OOSVjxEZIB50YX79g=",
+        "lastModified": 1608645333,
+        "narHash": "sha256-ZPwLM1w336E0qrrWX0/jWzmNCRZpAhUQ4jfsSO0iYr0=",
         "owner": "input-output-hk",
         "repo": "mantis-explorer",
-        "rev": "9f9a3482c4f2332b9490a673d262345bb2ba8cd7",
+        "rev": "1c4bbe01a9d137ab88237e8da6bd342d611c95ed",
         "type": "github"
       },
       "original": {
         "owner": "input-output-hk",
+        "ref": "kevm",
         "repo": "mantis-explorer",
         "type": "github"
       }
@@ -294,11 +295,11 @@
     "ops-lib": {
       "flake": false,
       "locked": {
-        "lastModified": 1602203038,
-        "narHash": "sha256-SIKLst2fs7Rool+WPJTxUdOHxdr9HZt9rgGe8Y+/+uE=",
+        "lastModified": 1608174889,
+        "narHash": "sha256-3q2ncBD//scq9xy39AWqUw+hip44OEz4SWP93WkKJmY=",
         "owner": "input-output-hk",
         "repo": "ops-lib",
-        "rev": "1f8481bdc21cea9430b830c3fd1eeb057ad5c8ee",
+        "rev": "f5c44f7b38238a6cff47bc4c62c50212f045b630",
         "type": "github"
       },
       "original": {

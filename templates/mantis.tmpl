@@ -1,12 +1,7 @@
-include "./result/conf/testnet-internal-nomad.conf"
-
-mantis.consensus.mining-enabled = false
-mantis.blockchains.testnet-internal.custom-genesis-file = "./genesis.json"
-
 mantis.blockchains.testnet-internal-nomad.bootstrap-nodes = [
-{{ range service "mantis-testnet-mantis-miner" -}}
-  "enode://  {{- with secret (printf "kv/data/nomad-cluster/testnet/%s/enode-hash" .ServiceMeta.Name) -}}
-    {{- .Data.data.value -}}
-    {{- end -}}@{{ .ServiceMeta.Name }}.mantis.ws:{{ .ServiceMeta.IngressPort }}",
-{{ end -}}
+  {{ range service "mantis-kevm2-mantis-miner-server" -}}
+    "enode://  {{- with secret (printf "kv/data/nomad-cluster/mantis-kevm2/%s/enode-hash" .ServiceMeta.Name) -}}
+      {{- .Data.data.value -}}
+      {{- end -}}@{{ .ServiceMeta.Name }}.kevm.dev.cardano.org:{{ .ServiceMeta.IngressPort }}",
+  {{ end -}}
 ]

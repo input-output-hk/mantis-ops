@@ -9,17 +9,19 @@ let
     cd "$NOMAD_TASK_DIR"
     name="java"
 
-    if [ -f "ethash/$DAG_NAME" ]; then
-      echo "found existing DAG"
-      sha256sum "ethash/$DAG_NAME"
-    else
-      mkdir -p ethash
-      aws \
-        --endpoint-url "$MONITORING_ADDR" \
-        s3 cp \
-        "s3://mantis-kevm-dag/$DAG_NAME" \
-        "ethash/$DAG_NAME" \
-      || echo "Unable to download DAG, skipping."
+    if [ -n "''${DAG_NAME:-}" ]; then
+      if [ -f "ethash/$DAG_NAME" ]; then
+        echo "found existing DAG"
+        sha256sum "ethash/$DAG_NAME"
+      else
+        mkdir -p ethash
+        aws \
+          --endpoint-url "$MONITORING_ADDR" \
+          s3 cp \
+          "s3://mantis-kevm-dag/$DAG_NAME" \
+          "ethash/$DAG_NAME" \
+        || echo "Unable to download DAG, skipping."
+      fi
     fi
 
     set +x
@@ -27,9 +29,11 @@ let
       sleep 1
     done
 
-    delay="$((REQUIRED_PEER_COUNT * 100))"
-    echo "waiting for $delay seconds before start"
-    sleep "$delay"
+    if [ -n "''${DAG_NAME:-}" ]; then
+      delay="$((REQUIRED_PEER_COUNT * 100))"
+      echo "waiting for $delay seconds before start"
+      sleep "$delay"
+    fi
     set -x
 
     ulimit -c unlimited
