@@ -1380,12 +1380,7 @@ let
     , requiredPeerCount ? 0, instanceId ? null }:
     lib.nameValuePair name (mkMantis {
       resources = {
-        # For c5.2xlarge in clusters/mantis/testnet/default.nix, the url ref below
-        # provides 3.4 GHz * 8 vCPU = 27.2 GHz max.
-        # Mantis mainly uses only one core.
-        # Allocating by vCPU or core quantity not yet available.
-        # Ref: https://github.com/hashicorp/nomad/blob/master/client/fingerprint/env_aws.go
-        cpu = 3400;
+        cpu = 4000;
         memoryMB = 5 * 1024;
       };
 
@@ -1450,12 +1445,11 @@ let
       };
 
       rpcMeta = {
-        ingressHost = "${name}.${domain}";
+        ingressHost = "mantis.${domain}";
         ingressPort = toString publicRpcPort;
         ingressBind = "*:443";
         ingressMode = "http";
-        ingressServer =
-          "_${namespace}-mantis-miner-rpc._${name}.service.consul";
+        ingressServer = "_${namespace}-mantis-miner-rpc._tcp.service.consul";
       };
     });
 
@@ -2048,9 +2042,8 @@ let
   minerJobs = lib.listToAttrs (lib.forEach miners (miner: {
     name = "${namespace}-${miner.name}";
     value = mkNomadJob miner.name {
-      datacenters = [ "us-east-2" "eu-central-1" ];
       type = "service";
-      inherit namespace;
+      inherit datacenters namespace;
 
       update = updateOneAtATime;
 
@@ -2059,9 +2052,8 @@ let
   }));
 in minerJobs // {
   "${namespace}-mantis-passive" = mkNomadJob "mantis-passive" {
-    datacenters = [ "us-east-2" "eu-central-1" ];
     type = "service";
-    inherit namespace;
+    inherit datacenters namespace;
 
     update = updateOneAtATime;
 
@@ -2069,9 +2061,8 @@ in minerJobs // {
   };
 
   "${namespace}-morpho" = mkNomadJob "morpho" {
-    datacenters = [ "us-east-2" "eu-central-1" ];
     type = "service";
-    inherit namespace;
+    inherit datacenters namespace;
 
     update = updateOneAtATime;
 
@@ -2085,25 +2076,22 @@ in minerJobs // {
   };
 
   "${namespace}-explorer" = mkNomadJob "explorer" {
-    datacenters = [ "us-east-2" "eu-central-1" ];
     type = "service";
-    inherit namespace;
+    inherit datacenters namespace;
 
     taskGroups.explorer = explorer;
   };
 
   "${namespace}-faucet" = mkNomadJob "faucet" {
-    datacenters = [ "us-east-2" "eu-central-1" ];
     type = "service";
-    inherit namespace;
+    inherit datacenters namespace;
 
     taskGroups.faucet = faucet;
   };
 
   "${namespace}-backup" = mkNomadJob "backup" {
-    datacenters = [ "us-east-2" "eu-central-1" ];
     type = "batch";
-    inherit namespace;
+    inherit datacenters namespace;
 
     periodic = {
       cron = "15 */1 * * * *";
