@@ -65,8 +65,8 @@
         "allValue": null,
         "current": {
           "selected": false,
-          "text": "mantis-testnet",
-          "value": "mantis-testnet"
+          "text": "mantis-kevm",
+          "value": "mantis-kevm"
         },
         "datasource": "Loki",
         "definition": "label_values(namespace)",

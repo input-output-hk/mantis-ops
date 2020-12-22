@@ -65,7 +65,7 @@
         "for": "10m",
         "frequency": "1m",
         "handler": 1,
-        "message": "mantis-testnet: The average cluster block rate per minute is under 1 for a 10 minute period",
+        "message": "mantis-kevm: The average cluster block rate per minute is under 1 for a 10 minute period",
         "name": "[Mantis] Cluster Block Alert",
         "noDataState": "alerting",
         "notifications": [
@@ -135,7 +135,7 @@
           "refId": "A"
         },
         {
-          "expr": "avg(rate(app_sync_block_number_gauge_gauge{namespace=\"mantis-testnet\"}[5m]) * 60)",
+          "expr": "avg(rate(app_sync_block_number_gauge_gauge{namespace=\"mantis-kevm\"}[5m]) * 60)",
           "hide": true,
           "interval": "",
           "legendFormat": "{{client_id}}",
@@ -427,7 +427,7 @@
         "for": "5m",
         "frequency": "1m",
         "handler": 1,
-        "message": "mantis-testnet: The average block time between blocks for a node in the cluster is above 100 seconds for a 5 minute period",
+        "message": "mantis-kevm: The average block time between blocks for a node in the cluster is above 100 seconds for a 5 minute period",
         "name": "[Mantis] Block Alert",
         "noDataState": "alerting",
         "notifications": [
@@ -498,7 +498,7 @@
           "refId": "A"
         },
         {
-          "expr": "app_sync_block_timeBetweenParent_seconds_gauge_gauge{namespace=\"mantis-testnet\"}",
+          "expr": "app_sync_block_timeBetweenParent_seconds_gauge_gauge{namespace=\"mantis-kevm\"}",
           "hide": true,
           "interval": "",
           "legendFormat": "{{client_id}}",
@@ -612,7 +612,7 @@
         "for": "5m",
         "frequency": "1m",
         "handler": 1,
-        "message": "mantis-ops: There have been more than 5 single node or 10 cluster wide data absences in the past hour on mantis-testnet.",
+        "message": "mantis-ops: There have been more than 5 single node or 10 cluster wide data absences in the past hour on mantis-kevm.",
         "name": "[Mantis] Data Gaps in 1 hr alert",
         "noDataState": "alerting",
         "notifications": []
@@ -681,14 +681,14 @@
           "refId": "A"
         },
         {
-          "expr": "increase((absent(app_sync_block_number_gauge_gauge{namespace=\"mantis-testnet\"}) default 0)[1h:10s]) default 0",
+          "expr": "increase((absent(app_sync_block_number_gauge_gauge{namespace=\"mantis-kevm\"}) default 0)[1h:10s]) default 0",
           "hide": true,
           "interval": "",
           "legendFormat": "{{client_id}}",
           "refId": "B"
         },
         {
-          "expr": "sum(increase((absent(app_sync_block_number_gauge_gauge{namespace=\"mantis-testnet\"}) default 0)[1h:10s])) default 0",
+          "expr": "sum(increase((absent(app_sync_block_number_gauge_gauge{namespace=\"mantis-kevm\"}) default 0)[1h:10s])) default 0",
           "hide": true,
           "instant": false,
           "interval": "",
@@ -780,7 +780,7 @@
         "for": "15m",
         "frequency": "1m",
         "handler": 1,
-        "message": "mantis-testnet: Mantis testnet cluster has failed to complete an hourly backup.",
+        "message": "mantis-kevm: Mantis testnet cluster has failed to complete an hourly backup.",
         "name": "[Mantis] Completed Backup Jobs alert",
         "noDataState": "alerting",
         "notifications": []
@@ -843,7 +843,7 @@
           "refId": "A"
         },
         {
-          "expr": "increase(sum by (namespace) (nomad_client_allocs_complete_value{job=~\"backup.*\", namespace=\"mantis-testnet\"} default 0)[1h])",
+          "expr": "increase(sum by (namespace) (nomad_client_allocs_complete_value{job=~\"backup.*\", namespace=\"mantis-kevm\"} default 0)[1h])",
           "hide": true,
           "interval": "",
           "legendFormat": "{{namespace}}",
@@ -934,7 +934,7 @@
         "for": "5m",
         "frequency": "1m",
         "handler": 1,
-        "message": "mantis-testnet: Mantis testnet cluster has failed an hourly backup job.",
+        "message": "mantis-kevm: Mantis testnet cluster has failed an hourly backup job.",
         "name": "[Mantis] Failed Backup Jobs alert",
         "noDataState": "alerting",
         "notifications": []
@@ -997,7 +997,7 @@
           "refId": "A"
         },
         {
-          "expr": "increase(sum by (namespace) (union(nomad_client_allocs_failed_value{job=~\"backup.*\", namespace=\"mantis-testnet\"},0))[1h])",
+          "expr": "increase(sum by (namespace) (union(nomad_client_allocs_failed_value{job=~\"backup.*\", namespace=\"mantis-kevm\"},0))[1h])",
           "hide": true,
           "interval": "",
           "legendFormat": "{{namespace}}",
@@ -3558,7 +3558,7 @@
       "tableColumn": "",
       "targets": [
         {
-          "expr": "max_over_time(timestamp(absent(app_sync_block_number_gauge_gauge{namespace=\"mantis-testnet\",client_id=~\"mantis-1\"}))[7d:1m]) * 1000",
+          "expr": "max_over_time(timestamp(absent(app_sync_block_number_gauge_gauge{namespace=\"mantis-kevm\",client_id=~\"mantis-1\"}))[7d:1m]) * 1000",
           "interval": "",
           "legendFormat": "",
           "refId": "A"
@@ -5333,8 +5333,8 @@
         "allValue": null,
         "current": {
           "selected": false,
-          "text": "mantis-testnet",
-          "value": "mantis-testnet"
+          "text": "mantis-kevm",
+          "value": "mantis-kevm"
         },
         "datasource": "VictoriaMetrics",
         "definition": "label_values(namespace)",

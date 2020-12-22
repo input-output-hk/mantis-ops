@@ -1510,7 +1510,7 @@ let
       meta = {
         inherit name;
         publicIp = "\${attr.unique.platform.aws.public-ipv4}";
-        ingressHost = "${name}.${domain}";
+        ingressHost = "explorer.${domain}";
         ingressMode = "http";
         ingressBind = "*:443";
         ingressServer = "_${name}._tcp.service.consul";
@@ -1630,7 +1630,7 @@ let
         meta = {
           name = faucetName;
           publicIp = "\${attr.unique.platform.aws.public-ipv4}";
-          ingressHost = "${faucetName}.${domain}";
+          ingressHost = "faucet.${domain}";
           ingressBind = "*:443";
           ingressMode = "http";
           ingressServer = "_${faucetName}._tcp.service.consul";
