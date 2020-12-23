@@ -1,10 +1,12 @@
-{ lib, dockerImages, namespace, name, mantis }: {
+{ lib, dockerImages, namespace, name, mantis, config }: {
   networks = [{
     mode = "bridge";
     ports = {
-      metrics.to = 6000;
-      rpc.to = 7000;
-      server.to = 8000;
+      discovery.to = 2000;
+      metrics.to = 3000;
+      rpc.to = 4000;
+      server.to = 5000;
+      vm.to = 6000;
     };
   }];
 
@@ -24,7 +26,7 @@
     config = {
       image = dockerImages.backup;
       args = [ "--tag" namespace ];
-      ports = [ "metrics" "server" "rpc" ];
+      ports = [ "discovery" "metrics" "server" "rpc" "vm" ];
 
       labels = [{
         inherit namespace name;
@@ -54,46 +56,7 @@
         destination = "secrets/env.txt";
       }
       {
-        data = ''
-          include "${mantis}/conf/testnet-internal-nomad.conf"
-
-          logging.json-output = true
-          logging.logs-file = "logs"
-
-          mantis.blockchains.testnet-internal-nomad.bootstrap-nodes = [
-            {{ range service "${namespace}-mantis-miner-server" -}}
-              "enode://  {{- with secret (printf "kv/data/nomad-cluster/${namespace}/%s/enode-hash" .ServiceMeta.Name) -}}
-                {{- .Data.data.value -}}
-                {{- end -}}@{{ .Address }}:{{ .Port }}",
-            {{ end -}}
-          ]
-
-          mantis.blockchains.testnet-internal-nomad.checkpoint-public-keys = [
-            ${
-              lib.concatMapStringsSep "," (x: ''
-                {{- with secret "kv/data/nomad-cluster/${namespace}/obft-node-${
-                  toString x
-                }/obft-public-key" -}}"{{- .Data.data.value -}}"{{end}}
-              '') (lib.range 1 5)
-            }
-          ]
-
-          mantis.client-id = "${name}"
-          mantis.consensus.mining-enabled = false
-          mantis.datadir = "/local/mantis"
-          mantis.ethash.ethash-dir = "/local/ethash"
-          mantis.metrics.enabled = true
-          mantis.metrics.port = {{ env "NOMAD_PORT_metrics" }}
-          mantis.network.peer.long-blacklist-duration = 120
-          mantis.network.peer.short-blacklist-duration = 10
-          mantis.network.rpc.http.interface = "0.0.0.0"
-          mantis.network.rpc.http.port = {{ env "NOMAD_PORT_rpc" }}
-          mantis.network.server-address.port = {{ env "NOMAD_PORT_server" }}
-          mantis.blockchains.testnet-internal-nomad.custom-genesis-file = "{{ env "NOMAD_TASK_DIR" }}/genesis.json"
-
-          mantis.blockchains.testnet-internal-nomad.ecip1098-block-number = 0
-          mantis.blockchains.testnet-internal-nomad.ecip1097-block-number = 0
-        '';
+        data = config;
         changeMode = "noop";
         destination = "local/mantis.conf";
       }

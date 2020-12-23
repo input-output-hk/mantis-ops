@@ -2099,9 +2099,13 @@ in minerJobs // {
       timeZone = "UTC";
     };
 
-    taskGroups.backup = import ./tasks/backup.nix {
-      inherit lib dockerImages namespace mantis;
-      name = "${namespace}-backup";
+    taskGroups.backup = let name = "${namespace}-backup";
+    in import ./tasks/backup.nix {
+      inherit lib dockerImages namespace name mantis;
+      config = config {
+        inherit namespace name;
+        miningEnabled = false;
+      };
     };
   };
 }
