@@ -22,18 +22,20 @@ let
   amountOfMorphoNodes = 5;
 
   morphoNodes = lib.forEach (lib.range 1 amountOfMorphoNodes) (n: {
+    inherit namespace morpho-source vault dockerImages;
     name = "obft-node-${toString n}";
     nodeNumber = n;
-    inherit namespace morpho-source vault dockerImages;
   });
 
   mkMantis = { name, resources, count ? 1, templates, serviceName, tags ? [ ]
-    , meta ? { }, requiredPeerCount, services ? { } }: {
+    , serverMeta ? { }, meta ? { }, discoveryMeta ? { }, requiredPeerCount
+    , services ? { } }: {
       inherit count;
 
       networks = [{
         mode = "bridge";
         ports = {
+          discovery.to = 6000;
           metrics.to = 7000;
           rpc.to = 8000;
           server.to = 9000;
@@ -117,6 +119,16 @@ let
           tags = [ "rpc" namespace serviceName name mantis-source.rev ];
         };
 
+        "${serviceName}-discovery" = {
+          portLabel = "discovery";
+          tags = [ "discovery" namespace serviceName name mantis-source.rev ]
+            ++ tags;
+          meta = {
+            inherit name;
+            publicIp = "\${attr.unique.platform.aws.public-ipv4}";
+          } // discoveryMeta;
+        };
+
         "${serviceName}-server" = {
           portLabel = "server";
           tags = [ "server" namespace serviceName name mantis-source.rev ]
@@ -124,7 +136,7 @@ let
           meta = {
             inherit name;
             publicIp = "\${attr.unique.platform.aws.public-ipv4}";
-          } // meta;
+          } // serverMeta;
         };
 
         ${serviceName} = {
@@ -148,7 +160,7 @@ let
         config = {
           image = dockerImages.mantis;
           args = [ "-Dconfig.file=running.conf" ];
-          ports = [ "rpc" "server" "metrics" ];
+          ports = [ "rpc" "server" "metrics" "discovery" ];
           labels = [{
             inherit namespace name;
             imageTag = dockerImages.mantis.image.imageTag;
@@ -174,7 +186,8 @@ let
       };
     };
 
-  mkMiner = { name, publicPort, requiredPeerCount ? 0, instanceId ? null }:
+  mkMiner = { name, publicDiscoveryPort, publicServerPort, requiredPeerCount ? 0
+    , instanceId ? null }:
     lib.nameValuePair name (mkMantis {
       resources = {
         # For c5.2xlarge in clusters/mantis/testnet/default.nix, the url ref below
@@ -203,9 +216,6 @@ let
               {{ end -}}
             ]
 
-            # allow anyone to mine blocks
-            mantis.blockchains.testnet-internal-nomad.allowed-miners = []
-
             mantis.blockchains.testnet-internal-nomad.checkpoint-public-keys = [
               ${
                 lib.concatMapStringsSep "," (x: ''
@@ -224,16 +234,21 @@ let
             mantis.ethash.ethash-dir = "/local/ethash"
             mantis.metrics.enabled = true
             mantis.metrics.port = {{ env "NOMAD_PORT_metrics" }}
+            mantis.network.discovery.discovery-enabled = true
+            mantis.network.discovery.host = {{ with node "monitoring" }}"{{ .Node.Address }}"{{ end }}
+            mantis.network.discovery.port = ${toString publicDiscoveryPort}
             mantis.network.rpc.http.interface = "0.0.0.0"
             mantis.network.rpc.http.port = {{ env "NOMAD_PORT_rpc" }}
             mantis.network.server-address.port = {{ env "NOMAD_PORT_server" }}
             mantis.blockchains.testnet-internal-nomad.custom-genesis-file = "{{ env "NOMAD_TASK_DIR" }}/genesis.json"
+            mantis.blockchains.testnet-internal-nomad.allowed-miners = []
 
             mantis.blockchains.testnet-internal-nomad.ecip1098-block-number = 0
             mantis.blockchains.testnet-internal-nomad.ecip1097-block-number = 0
           '';
-          destination = "local/mantis.conf";
           changeMode = "noop";
+          destination = "local/mantis.conf";
+          splay = "15m";
         }
         {
           data = let
@@ -254,6 +269,22 @@ let
 
       tags = [ namespace name ];
 
+      serverMeta = {
+        ingressHost = "${namespace}-${name}.mantis.ws";
+        ingressPort = toString publicServerPort;
+        ingressBind = "*:${toString publicServerPort}";
+        ingressMode = "tcp";
+        ingressServer = "_${namespace}-mantis-miner._${name}.service.consul";
+      };
+
+      discoveryMeta = {
+        ingressHost = "${namespace}-${name}.mantis.ws";
+        ingressPort = toString publicDiscoveryPort;
+        ingressBind = "*:${toString publicDiscoveryPort}";
+        ingressMode = "tcp";
+        ingressServer =
+          "_${namespace}-mantis-miner._${name}-discovery.service.consul";
+      };
     });
 
   mkPassive = count:
@@ -298,9 +329,6 @@ let
               {{ end -}}
             ]
 
-            # allow anyone to mine blocks
-            mantis.blockchains.testnet-internal-nomad.allowed-miners = []
-
             mantis.blockchains.testnet-internal-nomad.checkpoint-public-keys = [
               ${
                 lib.concatMapStringsSep "," (x: ''
@@ -338,7 +366,8 @@ let
   miners = lib.forEach (lib.range 1 amountOfMiners) (num: {
     name = "mantis-${toString num}";
     requiredPeerCount = builtins.length miners;
-    publicPort = 9000 + num; # routed through haproxy/ingress
+    publicServerPort = 9000 + num; # routed through haproxy/ingress
+    publicDiscoveryPort = 9500 + num; # routed through haproxy/ingress
   });
 
   explorer = let name = "${namespace}-explorer";
@@ -347,7 +376,7 @@ let
       addressMode = "host";
       portLabel = "explorer";
 
-      tags = [ "ingress" namespace "explorer" name ];
+      tags = [ namespace "explorer" name ];
 
       meta = {
         inherit name;
@@ -419,7 +448,7 @@ let
 
             upstream backend {
               least_conn;
-              {{ range service "mantis-1.${namespace}-mantis-miner-rpc" }}
+              {{ range service "${namespace}-mantis-passive-rpc" }}
                 server {{ .Address }}:{{ .Port }};
               {{ end }}
             }
@@ -466,8 +495,7 @@ let
         portLabel = "rpc";
         task = "faucet";
 
-        tags =
-          [ "ingress" namespace "faucet" faucetName mantis-faucet-source.rev ];
+        tags = [ namespace "faucet" faucetName mantis-faucet-source.rev ];
 
         meta = {
           name = faucetName;
@@ -518,8 +546,7 @@ let
       "${faucetName}-web" = {
         addressMode = "host";
         portLabel = "faucet-web";
-        tags =
-          [ "ingress" namespace "faucet" faucetName mantis-faucet-source.rev ];
+        tags = [ namespace "faucet" faucetName mantis-faucet-source.rev ];
         meta = {
           name = faucetName;
           publicIp = "\${attr.unique.platform.aws.public-ipv4}";
@@ -694,7 +721,7 @@ let
                     # Limits the amount of request the same ip can perform in a given amount of time
                     rate-limit {
                       # If enabled, restrictions are applied
-                      enabled = false
+                      enabled = true
 
                       # Time that should pass between requests
                       # Reflecting Faucet Web UI configuration
@@ -905,5 +932,38 @@ in {
       morphoTaskGroups =
         map (generateMorphoTaskGroup (builtins.length morphoNodes)) morphoNodes;
     in lib.listToAttrs morphoTaskGroups;
+  };
+
+  "${namespace}-explorer" = mkNomadJob "explorer" {
+    datacenters = [ "us-east-2" "eu-central-1" ];
+    type = "service";
+    inherit namespace;
+
+    taskGroups.explorer = explorer;
+  };
+
+  "${namespace}-faucet" = mkNomadJob "faucet" {
+    datacenters = [ "us-east-2" "eu-central-1" ];
+    type = "service";
+    inherit namespace;
+
+    taskGroups.faucet = faucet;
+  };
+
+  "${namespace}-backup" = mkNomadJob "backup" {
+    datacenters = [ "us-east-2" "eu-central-1" ];
+    type = "batch";
+    inherit namespace;
+
+    periodic = {
+      cron = "15 */1 * * * *";
+      prohibitOverlap = true;
+      timeZone = "UTC";
+    };
+
+    taskGroups.backup = import ./tasks/backup.nix {
+      inherit lib dockerImages namespace mantis;
+      name = "${namespace}-backup";
+    };
   };
 }
