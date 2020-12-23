@@ -33,7 +33,7 @@ in {
 
     adminNames = [ "michael.fellinger" ];
     developerGithubNames = [ ];
-    developerGithubTeamNames = [ ];
+    developerGithubTeamNames = [ "mantis-cardano-dev" ];
     domain = "kevm.dev.cardano.org";
     kms =
       "arn:aws:kms:eu-west-1:685182209482:key/94396370-fc8f-4892-98f8-1990429885b9";

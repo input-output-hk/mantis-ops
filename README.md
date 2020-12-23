@@ -86,7 +86,7 @@
 
 ### Nix Shell
 
-* Once Nix is installed and configured, clone the mantis-ops repo to your local machine and enter the local repository directory:
+* Once Nix is installed and configured, clone the mantis-ops repo to your local machine and enter the local repository directory, then check out the kevm branch:
     ```
     # For cloning using a github registered key:
     $ git clone git@github.com:input-output-hk/mantis-ops
@@ -95,6 +95,7 @@
     $ git clone https://github.com/input-output-hk/mantis-ops
 
     $ cd mantis-ops
+    $ git checkout kevm
     ```
 
 * After entering the repository directory, the following command needs to be run ONLY ONCE.  This will set up all the required dependencies for the nix-shell environment, including Nix flakes support and install them into the nix user profile:
@@ -118,8 +119,8 @@
 
 ### Github Access Token
 
-* Github users who are in the IOHK team `mantis-devs` have the ability to authenticate to the mantis-ops project as developers.
-  * If you are not in the `mantis-devs` github team and require access to the mantis-ops project, request team membership from the Mantis project team.
+* Github users who are in the IOHK team `mantis-cardano-devs` have the ability to authenticate to the mantis-ops project as developers.
+  * If you are not in the `mantis-cardano-devs` github team and require access to the mantis-ops project, request team membership from the Mantis project team.
 
 * To authenticate to the mantis-ops project, use your github ID to create a personal access token for mantis-ops if you don't already have one:
   * Login into github.com with your github work user id.
@@ -165,7 +166,7 @@
     # Now the nomad cli becomes available.
     # The following are some example commands that may be useful:
     $ nomad status
-    $ nomad status testnet-mantis
+    $ nomad status mantis-kevm
     $ nomad alloc logs $ALLOC_ID > mantis-$ALLOC_ID.log
     $ nomad job stop mantis
 
@@ -204,7 +205,7 @@
 
 ### Mantis-Ops Namespaces
 
-* The mantis-ops deployed infrastructure is separated into namespaces where jobs can either run in the main testnet namespace, `mantis-testnet` or a different namespace.
+* The mantis-ops deployed infrastructure is separated into namespaces where jobs can either run in the main testnet namespace, `mantis-kevm` or a different namespace.
 * In general, use of the appropriate namespace as a parameter will be required when interacting with the mantis-ops projects.
 * Examples of this are:
   * From the Monitoring webpage, some dashboards may include a Nomad namespace parameter near the top of the dashboard; also some queries may be parameterized with namespace
@@ -235,7 +236,7 @@
    nomad status -namespace $NS $JOB | grep "$TG.*running" | head -1 | awk '{ print $1 }' | xargs -Ix nomad logs -namespace "$NS" [-stderr] [-tail] [-f] [-n LINES] [-verbose] x "$TG"
 
    # Tail and follow a morpho job taskgroup (obft-node-3) in namespace mantis-testnet:
-   TG="obft-node-3"; NS="mantis-testnet"; JOB="morpho"; nomad status -namespace "$NS" "$JOB" \
+   TG="obft-node-3"; NS="mantis-kevm"; JOB="morpho"; nomad status -namespace "$NS" "$JOB" \
      | grep "$TG.*running" | head -1 | awk '{ print $1 }' \
      | xargs -Ix nomad logs -namespace "$NS" -tail -f x "$TG"
 
@@ -275,8 +276,8 @@
     # Build and run the Nomad mantis job where the nix attribute to run is generally of the form:
     # .#nomadJobs-${NAMESPACE}-${JOB}.run
     #
-    # Example for building and running only the mantis-testnet explorer job:
-    $ nix run .#nomadJobs.mantis-testnet-explorer.run
+    # Example for building and running only the mantis-kevm explorer job:
+    $ nix run .#nomadJobs.mantis-kevm-explorer.run
     ```
 
 * Versioning information about the deployment, including changes from the last version deployed, can be viewed in the Nomad UI in the [Versions](https://nomad.kevm.dev.cardano.org/ui/jobs/mantis/versions) section.
@@ -302,7 +303,7 @@
 
 ### Mantis-Ops Job Definition Files
 
-* The mantis job definition for the `mantis-testnet` namespace is stored in file: `jobs/mantis.nix`
+* The mantis job definition for the `mantis-kevm` namespace is stored in file: `jobs/mantis-kevm.nix`
 * Mantis miner and passive nodes are defined in this file, each with definitions of resource requirements, mantis configuration, lifecycle policy and quantity.
 * This file can be edited to reflect the desired definition and then deployed with the command above.
 * A job deployment can be done in a few ways:
@@ -312,7 +313,7 @@
     * An example would be to deploy bootstrap miners first and then once they are running successfully to deploy passive nodes.
     * In the case of partial deployments, be aware that if the definition of taskgroups already deployed in an earlier step are modified, those particular taskgroup jobs will be restarted with the next deployment.
 * Job definition information for a currently deployed job can be viewed in the Nomad UI in the [Definition](https://nomad.kevm.dev.cardano.org/ui/jobs/mantis/definition) section under the appropriate namespace.
-* Job definitions for namespaces other than `mantis-testnet` are also stored in the `jobs/` directory with their namespace as part of the filename.
+* Job definitions for namespaces other than `mantis-kevm` are also stored in the `jobs/` directory with their namespace as part of the filename.
 
 
 ### Lifecycle Definitions: Healthchecks, Restarts and Reschedules
@@ -339,7 +340,7 @@
     ```
     nix run .#generate-mantis-keys $NAMESPACE $TOTAL_NUM_MANTIS_BOOTSTRAP_NODES $TOTAL_NUM_OBFT_NODES
     ```
-    `NANESPACE` being `"testnet"` for the main `mantis-testnet` or your personal testnet name.
+    `NANESPACE` being `"mantis-kevm"` for the main `mantis-kevm` or your personal testnet name.
 
 
 
@@ -374,3 +375,13 @@
     # Run a local mantis node against the testnet bootstrap cluster
     $ consul-template -template templates/mantis.tmpl:mantis-local.conf -exec './mantis-node/bin/mantis -Dconfig.file=./mantis-local.conf'
     ```
+
+
+
+## TODO
+
+- [x] Explorer title
+- [ ] Review configurations and clean them up
+- [ ] Confirm Genesis
+- [ ] Onboard developers
+- [x] Publish URLs
