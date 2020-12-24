@@ -5,6 +5,6 @@
   }];
   services.loki.configuration.table_manager = {
     retention_deletes_enabled = true;
-    retention_period = "28d";
+    retention_period = "14d";
   };
 }
