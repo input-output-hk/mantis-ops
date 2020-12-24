@@ -181,7 +181,11 @@ let
           mode = "fail";
         };
 
-        env = { REQUIRED_PEER_COUNT = toString requiredPeerCount; };
+        env = {
+          REQUIRED_PEER_COUNT = toString requiredPeerCount;
+          STORAGE_DIR = "/local/mantis";
+          NAMESPACE = namespace;
+        };
       };
     };
 
@@ -259,6 +263,18 @@ let
           destination = "secrets/secret-key";
           changeMode = "restart";
           splay = "15m";
+        }
+        {
+          data = ''
+            AWS_ACCESS_KEY_ID="{{with secret "kv/data/nomad-cluster/restic"}}{{.Data.data.aws_access_key_id}}{{end}}"
+            AWS_DEFAULT_REGION="us-east-1"
+            AWS_SECRET_ACCESS_KEY="{{with secret "kv/data/nomad-cluster/restic"}}{{.Data.data.aws_secret_access_key}}{{end}}"
+            RESTIC_PASSWORD="{{with secret "kv/data/nomad-cluster/restic"}}{{.Data.data.password}}{{end}}"
+            RESTIC_REPOSITORY="s3:http://{{with node "monitoring" }}{{ .Node.Address }}{{ end }}:9000/restic"
+          '';
+          changeMode = "noop";
+          env = true;
+          destination = "secrets/env.txt";
         }
         genesisJson
       ];

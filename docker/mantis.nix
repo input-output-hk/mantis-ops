@@ -1,13 +1,25 @@
 { lib, mkEnv, buildLayeredImage, writeShellScript, mantis, coreutils, gnused
-, gnugrep, curl, debugUtils, procps, diffutils }:
+, gnugrep, curl, debugUtils, procps, diffutils, restic }:
 let
   entrypoint = writeShellScript "mantis" ''
     set -exuo pipefail
 
     mkdir -p /tmp
-    mkdir -p "$NOMAD_TASK_DIR/mantis"
     cd "$NOMAD_TASK_DIR"
     name="java"
+
+    if [ -d "$STORAGE_DIR" ]; then
+      echo "$STORAGE_DIR found, not restoring from backup..."
+    else
+      echo "$STORAGE_DIR not found, restoring backup..."
+      restic restore latest \
+        --tag "$NAMESPACE" \
+        --target / \
+      || echo "couldn't restore backup, continue startup procedure..."
+      mkdir -p "$NOMAD_TASK_DIR/mantis"
+      rm -rf "$NOMAD_TASK_DIR/mantis/{keystore,node.key}"
+      rm -rf "$NOMAD_TASK_DIR/mantis/logs"
+    fi
 
     set +x
     until [ "$(grep -c enode mantis.conf)" -ge "$REQUIRED_PEER_COUNT" ]; do
@@ -44,7 +56,7 @@ in {
   mantis = buildLayeredImage {
     name = "docker.mantis.ws/mantis";
     contents = debugUtils
-      ++ [ coreutils gnugrep gnused mantis curl procps diffutils ];
+      ++ [ coreutils gnugrep gnused mantis curl procps diffutils restic ];
     config.Entrypoint = [ entrypoint ];
   };
 }
