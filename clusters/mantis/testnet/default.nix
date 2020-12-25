@@ -134,7 +134,7 @@ in {
 
     instances = {
       core-1 = {
-        instanceType = "t3a.xlarge";
+        instanceType = "r5a.xlarge";
         privateIP = "172.16.0.10";
         subnet = cluster.vpc.subnets.core-1;
         volumeSize = 100;
@@ -152,7 +152,7 @@ in {
       };
 
       core-2 = {
-        instanceType = "t3a.xlarge";
+        instanceType = "r5a.xlarge";
         privateIP = "172.16.1.10";
         subnet = cluster.vpc.subnets.core-2;
         volumeSize = 100;
@@ -165,7 +165,7 @@ in {
       };
 
       core-3 = {
-        instanceType = "t3a.xlarge";
+        instanceType = "r5a.xlarge";
         privateIP = "172.16.2.10";
         subnet = cluster.vpc.subnets.core-3;
         volumeSize = 100;
