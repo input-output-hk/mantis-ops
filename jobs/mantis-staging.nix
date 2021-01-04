@@ -1,8 +1,11 @@
-{ mkNomadJob, lib, mantis, mantis-source, mantis-faucet, mantis-faucet-source
-, morpho-node, morpho-source, dockerImages, mantis-explorer }:
+{ mkNomadJob, lib, mantis-staging, mantis-staging-source, mantis-faucet
+, mantis-faucet-source, morpho-node, morpho-source, dockerImages
+, mantis-explorer }:
 let
   # NOTE: Copy this file and change the next line if you want to start your own cluster!
   namespace = "mantis-staging";
+
+  mantis-version = mantis-staging-source.rev;
 
   vault = {
     policies = [ "nomad-cluster" ];
@@ -110,18 +113,18 @@ let
         "${serviceName}-prometheus" = {
           addressMode = "host";
           portLabel = "metrics";
-          tags = [ "prometheus" namespace serviceName name mantis-source.rev ];
+          tags = [ "prometheus" namespace serviceName name mantis-version ];
         };
 
         "${serviceName}-rpc" = {
           addressMode = "host";
           portLabel = "rpc";
-          tags = [ "rpc" namespace serviceName name mantis-source.rev ];
+          tags = [ "rpc" namespace serviceName name mantis-version ];
         };
 
         "${serviceName}-discovery" = {
           portLabel = "discovery";
-          tags = [ "discovery" namespace serviceName name mantis-source.rev ]
+          tags = [ "discovery" namespace serviceName name mantis-version ]
             ++ tags;
           meta = {
             inherit name;
@@ -131,8 +134,7 @@ let
 
         "${serviceName}-server" = {
           portLabel = "server";
-          tags = [ "server" namespace serviceName name mantis-source.rev ]
-            ++ tags;
+          tags = [ "server" namespace serviceName name mantis-version ] ++ tags;
           meta = {
             inherit name;
             publicIp = "\${attr.unique.platform.aws.public-ipv4}";
@@ -143,7 +145,7 @@ let
           addressMode = "host";
           portLabel = "server";
 
-          tags = [ "server" namespace serviceName mantis-source.rev ] ++ tags;
+          tags = [ "server" namespace serviceName mantis-version ] ++ tags;
 
           meta = {
             inherit name;
@@ -158,12 +160,12 @@ let
         inherit vault;
 
         config = {
-          image = dockerImages.mantis;
+          image = dockerImages.mantis-staging;
           args = [ "-Dconfig.file=running.conf" ];
           ports = [ "rpc" "server" "metrics" "discovery" ];
           labels = [{
             inherit namespace name;
-            imageTag = dockerImages.mantis.image.imageTag;
+            imageTag = dockerImages.mantis-staging.image.imageTag;
           }];
 
           logging = {
@@ -182,7 +184,11 @@ let
           mode = "fail";
         };
 
-        env = { REQUIRED_PEER_COUNT = toString requiredPeerCount; };
+        env = {
+          REQUIRED_PEER_COUNT = toString requiredPeerCount;
+          STORAGE_DIR = "/local/mantis";
+          NAMESPACE = namespace;
+        };
       };
     };
 
@@ -203,7 +209,7 @@ let
       templates = [
         {
           data = ''
-            include "${mantis}/conf/testnet-internal-nomad.conf"
+            include "${mantis-staging}/conf/testnet-internal-nomad.conf"
 
             logging.json-output = true
             logging.logs-file = "logs"
@@ -309,14 +315,14 @@ let
 
       services."${name}-rpc" = {
         addressMode = "host";
-        tags = [ "rpc" namespace name mantis-source.rev ];
+        tags = [ "rpc" namespace name mantis-version ];
         portLabel = "rpc";
       };
 
       templates = [
         {
           data = ''
-            include "${mantis}/conf/testnet-internal-nomad.conf"
+            include "${mantis-staging}/conf/testnet-internal-nomad.conf"
 
             logging.json-output = true
             logging.logs-file = "logs"
@@ -352,6 +358,7 @@ let
 
             mantis.blockchains.testnet-internal-nomad.ecip1098-block-number = 0
             mantis.blockchains.testnet-internal-nomad.ecip1097-block-number = 0
+            mantis.blockchains.testnet-internal-nomad.allowed-miners = []
           '';
           changeMode = "noop";
           destination = "local/mantis.conf";
@@ -962,7 +969,8 @@ in {
     };
 
     taskGroups.backup = import ./tasks/backup.nix {
-      inherit lib dockerImages namespace mantis;
+      inherit lib dockerImages namespace;
+      mantis = mantis-staging;
       name = "${namespace}-backup";
     };
   };

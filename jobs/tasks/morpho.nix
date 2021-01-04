@@ -20,11 +20,12 @@
   networks = [{
     mode = "bridge";
     ports = {
-      metrics.to = 7000;
-      rpc.to = 8000;
-      server.to = 9000;
-      morpho.to = 3000;
-      morphoPrometheus.to = 6000;
+      discovery.to = 6000;
+      metrics.to = 6100;
+      rpc.to = 6200;
+      server.to = 6300;
+      morpho.to = 6400;
+      morphoPrometheus.to = 6500;
     };
   }];
 
@@ -32,6 +33,11 @@
     inherit name vault;
     driver = "docker";
     env = { REQUIRED_PEER_COUNT = builtins.toString nbNodes; };
+
+    resources = {
+      cpu = 100; # mhz
+      memoryMB = 1024;
+    };
 
     templates = [
       {

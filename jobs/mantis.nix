@@ -159,7 +159,7 @@ let
         config = {
           image = dockerImages.mantis;
           args = [ "-Dconfig.file=running.conf" ];
-          ports = [ "rpc" "server" "metrics" ];
+          ports = [ "rpc" "server" "metrics" "discovery" ];
           labels = [{
             inherit namespace name;
             imageTag = dockerImages.mantis.image.imageTag;
@@ -247,6 +247,7 @@ let
 
             mantis.blockchains.testnet-internal-nomad.ecip1098-block-number = 0
             mantis.blockchains.testnet-internal-nomad.ecip1097-block-number = 0
+            mantis.blockchains.testnet-internal.allowed-miners = []
           '';
           changeMode = "noop";
           destination = "local/mantis.conf";
@@ -366,6 +367,7 @@ let
 
             mantis.blockchains.testnet-internal-nomad.ecip1098-block-number = 0
             mantis.blockchains.testnet-internal-nomad.ecip1097-block-number = 0
+            mantis.blockchains.testnet-internal.allowed-miners = []
           '';
           changeMode = "noop";
           destination = "local/mantis.conf";

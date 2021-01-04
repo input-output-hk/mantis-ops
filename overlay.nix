@@ -19,10 +19,18 @@ in {
   # And here we cannot specify simply a branch since that's not reproducible,
   # so we use the commit instead.
   # The branch was `chore/update-sbt-add-nix`, for future reference.
+
   mantis-source = builtins.fetchGit {
     url = "https://github.com/input-output-hk/mantis";
     rev = "4fc1d4ab5396f206319387e0283d597ea390f6b8";
     ref = "develop";
+    submodules = true;
+  };
+
+  mantis-staging-source = builtins.fetchGit {
+    url = "https://github.com/input-output-hk/mantis";
+    rev = "fbb54f48f183245642bab270a52bcd41689eccd8";
+    ref = "fix-fetcher-processing-checkpoints";
     submodules = true;
   };
 
@@ -36,6 +44,8 @@ in {
   restic-backup = final.callPackage ./pkgs/backup { };
 
   mantis = import final.mantis-source { inherit system; };
+
+  mantis-staging = import final.mantis-staging-source { inherit system; };
 
   mantis-faucet = import final.mantis-faucet-source { inherit system; };
 
