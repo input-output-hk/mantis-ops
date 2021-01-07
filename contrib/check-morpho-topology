@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+
+# Check the same topology file is used on all the morpho nodes.
+# Note: you need bitte's Nomad in $PATH to run this.
+
+if ! command -v nomad > /dev/null; then
+    echo "You need Bitte's Nomad in \$PATH"
+    echo "Install direnv or enter the nix-shell"
+    exit 1
+fi
+
+set -ex
+
+export NOMAD_TOKEN="$(vault read -field secret_id nomad/creds/developer)"
+
+topologydir=$(mktemp -d)
+
+# Getting the running Morpho allocs
+allocs=$(nomad status -namespace mantis-staging morpho | grep -E "^[0-9].*running" | awk '{print $1}')
+
+for allocid in ${allocs}; do
+  # We need to first get the node dir name, for instance "obft-node-2"
+  nodedir=$(nomad alloc fs -namespace mantis-staging "${allocid}" | grep obft-node | awk '{print $5}' | sed 's/\///')
+
+  nomad alloc fs -namespace mantis-staging "${allocid}" "${nodedir}"/local/running-morpho-topology.json > "${topologydir}/topology-${allocid}.json"
+done
+
+echo "topologies stored in ${topologydir}"
+
+diff --from-file "${topologydir}"/*
+
+echo ""
+echo "SUCCESS"
+echo "All the morpho nodes seem to share the same topology file"
