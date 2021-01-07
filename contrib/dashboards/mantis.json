@@ -243,7 +243,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "app_sync_block_checkpoint_number_gauge_gauge",
+          "expr": "app_sync_block_checkpoint_number_gauge_gauge{namespace=\"$namespace\"}",
           "interval": "",
           "legendFormat": "{{client_id}}",
           "refId": "A"
