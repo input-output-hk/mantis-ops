@@ -1,10 +1,18 @@
 #!/usr/bin/env bash
 #
-# Usage: huprestarter [COMMAND] [ARGS..]
+# Usage: huprestarter [--loop] COMMAND ARGS..
 # 
 # Runs the given command in a subprocess. When this process receives
 # a SIGHUP signal, the subprocess is killed (with SIGTERM) and started again.
 # If the subprocess exits on its own, this process exits too with the same exit code
+#
+# If --loop is passed, the command is restarted even if it exits on its own
+
+loop=
+if [[ "$1" == "--loop" ]]; then
+  shift
+  loop=1
+fi
 
 # Save the arguments so we can call them in a function
 args=( "$@" )
@@ -35,14 +43,29 @@ stop() {
   kill "$tokill"
 }
 
+run-once() {
+  # Restart the process only if the pid is empty, which can only happen if the stop
+  # function above is called to kill the previous process (or in the initial run).
+  while [[ -z "$pid" ]]; do
+    start
+  done
+  pid=
+
+  echo "[huprestarter] Instance exited on its own with exit code $code"
+  return "$code"
+}
+
+run-forever() {
+  while true; do
+    run-once
+  done
+}
+
 trap stop HUP
 
-# Restart the process only if the pid is empty, which can only happen if the stop
-# function above is called to kill the previous process (or in the initial run).
-while [[ -z "$pid" ]]; do
-  start
-done
-
-echo "[huprestarter] Instance exited on its own with exit code $code"
-exit "$code"
-
+if [[ -n "$loop" ]]; then
+  run-forever
+else
+  run-once
+  exit "$!"
+fi
