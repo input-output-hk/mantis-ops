@@ -91,8 +91,8 @@
             mapBackends:
         '';
         destination = "local/morpho-config.yaml";
-        changeMode = "noop";
-        splay = "15m";
+        changeMode = "signal";
+        changeSignal = "SIGHUP";
       }
       {
         data = ''
@@ -101,6 +101,7 @@
           {{- end -}}
         '';
         destination = "secrets/morpho-private-key";
+        # FIXME: [Why not] also signal?
         changeMode = "restart";
         splay = "15m";
       }
@@ -130,8 +131,8 @@
             ]
         '';
         destination = "local/morpho-topology.json";
-        changeMode = "noop";
-        splay = "15m";
+        changeMode = "signal";
+        changeSignal = "SIGHUP";
       }
     ];
 
