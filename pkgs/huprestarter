@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+#
+# Usage: huprestarter [COMMAND] [ARGS..]
+# 
+# Runs the given command in a subprocess. When this process receives
+# a SIGHUP signal, the subprocess is killed (with SIGTERM) and started again.
+# If the subprocess exits on its own, this process exits too with the same exit code
+
+# Save the arguments so we can call them in a function
+args=( "$@" )
+
+echo "[huprestarter] Main pid that listens to SIGHUP for restarting the command is $$"
+
+instance=1
+pid=
+code=
+start() {
+  "${args[@]}" &
+  pid=$!
+
+  echo "[huprestarter] Started instance $instance with pid $pid, waiting for it to exit"
+  # {} and 2>/dev/null to prevent any job control output being shown
+  { wait "$pid"; } 2>/dev/null
+  code=$?
+
+  instance=$(( instance + 1 ))
+}
+
+stop() {
+  echo "[huprestarter] SIGHUP received, stopping instance $instance by killing its pid $pid"
+  tokill=$pid
+  # By unsetting the pid before killing the process we signal that this function stopped
+  # the process, instead of it exiting on its own
+  pid=
+  kill "$tokill"
+}
+
+trap stop HUP
+
+# Restart the process only if the pid is empty, which can only happen if the stop
+# function above is called to kill the previous process (or in the initial run).
+while [[ -z "$pid" ]]; do
+  start
+done
+
+echo "[huprestarter] Instance exited on its own with exit code $code"
+exit "$code"
+

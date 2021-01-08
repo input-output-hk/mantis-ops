@@ -305,6 +305,10 @@ in {
     . ${./pkgs/check_fmt.sh}
   '';
 
+  huprestarter = final.writeShellScriptBin "huprestarter" ''
+    . ${./pkgs/huprestarter}
+  '';
+
   devShell = let
     cluster = "mantis-testnet";
     domain = final.clusters.${cluster}.proto.config.cluster.domain;
