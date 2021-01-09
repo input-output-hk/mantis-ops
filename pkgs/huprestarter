@@ -8,6 +8,12 @@
 #
 # If --loop is passed, the command is restarted even if it exits on its own
 
+
+# Turn on job control, which puts background processes into their own process group,
+# allowing us to kill the whole process group at once, instead of having to mess
+# with individual pids
+set -m
+
 loop=
 if [[ "$1" == "--loop" ]]; then
   shift
@@ -40,7 +46,7 @@ stop() {
   # By unsetting the pid before killing the process we signal that this function stopped
   # the process, instead of it exiting on its own
   pid=
-  kill "$tokill"
+  kill -TERM "-$tokill"
 }
 
 run-once() {
@@ -62,6 +68,7 @@ run-forever() {
 }
 
 trap stop HUP
+trap '[[ -n "$pid" ]] && kill -TERM "-$pid"' exit
 
 if [[ -n "$loop" ]]; then
   run-forever
