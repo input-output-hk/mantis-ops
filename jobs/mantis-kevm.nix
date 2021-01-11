@@ -1349,7 +1349,7 @@ let
 
         config = {
           image = dockerImages.mantis-kevm;
-          args = [ "-Dconfig.file=running.conf" ];
+          #args = [ "-Dconfig.file=running.conf" ];
           ports = [ "rpc" "server" "metrics" "vm" ];
           labels = [{
             inherit namespace name;
