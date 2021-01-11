@@ -1,4 +1,3 @@
-{ system, self }:
 final: prev:
 let
   lib = final.lib;
@@ -19,6 +18,8 @@ in {
   # And here we cannot specify simply a branch since that's not reproducible,
   # so we use the commit instead.
   # The branch was `chore/update-sbt-add-nix`, for future reference.
+  # NOTE this will no longer be true once https://github.com/NixOS/nix/pull/4435
+  # is merged.
 
   mantis-source = builtins.fetchGit {
     url = "https://github.com/input-output-hk/mantis";
@@ -43,18 +44,16 @@ in {
 
   restic-backup = final.callPackage ./pkgs/backup { };
 
-  mantis = import final.mantis-source { inherit system; };
+  mantis = import final.mantis-source { inherit (final) system; };
 
-  mantis-staging = import final.mantis-staging-source { inherit system; };
+  mantis-staging = import final.mantis-staging-source { inherit (final) system; };
 
-  mantis-faucet = import final.mantis-faucet-source { inherit system; };
+  mantis-faucet = import final.mantis-faucet-source { inherit (final) system; };
 
-  mantis-explorer-server = prev.callPackage ./pkgs/mantis-explorer-server.nix {
-    inherit (self.inputs.inclusive.lib) inclusive;
-  };
-  morpho-source = self.inputs.morpho-node;
-
-  morpho-node = self.inputs.morpho-node.morpho-node.${system};
+  # mantis-explorer-server = prev.callPackage ./pkgs/mantis-explorer-server.nix {
+  #   inherit (self.inputs.inclusive.lib) inclusive;
+  # };
+  # morpho-node = final.morpho-source.morpho-node.${final.system};
 
   # Any:
   # - run of this command with a parameter different than the testnet (currently 10)
@@ -305,55 +304,6 @@ in {
     . ${./pkgs/check_fmt.sh}
   '';
 
-  devShell = let
-    cluster = "mantis-testnet";
-    domain = final.clusters.${cluster}.proto.config.cluster.domain;
-  in prev.mkShell {
-    # for bitte-cli
-    LOG_LEVEL = "debug";
-
-    BITTE_CLUSTER = cluster;
-    AWS_PROFILE = "mantis";
-    AWS_DEFAULT_REGION = final.clusters.${cluster}.proto.config.cluster.region;
-
-    VAULT_ADDR = "https://vault.${domain}";
-    NOMAD_ADDR = "https://nomad.${domain}";
-    CONSUL_HTTP_ADDR = "https://consul.${domain}";
-
-    buildInputs = [
-      final.bitte
-      self.inputs.bitte.legacyPackages.${system}.scaler-guard
-      final.terraform-with-plugins
-      prev.sops
-      final.vault-bin
-      final.openssl
-      final.cfssl
-      final.nixfmt
-      final.awscli
-      final.nomad
-      final.consul
-      final.consul-template
-      final.direnv
-      final.nixFlakes
-      final.jq
-      final.fd
-      # final.crystal
-      # final.pkgconfig
-      # final.openssl
-    ];
-  };
-
-  # Used for caching
-  devShellPath = prev.symlinkJoin {
-    paths = final.devShell.buildInputs ++ [
-      final.grafana-loki
-      final.mantis
-      final.mantis-faucet
-      final.nixFlakes
-    ];
-    name = "devShell";
-  };
-
   debugUtils = with final; [
     bashInteractive
     coreutils
@@ -371,23 +321,6 @@ in {
     tree
   ];
 
-  mantis-explorer = self.inputs.mantis-explorer.defaultPackage.${system};
-
-  mantis-faucet-web = self.inputs.mantis-faucet-web.defaultPackage.${system};
-
-  nixosConfigurations =
-    self.inputs.bitte.legacyPackages.${system}.mkNixosConfigurations
-    final.clusters;
-
-  clusters = self.inputs.bitte.legacyPackages.x86_64-linux.mkClusters {
-    root = ./clusters;
-    system = "x86_64-linux";
-    inherit self;
-  };
-
-  inherit (self.inputs.bitte.legacyPackages.${system})
-    bitte vault-bin mkNomadJob terraform-with-plugins systemdSandbox nixFlakes
-    nomad consul consul-template grafana-loki;
 
   nomadJobs = let
     jobsDir = ./jobs;
@@ -465,8 +398,8 @@ in {
       final.dockerImages)}
   '';
 
-  inherit ((self.inputs.nixpkgs.legacyPackages.${system}).dockerTools)
-    buildImage buildLayeredImage shadowSetup;
+  # inherit ((self.inputs.nixpkgs.legacyPackages.${system}).dockerTools)
+  #   buildImage buildLayeredImage shadowSetup;
 
   mkEnv = lib.mapAttrsToList (key: value: "${key}=${value}");
 }

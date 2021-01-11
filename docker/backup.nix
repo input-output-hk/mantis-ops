@@ -10,9 +10,9 @@ let
   '';
 in {
   backup = buildLayeredImage {
-    name = "docker.mantis.ws/backup";
+    name = "docker.mantis.pw/backup";
     contents = [ restic cacert ] ++ debugUtils;
     config.Entrypoint = [ entrypoint ];
-    config.Env = mkEnv { AWS_DEFAULT_REGION = "eu-central-1"; };
+    config.Env = mkEnv { AWS_DEFAULT_REGION = "ca-central-1"; };
   };
 }

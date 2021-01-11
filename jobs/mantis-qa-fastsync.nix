@@ -699,7 +699,8 @@ let
   };
 in {
   "${namespace}-mantis" = mkNomadJob "mantis" {
-    datacenters = [ "us-east-2" "eu-central-1" ];
+    # datacenters = [ "us-east-2" "eu-central-1" ];
+    datacenters = [ "us-east-1" "ca-central-1" ];
     type = "service";
     inherit namespace;
 
@@ -721,7 +722,8 @@ in {
   };
 
   "${namespace}-mantis-explorer" = mkNomadJob "explorer" {
-    datacenters = [ "us-east-2" "eu-central-1" ];
+    # datacenters = [ "us-east-2" "eu-central-1" ];
+    datacenters = [ "us-east-1" "ca-central-1" ];
     type = "service";
     inherit namespace;
 
@@ -729,7 +731,8 @@ in {
   };
 
   "${faucetName}" = mkNomadJob "faucet" {
-    datacenters = [ "us-east-2" "eu-central-1" ];
+    # datacenters = [ "us-east-2" "eu-central-1" ];
+    datacenters = [ "us-east-1" "ca-central-1" ];
     type = "service";
     inherit namespace;
 

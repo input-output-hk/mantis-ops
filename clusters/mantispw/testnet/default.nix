@@ -22,15 +22,15 @@ let
 in {
   imports = [ ./iam.nix ];
 
-  services.consul.policies.developer.servicePrefix."mantis-" = {
+  services.consul.policies.developer.servicePrefix."mantispw-" = {
     policy = "write";
     intentions = "write";
   };
 
   services.nomad.policies = {
-    admin.namespace."mantis-*".policy = "write";
+    admin.namespace."mantispw-*".policy = "write";
     developer = {
-      namespace."mantis-*".policy = "write";
+      namespace."mantispw-*".policy = "write";
       agent.policy = "read";
       quota.policy = "read";
       node.policy = "read";
@@ -47,7 +47,7 @@ in {
   };
 
   cluster = {
-    name = "mantis-testnet";
+    name = "mantispw-testnet";
 
     adminNames = [
       "john.lotoski"

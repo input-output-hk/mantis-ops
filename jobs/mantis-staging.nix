@@ -912,7 +912,8 @@ let
   };
 in {
   "${namespace}-mantis" = mkNomadJob "mantis" {
-    datacenters = [ "us-east-2" "eu-central-1" ];
+    # datacenters = [ "us-east-2" "eu-central-1" ];
+    datacenters = [ "us-east-1" "ca-central-1" ];
     type = "service";
     inherit namespace;
 
@@ -925,7 +926,8 @@ in {
   };
 
   "${namespace}-morpho" = mkNomadJob "morpho" {
-    datacenters = [ "us-east-2" "eu-central-1" ];
+    # datacenters = [ "us-east-2" "eu-central-1" ];
+    datacenters = [ "us-east-1" "ca-central-1" ];
     type = "service";
     inherit namespace;
 
@@ -942,7 +944,8 @@ in {
   };
 
   "${namespace}-explorer" = mkNomadJob "explorer" {
-    datacenters = [ "us-east-2" "eu-central-1" ];
+    # datacenters = [ "us-east-2" "eu-central-1" ];
+    datacenters = [ "us-east-1" "ca-central-1" ];
     type = "service";
     inherit namespace;
 
@@ -950,7 +953,8 @@ in {
   };
 
   "${namespace}-faucet" = mkNomadJob "faucet" {
-    datacenters = [ "us-east-2" "eu-central-1" ];
+    # datacenters = [ "us-east-2" "eu-central-1" ];
+    datacenters = [ "us-east-1" "ca-central-1" ];
     type = "service";
     inherit namespace;
 
@@ -958,7 +962,8 @@ in {
   };
 
   "${namespace}-backup" = mkNomadJob "backup" {
-    datacenters = [ "us-east-2" "eu-central-1" ];
+    # datacenters = [ "us-east-2" "eu-central-1" ];
+    datacenters = [ "us-east-1" "ca-central-1" ];
     type = "batch";
     inherit namespace;
 
