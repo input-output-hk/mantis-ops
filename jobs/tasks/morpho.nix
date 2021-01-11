@@ -19,6 +19,8 @@
 
   networks = [{
     mode = "bridge";
+    # This influences the ip in /etc/resolv.conf, but variable interpolation isn't available here
+    # dns.servers = [ "\${attr.unique.network.ip-address}" ];
     ports = {
       discovery.to = 6000;
       metrics.to = 6100;
@@ -138,6 +140,11 @@
 
     config = {
       image = dockerImages.morpho;
+      # This doesn't appear to have any effect, despite
+      # https://github.com/hashicorp/nomad/issues/3642#issuecomment-387490775 indicating it should work
+      # dns_servers = [ "127.0.0.1" ];
+      # dns_servers = [ "\${attr.unique.network.ip-address}" ];
+
       args = [ ];
       labels = [{
         inherit namespace name;

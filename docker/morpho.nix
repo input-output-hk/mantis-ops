@@ -1,5 +1,5 @@
 { lib, buildLayeredImage, mkEnv, morpho-node, coreutils, gnused, gnugrep, procps
-, writeShellScript, jq, diffutils, huprestarter }:
+, writeShellScript, jq, diffutils, huprestarter, bashInteractive, dnsutils }:
 let
 
   node = writeShellScript "morpho-node" ''
@@ -45,6 +45,10 @@ in {
           procps
           diffutils
           huprestarter
+
+          # Debugging utils
+          bashInteractive
+          dnsutils
         ];
       };
     };
