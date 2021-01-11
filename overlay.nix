@@ -21,11 +21,12 @@ in {
   # And here we cannot specify simply a branch since that's not reproducible,
   # so we use the commit instead.
   # The branch was `chore/update-sbt-add-nix`, for future reference.
-  mantis-source = builtins.fetchGit {
-    url = "https://github.com/input-output-hk/mantis";
-    rev = "4fc1d4ab5396f206319387e0283d597ea390f6b8";
-    ref = "develop";
-    submodules = true;
+  mantis-source = final.fetchFromGitHub {
+    owner = "input-output-hk";
+    repo = "mantis";
+    rev = "ec3674670bfbd1328d136e2376fe8e69cc35bcec";
+    # ref = "feature/ETCM-129-scala-point-13";
+    fetchSubmodules = true;
   };
 
   mantis-faucet-source = builtins.fetchGit {
