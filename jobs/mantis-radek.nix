@@ -1348,12 +1348,12 @@ let
         inherit vault;
 
         config = {
-          image = dockerImages.mantis-radek;
+          image = dockerImages.mantis-kevm;
           #args = [ "-Dconfig.file=running.conf" ];
           ports = [ "rpc" "server" "metrics" "vm" ];
           labels = [{
             inherit namespace name;
-            imageTag = dockerImages.mantis-radek.image.imageTag;
+            imageTag = dockerImages.mantis-kevm.image.imageTag;
           }];
 
           logging = {
