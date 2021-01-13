@@ -26,7 +26,10 @@ in {
     };
   };
 
-  services.nomad.namespaces = { mantis-kevm.description = "Mantis KEVM"; };
+  services.nomad.namespaces = {
+    mantis-kevm.description = "KEVM";
+    mantis-radek.description = "KEVM Radek";
+  };
 
   cluster = {
     name = "mantis-kevm";
