@@ -1,4 +1,4 @@
-{ self, modulesPath, lib, pkgs, config, ... }:
+{ self, deployerPkgs, modulesPath, lib, pkgs, config, ... }:
 let
   inherit (pkgs.terralib) sops2kms sops2region cidrsOf;
   inherit (builtins) readFile replaceStrings;

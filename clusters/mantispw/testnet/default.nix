@@ -1,6 +1,6 @@
-{ self, modulesPath, lib, pkgs, config, ... }:
+{ self, deployerPkgs, modulesPath, lib, pkgs, config, ... }:
 let
-  inherit (pkgs.terralib) sops2kms sops2region cidrsOf;
+  inherit (pkgs.terralib) sops2kms sops2region var;
   inherit (builtins) readFile replaceStrings;
   inherit (lib) mapAttrs' nameValuePair flip attrValues listToAttrs forEach;
   inherit (config) cluster;
@@ -10,7 +10,7 @@ let
   bitte = self.inputs.bitte;
 
   amis = let
-    ec2-amis =  import (modulesPath + /virtualisation/ec2-amis.nix);
+    ec2-amis =  import (modulesPath + "/virtualisation/ec2-amis.nix");
     inherit (ec2-amis) latest;
   in lib.mapAttrs (region: { hvm-ebs }: hvm-ebs) latest;
 
@@ -120,7 +120,8 @@ in {
             # amazon-shell-init
             set -exuo pipefail
 
-            ${pkgs.zfs}/bin/zpool online -e tank nvme0n1p3
+            # TODO barf
+            ${(import pkgs.path { system = "x86_64-linux"; }).zfs}/bin/zpool online -e tank nvme0n1p3
 
             export CACHES="https://hydra.iohk.io https://cache.nixos.org ${cluster.s3Cache}"
             export CACHE_KEYS="hydra.iohk.io:f/Ea+s+dFdN+3Y/G+FDgSq+a5NEWhJGzdjvKNGv0/EQ= cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= ${cluster.s3CachePubKey}"
@@ -141,7 +142,8 @@ in {
     instances = {
       core-1 = {
         instanceType = "r5a.xlarge";
-        privateIP = "172.16.0.10";
+        # privateIP = "172.16.0.10";
+        privateIP = var "cidrhost(${cluster.vpc.subnets.core-1.cidr}, 10)";
         subnet = cluster.vpc.subnets.core-1;
         volumeSize = 100;
 
@@ -159,7 +161,8 @@ in {
 
       core-2 = {
         instanceType = "r5a.xlarge";
-        privateIP = "172.16.1.10";
+        # privateIP = "172.16.1.10";
+        privateIP = var "cidrhost(${cluster.vpc.subnets.core-2.cidr}, 10)";
         subnet = cluster.vpc.subnets.core-2;
         volumeSize = 100;
 
@@ -172,7 +175,8 @@ in {
 
       core-3 = {
         instanceType = "r5a.xlarge";
-        privateIP = "172.16.2.10";
+        # privateIP = "172.16.2.10";
+        privateIP = var "cidrhost(${cluster.vpc.subnets.core-3.cidr}, 10)";
         subnet = cluster.vpc.subnets.core-3;
         volumeSize = 100;
 
@@ -185,26 +189,17 @@ in {
 
       monitoring = {
         instanceType = "t3a.large";
-        privateIP = "172.16.0.20";
+        # privateIP = "172.16.0.20";
+        privateIP = var "cidrhost(${cluster.vpc.subnets.core-1.cidr}, 20)";
         subnet = cluster.vpc.subnets.core-1;
         volumeSize = 1000;
         route53.domains = [ "*.${cluster.domain}" ];
 
-        modules = let
-          extraConfig = pkgs.writeText "extra-config.nix" ''
-            { ... }: {
-              services.vault-agent-core.vaultAddress =
-                "https://${cluster.instances.core-1.privateIP}:8200";
-              services.ingress.enable = true;
-              services.ingress-config.enable = true;
-            }
-          '';
-        in [
+        modules = [
           (bitte + /profiles/monitoring.nix)
           ./monitoring-server.nix
           ./secrets.nix
           ./ingress.nix
-          "${extraConfig}"
           # ./docker-registry.nix
           ./minio.nix
         ];

@@ -47,23 +47,32 @@
             nixConf = ./nix.conf;
             inherit self;
           };
-        }; in
+        };
+
+        hashiStack = bitte.lib.mkHashiStack {
+          inherit self;
+          rootDir = ./.;
+          domain = "mantis.pw";
+        };
+    in
     simpleFlake // {
-      clusters.x86_64-darwin = bitte.lib.mkClusters rec {
-        root = ./clusters;
-        system = "x86_64-darwin";
-        inherit self nixpkgs;
-      };
+      # inherit (hashiStack) nomadJobs dockerImages clusters nixosConfigurations;
+      inherit (hashiStack) clusters nixosConfigurations;
+    #   clusters.x86_64-darwin = bitte.lib.mkClusters rec {
+    #     root = ./clusters;
+    #     system = "x86_64-darwin";
+    #     inherit self nixpkgs;
+    #   };
 
-      clusters.x86_64-linux = bitte.lib.mkClusters rec {
-        root = ./clusters;
-        system = "x86_64-linux";
-        inherit self nixpkgs;
-      };
+    #   clusters.x86_64-linux = bitte.lib.mkClusters rec {
+    #     root = ./clusters;
+    #     system = "x86_64-linux";
+    #     inherit self nixpkgs;
+    #   };
 
-      nixosConfigurations =
-        bitte.lib.mkNixosConfigurations
-          self.clusters.x86_64-darwin;
+    #   nixosConfigurations =
+    #     bitte.lib.mkNixosConfigurations
+    #       self.clusters.x86_64-darwin;
     };
 }
 
