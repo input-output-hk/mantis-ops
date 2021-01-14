@@ -2,18 +2,19 @@
   description = "Bitte for Mantis";
 
   inputs = {
-    bitte.url = "/Users/kreisys/Werk/iohk/bitte";
-    bitte.inputs.cli.url = "/Users/kreisys/Werk/iohk/bitte-cli";
+    bitte.url = "github:input-output-hk/bitte/trim";
+    # bitte.url = "/Users/kreisys/Werk/iohk/bitte";
+    # bitte.inputs.cli.url = "/Users/kreisys/Werk/iohk/bitte-cli";
     utils.url = "github:kreisys/flake-utils";
     ops-lib.url = "github:input-output-hk/ops-lib/zfs-image?dir=zfs";
-    # morpho-node.url = "github:input-output-hk/ECIP-Checkpointing/master";
-    morpho-node.url = "/Users/kreisys/Werk/iohk/ECIP-Checkpointing";
-    # mantis-explorer.url = "github:input-output-hk/mantis-explorer";
-    mantis-explorer.url = "/Users/kreisys/Werk/iohk/mantis-explorer";
-    # mantis-faucet-web.url =
-    #   "github:input-output-hk/mantis-faucet-web/nix-build";
+    morpho-node.url = "github:input-output-hk/ECIP-Checkpointing/flake-refresh";
+    # morpho-node.url = "/Users/kreisys/Werk/iohk/ECIP-Checkpointing";
+    mantis-explorer.url = "github:input-output-hk/mantis-explorer/flake-refresh";
+    # mantis-explorer.url = "/Users/kreisys/Werk/iohk/mantis-explorer";
     mantis-faucet-web.url =
-      "/Users/kreisys/Werk/iohk/mantis-faucet-web";
+      "github:input-output-hk/mantis-faucet-web/flake-refresh";
+    # mantis-faucet-web.url =
+    #   "/Users/kreisys/Werk/iohk/mantis-faucet-web";
   };
 
   outputs = { self, mantis-explorer, morpho-node, mantis-faucet-web, nixpkgs, utils, ops-lib, bitte, ... }:
