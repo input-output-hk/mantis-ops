@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+
+set -e
+
+terraform force-unlock -force mantispw/mantispw-testnet_core || true
+bitte tf core plan --destroy
+bitte tf core apply
+
+aws s3 rm --recursive s3://iohk-mantispw-bitte/infra/binary-cache
+rm encrypted/*.json encrypted/nix-public-key-file secrets/*

@@ -1,13 +1,13 @@
-{ self, deployerPkgs, modulesPath, lib, pkgs, config, ... }:
+{ self, bitte, deployerPkgs, modulesPath, lib, pkgs, config, ... }:
 let
   inherit (pkgs.terralib) sops2kms sops2region var;
+  inherit (bitte.lib.net) cidr;
+  inherit (deployerPkgs.terralib) earlyVar;
   inherit (builtins) readFile replaceStrings;
   inherit (lib) mapAttrs' nameValuePair flip attrValues listToAttrs forEach;
   inherit (config) cluster;
   inherit (import ./security-group-rules.nix { inherit config pkgs lib; })
     securityGroupRules;
-
-  bitte = self.inputs.bitte;
 
   amis = let
     ec2-amis =  import (modulesPath + "/virtualisation/ec2-amis.nix");
@@ -143,7 +143,8 @@ in {
       core-1 = {
         instanceType = "r5a.xlarge";
         # privateIP = "172.16.0.10";
-        privateIP = var "cidrhost(${cluster.vpc.subnets.core-1.cidr}, 10)";
+        # privateIP = earlyVar "cidrhost(${cluster.vpc.subnets.core-1.cidr}, 10)";
+        privateIP = cidr.host 10 cluster.vpc.subnets.core-1.cidr;
         subnet = cluster.vpc.subnets.core-1;
         volumeSize = 100;
 
@@ -162,7 +163,8 @@ in {
       core-2 = {
         instanceType = "r5a.xlarge";
         # privateIP = "172.16.1.10";
-        privateIP = var "cidrhost(${cluster.vpc.subnets.core-2.cidr}, 10)";
+        # privateIP = earlyVar "cidrhost(${cluster.vpc.subnets.core-2.cidr}, 10)";
+        privateIP = cidr.host 10 cluster.vpc.subnets.core-2.cidr;
         subnet = cluster.vpc.subnets.core-2;
         volumeSize = 100;
 
@@ -176,7 +178,8 @@ in {
       core-3 = {
         instanceType = "r5a.xlarge";
         # privateIP = "172.16.2.10";
-        privateIP = var "cidrhost(${cluster.vpc.subnets.core-3.cidr}, 10)";
+        # privateIP = earlyVar "cidrhost(${cluster.vpc.subnets.core-3.cidr}, 10)";
+        privateIP = cidr.host 10 cluster.vpc.subnets.core-3.cidr;
         subnet = cluster.vpc.subnets.core-3;
         volumeSize = 100;
 
@@ -190,7 +193,8 @@ in {
       monitoring = {
         instanceType = "t3a.large";
         # privateIP = "172.16.0.20";
-        privateIP = var "cidrhost(${cluster.vpc.subnets.core-1.cidr}, 20)";
+        # privateIP = earlyVar "cidrhost(${cluster.vpc.subnets.core-1.cidr}, 20)";
+        privateIP = cidr.host 20 cluster.vpc.subnets.core-1.cidr;
         subnet = cluster.vpc.subnets.core-1;
         volumeSize = 1000;
         route53.domains = [ "*.${cluster.domain}" ];

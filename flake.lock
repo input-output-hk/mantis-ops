@@ -3,13 +3,14 @@
     "bitte": {
       "inputs": {
         "cli": "cli",
-        "nixpkgs": "nixpkgs_3",
+        "nix": "nix",
+        "nixpkgs": "nixpkgs_4",
         "ops-lib": "ops-lib",
         "terranix": "terranix",
         "utils": "utils_3"
       },
       "locked": {
-        "narHash": "sha256-3R4MhMDeCNaaIKHy8iORZhVSZGWnx6QXB8ZsGFScycg=",
+        "narHash": "sha256-dy1fT8ttTNZwdobgeg1GB4jvRsKYcBvkzBWcPlWDzXA=",
         "path": "/Users/kreisys/Werk/iohk/bitte",
         "type": "path"
       },
@@ -26,13 +27,12 @@
         "utils": "utils_2"
       },
       "locked": {
-        "narHash": "sha256-jkyelE9mr1UCT9cInBqstBSpkPXygSyDydh7Yy+M13o=",
+        "narHash": "sha256-VMHf5cyUT3rYtG+Tcl5VLMU/UGGpnBZO/iZV+xY7au4=",
         "path": "/Users/kreisys/Werk/iohk/bitte-cli",
         "type": "path"
       },
       "original": {
         "owner": "input-output-hk",
-        "ref": "decalisssystemd",
         "repo": "bitte-cli",
         "type": "github"
       }
@@ -72,9 +72,25 @@
         "type": "github"
       }
     },
+    "lowdown-src": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1598695561,
+        "narHash": "sha256-gyH/5j+h/nWw0W8AcR2WKvNBUsiQ7QuxqSJNXAwV+8E=",
+        "owner": "kristapsdz",
+        "repo": "lowdown",
+        "rev": "1705b4a26fbf065d9574dce47a94e8c7c79e052f",
+        "type": "github"
+      },
+      "original": {
+        "owner": "kristapsdz",
+        "repo": "lowdown",
+        "type": "github"
+      }
+    },
     "mantis-explorer": {
       "inputs": {
-        "nixpkgs": "nixpkgs_4",
+        "nixpkgs": "nixpkgs_5",
         "utils": "utils_4"
       },
       "locked": {
@@ -89,7 +105,7 @@
     },
     "mantis-faucet-web": {
       "inputs": {
-        "nixpkgs": "nixpkgs_5",
+        "nixpkgs": "nixpkgs_6",
         "utils": "utils_5"
       },
       "locked": {
@@ -105,7 +121,7 @@
     "morpho-node": {
       "inputs": {
         "haskell-nix": "haskell-nix",
-        "nixpkgs": "nixpkgs_6",
+        "nixpkgs": "nixpkgs_7",
         "utils": "utils_6"
       },
       "locked": {
@@ -116,6 +132,26 @@
       "original": {
         "path": "/Users/kreisys/Werk/iohk/ECIP-Checkpointing",
         "type": "path"
+      }
+    },
+    "nix": {
+      "inputs": {
+        "lowdown-src": "lowdown-src",
+        "nixpkgs": "nixpkgs_3"
+      },
+      "locked": {
+        "lastModified": 1610536613,
+        "narHash": "sha256-8ANbt7xwjE2SF/RMpV+TVrjNd9NLygSozheEpta7WRI=",
+        "owner": "NixOS",
+        "repo": "nix",
+        "rev": "4e9cec79bf5302108a031b3910f63baccf719eb5",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "repo": "nix",
+        "rev": "4e9cec79bf5302108a031b3910f63baccf719eb5",
+        "type": "github"
       }
     },
     "nixpkgs": {
@@ -150,11 +186,11 @@
     },
     "nixpkgs_2": {
       "locked": {
-        "lastModified": 1610479031,
-        "narHash": "sha256-w0+EPnZpgmrCMmFYcdYrrBxSHlGghyYYoOYJQqHKe5I=",
+        "lastModified": 1610665801,
+        "narHash": "sha256-Lhaul5nWncxALLTt4zDlcwT5qv7QvC9/CqyA9OHvwkk=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "213286bb181c9b6588bb5c4fa130301cefc90dd0",
+        "rev": "9c099f64207ce239f8055511b860594b4497fdd9",
         "type": "github"
       },
       "original": {
@@ -164,11 +200,26 @@
     },
     "nixpkgs_3": {
       "locked": {
-        "lastModified": 1610557615,
-        "narHash": "sha256-FtA4SEcPIFpLdZulWcduZa6sLgiMcfM8CzKButOT2I4=",
+        "lastModified": 1602702596,
+        "narHash": "sha256-fqJ4UgOb4ZUnCDIapDb4gCrtAah5Rnr2/At3IzMitig=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "c8d8d172933526d3a0fcf54dff9522dd00818363",
+        "rev": "ad0d20345219790533ebe06571f82ed6b034db31",
+        "type": "github"
+      },
+      "original": {
+        "id": "nixpkgs",
+        "ref": "nixos-20.09-small",
+        "type": "indirect"
+      }
+    },
+    "nixpkgs_4": {
+      "locked": {
+        "lastModified": 1610561118,
+        "narHash": "sha256-UI5+bEkysV3lq0O3hjz5OHMmmoqsBFYKBHiZfYPlsuY=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "3ef74a35656d03f380a84bd23555fe4bf5e340bd",
         "type": "github"
       },
       "original": {
@@ -176,7 +227,7 @@
         "type": "indirect"
       }
     },
-    "nixpkgs_4": {
+    "nixpkgs_5": {
       "locked": {
         "lastModified": 1603802751,
         "narHash": "sha256-K3CeF3CYy7LCu0J1NnSdo77oVIkcwf0cXDAA/HFjP58=",
@@ -190,7 +241,7 @@
         "type": "indirect"
       }
     },
-    "nixpkgs_5": {
+    "nixpkgs_6": {
       "locked": {
         "lastModified": 1606940130,
         "narHash": "sha256-feZRQOfUWLfTuYUTEUxGadrS0QksS+TLHOx7kz8vgIY=",
@@ -204,7 +255,7 @@
         "type": "indirect"
       }
     },
-    "nixpkgs_6": {
+    "nixpkgs_7": {
       "locked": {
         "lastModified": 1610318850,
         "narHash": "sha256-h10eODvGcChCqdbLzqKYomSmeiKHX6Fhjcgr+wKTGiA=",
@@ -218,13 +269,13 @@
         "type": "indirect"
       }
     },
-    "nixpkgs_7": {
+    "nixpkgs_8": {
       "locked": {
-        "lastModified": 1610475546,
-        "narHash": "sha256-bkigj0lgDGIiKGdQa6eEwokwO8c5ummZxnzQqcQaMKY=",
+        "lastModified": 1610568223,
+        "narHash": "sha256-XhuydFdp2c329NCusOIVtPEwxoeqdGafiZhkfTDX4Yo=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "8aaba2790df85abff58bc7815076aef84743b349",
+        "rev": "b1961de94e807056507342be43357a935d254174",
         "type": "github"
       },
       "original": {
@@ -272,7 +323,7 @@
         "mantis-explorer": "mantis-explorer",
         "mantis-faucet-web": "mantis-faucet-web",
         "morpho-node": "morpho-node",
-        "nixpkgs": "nixpkgs_7",
+        "nixpkgs": "nixpkgs_8",
         "ops-lib": "ops-lib_2",
         "utils": "utils_7"
       }
@@ -311,11 +362,11 @@
     },
     "utils_2": {
       "locked": {
-        "lastModified": 1608409263,
-        "narHash": "sha256-L7gMksy7VR+GcySJhBFnjzO+GsB/BZje+1hvglbhyZk=",
+        "lastModified": 1608147279,
+        "narHash": "sha256-y+xwuD1DfITtdo3O0t58rv5EjZPOqhjMsa6gLow2weI=",
         "owner": "kreisys",
         "repo": "flake-utils",
-        "rev": "b83c460130ee151d6b91b72dd6261fe53c8e4a79",
+        "rev": "eca8189ade92ad1b887ba56bd00b5786b9d490b1",
         "type": "github"
       },
       "original": {
