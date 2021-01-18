@@ -105,33 +105,21 @@
         splay = "15m";
       }
       {
-        data = ''
-          [
-            {{- range $index1, $service1 := service "${namespace}-morpho-node" -}}
-            {{ if ne $index1 0 }},{{ end }}
-              {
-                "nodeAddress": {
-                "addr": "{{ .Address }}",
-                "port": {{ .Port }},
-                "valency": 1
-                },
-                "nodeId": {{- index (split "-" .ServiceMeta.Name) 2 -}},
-                "producers": [
-                {{- range $index2, $service2 := service "${namespace}-morpho-node" -}}
-                {{ if ne $index2 0 }},{{ end }}
-                  {
-                      "addr": "{{ .Address }}",
-                      "port": {{ .Port }},
-                      "valency": 1
-                  }
-                {{- end -}}
-                ]}
-            {{- end }}
-            ]
-        '';
+        data =
+          let
+            addressFor = n: {
+              addr = "_mantis-staging-morpho-node._obft-node-${toString n}.service.consul";
+              # No port -> SRV query above address
+              valency = 1;
+            };
+            producers = map addressFor (lib.range 1 5);
+            data = map (n: {
+              nodeAddress = addressFor n;
+              nodeId = n;
+              inherit producers;
+            }) (lib.range 1 5);
+          in builtins.toJSON data;
         destination = "local/morpho-topology.json";
-        changeMode = "noop";
-        splay = "15m";
       }
     ];
 
