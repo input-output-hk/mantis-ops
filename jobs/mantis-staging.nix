@@ -251,6 +251,7 @@ let
 
             mantis.blockchains.testnet-internal-nomad.ecip1098-block-number = 0
             mantis.blockchains.testnet-internal-nomad.ecip1097-block-number = 0
+            mantis.blockchains.testnet-internal-nomad.pow-target-time = 45 seconds
           '';
           changeMode = "noop";
           destination = "local/mantis.conf";
