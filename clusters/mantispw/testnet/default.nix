@@ -9,16 +9,6 @@ let
   inherit (import ./security-group-rules.nix { inherit config pkgs lib; })
     securityGroupRules;
 
-  amis = let
-    ec2-amis =  import (modulesPath + "/virtualisation/ec2-amis.nix");
-    inherit (ec2-amis) latest;
-  in lib.mapAttrs (region: { hvm-ebs }: hvm-ebs) latest;
-
-  # {
-  #   us-east-2 = "ami-0492aa69cf46f79c3";
-  #   eu-central-1 = "ami-0839f2c610f876d2d";
-  # };
-
 in {
   imports = [ ./iam.nix ];
 
@@ -80,18 +70,6 @@ in {
       }
     ] (args:
       let
-        extraConfig = pkgs.writeText "extra-config.nix" ''
-          { lib, ... }:
-
-          {
-            disabledModules = [ "virtualisation/amazon-image.nix" ];
-            networking = {
-              hostId = "9474d585";
-            };
-            boot.initrd.postDeviceCommands = "echo FINDME; lsblk";
-            boot.loader.grub.device = lib.mkForce "/dev/nvme0n1";
-          }
-        '';
         attrs = ({
           desiredCapacity = 1;
           maxSize = 40;
@@ -106,7 +84,6 @@ in {
             self.inputs.ops-lib.nixosModules.zfs-runtime
             "${self.inputs.nixpkgs}/nixos/modules/profiles/headless.nix"
             "${self.inputs.nixpkgs}/nixos/modules/virtualisation/ec2-data.nix"
-            "${extraConfig}"
             ./secrets.nix
             ./docker-auth.nix
           ];
@@ -115,24 +92,6 @@ in {
             inherit (securityGroupRules)
               internet internal ssh mantis-rpc mantis-server;
           };
-          ami = amis.${args.region};
-          userData = ''
-            # amazon-shell-init
-            set -exuo pipefail
-
-            # TODO barf
-            ${(import pkgs.path { system = "x86_64-linux"; }).zfs}/bin/zpool online -e tank nvme0n1p3
-
-            export CACHES="https://hydra.iohk.io https://cache.nixos.org ${cluster.s3Cache}"
-            export CACHE_KEYS="hydra.iohk.io:f/Ea+s+dFdN+3Y/G+FDgSq+a5NEWhJGzdjvKNGv0/EQ= cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= ${cluster.s3CachePubKey}"
-            pushd /run/keys
-            aws s3 cp "s3://${cluster.s3Bucket}/infra/secrets/${cluster.name}/${cluster.kms}/source/source.tar.xz" source.tar.xz
-            mkdir -p source
-            tar xvf source.tar.xz -C source
-            nix build ./source#nixosConfigurations.${cluster.name}-${asgName}.config.system.build.toplevel --option substituters "$CACHES" --option trusted-public-keys "$CACHE_KEYS"
-            /run/current-system/sw/bin/nixos-rebuild --flake ./source#${cluster.name}-${asgName} boot --option substituters "$CACHES" --option trusted-public-keys "$CACHE_KEYS"
-            /run/current-system/sw/bin/shutdown -r now
-          '';
         } // args);
         asgName = "client-${attrs.region}-${
             replaceStrings [ "." ] [ "-" ] attrs.instanceType

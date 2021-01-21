@@ -1,4 +1,4 @@
-{ lib, mkEnv, buildLayeredImage, writeShellScript, webfs, coreutils
+{ lib, mkEnv, dockerTools, writeShellScript, webfs, coreutils
 , mantis-explorer }:
 let
   entrypoint = writeShellScript "webfs" ''
@@ -6,8 +6,8 @@ let
     exec webfsd -F -j -p $NOMAD_PORT_http -r ${mantis-explorer} -f index.html
   '';
 in {
-  webfs = buildLayeredImage {
-    name = "docker.mantis.ws/webfs";
+  webfs = dockerTools.buildLayeredImage {
+    name = "docker.mantis.pw/webfs";
     config = {
       Entrypoint = [ entrypoint ];
       Env = mkEnv { PATH = lib.makeBinPath [ coreutils webfs ]; };

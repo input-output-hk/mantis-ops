@@ -1,4 +1,4 @@
-{ lib, mkEnv, buildLayeredImage, writeShellScript, mantis-faucet, coreutils
+{ lib, mkEnv, dockerTools, writeShellScript, mantis-faucet, coreutils
 , gnused, gnugrep, curl, debugUtils }:
 let
   entrypoint = writeShellScript "mantis-faucet" ''
@@ -32,8 +32,8 @@ let
     esac
   '';
 in {
-  mantis-faucet = buildLayeredImage {
-    name = "docker.mantis.ws/mantis-faucet";
+  mantis-faucet = dockerTools.buildLayeredImage {
+    name = "docker.mantis.pw/mantis-faucet";
     contents = debugUtils ++ [ coreutils gnugrep gnused mantis-faucet curl ];
     config.Entrypoint = [ entrypoint ];
   };

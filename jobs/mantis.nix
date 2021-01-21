@@ -1,5 +1,5 @@
-{ mkNomadJob, lib, mantis, mantis-source, mantis-faucet, mantis-faucet-source
-, morpho-node, dockerImages, mantis-explorer }:
+{ mkNomadJob, lib, mantis, mantis-source, mantis-faucet-source
+, dockerImages }:
 let
   # NOTE: Copy this file and change the next line if you want to start your own cluster!
   namespace = "mantis-testnet";
@@ -285,7 +285,7 @@ let
       tags = [ "ingress" namespace name ];
 
       serverMeta = {
-        ingressHost = "${name}.mantis.ws";
+        ingressHost = "${name}.mantis.pw";
         ingressPort = toString publicServerPort;
         ingressBind = "*:${toString publicServerPort}";
         ingressMode = "tcp";
@@ -293,7 +293,7 @@ let
       };
 
       discoveryMeta = {
-        ingressHost = "${name}.mantis.ws";
+        ingressHost = "${name}.mantis.pw";
         ingressPort = toString publicDiscoveryPort;
         ingressBind = "*:${toString publicDiscoveryPort}";
         ingressMode = "tcp";
@@ -397,7 +397,7 @@ let
       meta = {
         inherit name;
         publicIp = "\${attr.unique.platform.aws.public-ipv4}";
-        ingressHost = "${name}.mantis.ws";
+        ingressHost = "${name}.mantis.pw";
         ingressMode = "http";
         ingressBind = "*:443";
         ingressServer = "_${name}._tcp.service.consul";
@@ -517,7 +517,7 @@ let
         meta = {
           name = faucetName;
           publicIp = "\${attr.unique.platform.aws.public-ipv4}";
-          ingressHost = "${faucetName}.mantis.ws";
+          ingressHost = "${faucetName}.mantis.pw";
           ingressBind = "*:443";
           ingressMode = "http";
           ingressServer = "_${faucetName}._tcp.service.consul";
@@ -568,7 +568,7 @@ let
         meta = {
           name = faucetName;
           publicIp = "\${attr.unique.platform.aws.public-ipv4}";
-          ingressHost = "${faucetName}-web.mantis.ws";
+          ingressHost = "${faucetName}-web.mantis.pw";
           ingressBind = "*:443";
           ingressMode = "http";
           ingressServer = "_${faucetName}-web._tcp.service.consul";

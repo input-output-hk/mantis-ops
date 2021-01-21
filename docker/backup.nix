@@ -1,4 +1,4 @@
-{ mkEnv, writeShellScript, buildLayeredImage, restic-backup, debugUtils, cacert
+{ mkEnv, writeShellScript, dockerTools, restic-backup, debugUtils, cacert
 , restic }:
 let
   entrypoint = writeShellScript "restic-backup" ''
@@ -9,7 +9,7 @@ let
     exec ${restic-backup}/bin/restic-backup "$@"
   '';
 in {
-  backup = buildLayeredImage {
+  backup = dockerTools.buildLayeredImage {
     name = "docker.mantis.pw/backup";
     contents = [ restic cacert ] ++ debugUtils;
     config.Entrypoint = [ entrypoint ];

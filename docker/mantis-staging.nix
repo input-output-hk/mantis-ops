@@ -1,4 +1,4 @@
-{ lib, mkEnv, buildLayeredImage, writeShellScript, mantis-staging, coreutils
+{ lib, mkEnv, dockerTools, writeShellScript, mantis-staging, coreutils
 , gnused, gnugrep, curl, debugUtils, procps, diffutils, restic }:
 let
   entrypoint = writeShellScript "mantis" ''
@@ -53,8 +53,8 @@ let
     done
   '';
 in {
-  mantis-staging = buildLayeredImage {
-    name = "docker.mantis.ws/mantis";
+  mantis-staging = dockerTools.buildLayeredImage {
+    name = "docker.mantis.pw/mantis";
     contents = debugUtils ++ [
       coreutils
       gnugrep

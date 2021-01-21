@@ -230,7 +230,7 @@ let
       tags = [ "ingress" namespace name ];
 
       meta = {
-        ingressHost = "${name}.mantis.ws";
+        ingressHost = "${name}.mantis.pw";
         ingressPort = toString publicPort;
         ingressBind = "*:${toString publicPort}";
         ingressMode = "tcp";
@@ -263,11 +263,11 @@ let
         tags = [ "rpc" "ingress" namespace name mantis-source.rev ];
         portLabel = "rpc";
         meta = {
-          ingressHost = "${namespace}-explorer.mantis.ws";
+          ingressHost = "${namespace}-explorer.mantis.pw";
           ingressMode = "http";
           ingressBind = "*:443";
           ingressIf =
-            "{ path_beg -i /rpc/node } or { hdr(host) -i ${namespace}-explorer.mantis.ws } { path_beg -i /sockjs-node }";
+            "{ path_beg -i /rpc/node } or { hdr(host) -i ${namespace}-explorer.mantis.pw } { path_beg -i /sockjs-node }";
           ingressServer = "_${name}-rpc._tcp.service.consul";
           ingressBackendExtra = ''
             option tcplog
@@ -333,7 +333,7 @@ let
       meta = {
         inherit name;
         publicIp = "\${attr.unique.platform.aws.public-ipv4}";
-        ingressHost = "${name}.mantis.ws";
+        ingressHost = "${name}.mantis.pw";
         ingressMode = "http";
         ingressBind = "*:443";
         ingressIf =
@@ -408,7 +408,7 @@ let
         meta = {
           name = faucetName;
           publicIp = "\${attr.unique.platform.aws.public-ipv4}";
-          ingressHost = "${faucetName}.mantis.ws";
+          ingressHost = "${faucetName}.mantis.pw";
           ingressBind = "*:443";
           ingressMode = "http";
           ingressServer = "_${faucetName}._tcp.service.consul";

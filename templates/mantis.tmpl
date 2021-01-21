@@ -7,6 +7,6 @@ mantis.blockchains.testnet-internal-nomad.bootstrap-nodes = [
 {{ range service "mantis-testnet-mantis-miner" -}}
   "enode://  {{- with secret (printf "kv/data/nomad-cluster/testnet/%s/enode-hash" .ServiceMeta.Name) -}}
     {{- .Data.data.value -}}
-    {{- end -}}@{{ .ServiceMeta.Name }}.mantis.ws:{{ .ServiceMeta.IngressPort }}",
+    {{- end -}}@{{ .ServiceMeta.Name }}.mantis.pw:{{ .ServiceMeta.IngressPort }}",
 {{ end -}}
 ]

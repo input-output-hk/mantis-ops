@@ -305,20 +305,20 @@ in {
   '';
 
   debugUtils = with final; [
-    bashInteractive
-    coreutils
-    curl
-    dnsutils
-    fd
-    gawk
-    gnugrep
-    iproute
-    jq
-    lsof
-    netcat
-    nettools
-    procps
-    tree
+    # bashInteractive
+    # coreutils
+    # curl
+    # dnsutils
+    # fd
+    # gawk
+    # gnugrep
+    # iproute
+    # jq
+    # lsof
+    # netcat
+    # nettools
+    # procps
+    # tree
   ];
 
 
@@ -362,7 +362,7 @@ in {
         fi
 
         if [ -z "$dockerLoginDone" ]; then
-          echo "$dockerPassword" | docker login docker.mantis.ws -u developer --password-stdin
+          echo "$dockerPassword" | docker login docker.mantis.pw -u developer --password-stdin
           dockerLoginDone=1
         fi
 

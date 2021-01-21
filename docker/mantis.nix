@@ -1,4 +1,4 @@
-{ lib, mkEnv, buildLayeredImage, writeShellScript, mantis, coreutils, gnused
+{ lib, mkEnv, dockerTools, writeShellScript, mantis, coreutils, gnused
 , gnugrep, curl, debugUtils, procps, diffutils, restic }:
 let
   entrypoint = writeShellScript "mantis" ''
@@ -53,8 +53,8 @@ let
     done
   '';
 in {
-  mantis = buildLayeredImage {
-    name = "docker.mantis.ws/mantis";
+  mantis = dockerTools.buildLayeredImage {
+    name = "docker.mantis.pw/mantis";
     contents = debugUtils
       ++ [ coreutils gnugrep gnused mantis curl procps diffutils restic ];
     config.Entrypoint = [ entrypoint ];

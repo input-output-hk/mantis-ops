@@ -1,17 +1,17 @@
-{ lib, mkEnv, buildImage, buildLayeredImage, writeShellScript, mantis-faucet-web
-, nginx, shadowSetup, coreutils }: {
+{ lib, mkEnv, dockerTools, writeShellScript, mantis-faucet-web
+, nginx, coreutils }: {
   mantis-faucet-web = let
-    nginx-layered = buildLayeredImage {
-      name = "docker.mantis.ws/nginx";
+    nginx-layered = dockerTools.buildLayeredImage {
+      name = "docker.mantis.pw/nginx";
       contents = [ nginx mantis-faucet-web coreutils ];
     };
-  in buildImage {
-    name = "docker.mantis.ws/mantis-faucet-web";
+  in dockerTools.buildImage {
+    name = "docker.mantis.pw/mantis-faucet-web";
 
     fromImage = nginx-layered;
 
     runAsRoot = writeShellScript "runAsRoot" ''
-      ${shadowSetup}
+      ${dockerTools.shadowSetup}
       groupadd --system nginx
       useradd --system --gid nginx nginx
       mkdir -p /var/cache/nginx
