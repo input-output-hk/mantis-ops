@@ -102,13 +102,18 @@
         "utils": "utils_4"
       },
       "locked": {
-        "narHash": "sha256-Jy5GERa/Ulx73WKeQsUlf5md0GTq2WHs5vWgY3vt4qA=",
-        "path": "/Users/kreisys/Werk/iohk/mantis-explorer",
-        "type": "path"
+        "lastModified": 1610666892,
+        "narHash": "sha256-9Ib80bJ3qiW09s6Ey4g3Edaqg6A0HDNT57eKSGVOWBY=",
+        "owner": "input-output-hk",
+        "repo": "mantis-explorer",
+        "rev": "d13ab3d9588790933f52c18955e12df7fe3ec868",
+        "type": "github"
       },
       "original": {
-        "path": "/Users/kreisys/Werk/iohk/mantis-explorer",
-        "type": "path"
+        "owner": "input-output-hk",
+        "ref": "flake-refresh",
+        "repo": "mantis-explorer",
+        "type": "github"
       }
     },
     "mantis-faucet-web": {
@@ -117,13 +122,18 @@
         "utils": "utils_5"
       },
       "locked": {
-        "narHash": "sha256-VpYVeag+zOk4BMscHPbtUJW7q4FUaEl2Jl/+PX1zmMc=",
-        "path": "/Users/kreisys/Werk/iohk/mantis-faucet-web",
-        "type": "path"
+        "lastModified": 1610667085,
+        "narHash": "sha256-gcnUQAiZ1pxbyXu+p3I7xaFtX3RInD9WZ/nC8gpvxJI=",
+        "owner": "input-output-hk",
+        "repo": "mantis-faucet-web",
+        "rev": "3fbf1326e0cef70c65e4af015a8ce5bde4945cac",
+        "type": "github"
       },
       "original": {
-        "path": "/Users/kreisys/Werk/iohk/mantis-faucet-web",
-        "type": "path"
+        "owner": "input-output-hk",
+        "ref": "flake-refresh",
+        "repo": "mantis-faucet-web",
+        "type": "github"
       }
     },
     "morpho-node": {
@@ -133,13 +143,18 @@
         "utils": "utils_6"
       },
       "locked": {
-        "narHash": "sha256-6S4oY5iK1ynVsue41Dk2DNHygNEPvdLW3qR31JQ55RY=",
-        "path": "/Users/kreisys/Werk/iohk/ECIP-Checkpointing",
-        "type": "path"
+        "lastModified": 1610666966,
+        "narHash": "sha256-I9w/Pl2mckrtWL3zUQHtA/6vS1tvaHz8uLxvWel1tf8=",
+        "owner": "input-output-hk",
+        "repo": "ECIP-Checkpointing",
+        "rev": "565c5e77b790955a2c4af479aa9b33d3f46641a2",
+        "type": "github"
       },
       "original": {
-        "path": "/Users/kreisys/Werk/iohk/ECIP-Checkpointing",
-        "type": "path"
+        "owner": "input-output-hk",
+        "ref": "flake-refresh",
+        "repo": "ECIP-Checkpointing",
+        "type": "github"
       }
     },
     "nix": {
