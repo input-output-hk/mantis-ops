@@ -43,6 +43,10 @@
             })
           ];
 
+          packages = { generate-mantis-keys }: {
+            inherit generate-mantis-keys;
+          };
+
           shell = { mkBitteShell }: mkBitteShell {
             profile = "mantis";
             cluster = "mantispw-testnet";
