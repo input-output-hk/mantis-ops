@@ -93,7 +93,7 @@ let
         };
 
         config = {
-          image = dockerImages.telegraf.id;
+          image = dockerImages.telegraf;
           args = [ "-config" "local/telegraf.config" ];
 
           labels = [{
@@ -179,7 +179,7 @@ let
         vault.policies = [ "nomad-cluster" ];
 
         config = {
-          image = dockerImages.mantis.id;
+          image = dockerImages.mantis;
           args = [ "-Dconfig.file=running.conf" ];
           ports = [ "rpc" "server" "metrics" ];
           labels = [{
@@ -369,7 +369,7 @@ let
       };
 
       config = {
-        image = dockerImages.mantis-explorer-server.id;
+        image = dockerImages.mantis-explorer-server;
         ports = [ "http" ];
         labels = [{
           inherit namespace name;
@@ -457,7 +457,7 @@ let
       };
 
       config = {
-        image = dockerImages.mantis-faucet.id;
+        image = dockerImages.mantis-faucet;
         args = [ "-Dconfig.file=running.conf" ];
         ports = [ "rpc" "metrics" ];
         labels = [{
@@ -665,7 +665,7 @@ let
       };
 
       config = {
-        image = dockerImages.telegraf.id;
+        image = dockerImages.telegraf;
         args = [ "-config" "local/telegraf.config" ];
 
         labels = [{
