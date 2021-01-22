@@ -102,7 +102,7 @@ in {
         final.gnused
         final.curl
         final.jq
-        final.netcat
+        final.netcat-gnu # `netcat` uses libressl which doesn't work on darwin
         final.gnused
       ])
     }"
