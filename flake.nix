@@ -6,6 +6,8 @@
     # bitte.url = "/Users/kreisys/Werk/iohk/bitte";
     bitte.inputs.cli.url = "github:input-output-hk/bitte-cli/updates";
     # bitte.inputs.cli.url = "/Users/kreisys/Werk/iohk/bitte-cli";
+    bitte.inputs.ops-lib.url = "github:input-output-hk/ops-lib/zfs-image?dir=zfs";
+    #bitte.inputs.ops-lib.url = "/Users/kreisys/Werk/iohk/ops-lib?dir=zfs";
     utils.url = "github:kreisys/flake-utils";
     ops-lib.url = "github:input-output-hk/ops-lib/zfs-image?dir=zfs";
     morpho-node.url = "github:input-output-hk/ECIP-Checkpointing/flake-refresh";
@@ -62,7 +64,8 @@
         };
     in
     simpleFlake // {
-      inherit (hashiStack) nomadJobs dockerImages clusters nixosConfigurations;
+      inherit (hashiStack) nomadJobs dockerImages clusters;
+      nixosConfigurations = hashiStack.nixosConfigurations // bitte.nixosConfigurations;
     #   clusters.x86_64-darwin = bitte.lib.mkClusters rec {
     #     root = ./clusters;
     #     system = "x86_64-darwin";
