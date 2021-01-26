@@ -208,6 +208,7 @@ let
           data = ''
             include "${mantis}/conf/testnet-internal-nomad.conf"
 
+            mantis.testmode = false
             logging.json-output = true
             logging.logs-file = "logs"
 
