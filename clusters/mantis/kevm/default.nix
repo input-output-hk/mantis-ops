@@ -130,7 +130,7 @@ in {
       };
 
       monitoring = {
-        instanceType = "t3a.large";
+        instanceType = "t3a.xlarge";
         privateIP = "172.16.0.20";
         subnet = cluster.vpc.subnets.core-1;
         volumeSize = 600;
