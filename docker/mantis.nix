@@ -1,4 +1,4 @@
-{ lib, mkEnv, dockerTools, writeShellScript, mantis, mantis-source, coreutils, gnused
+{ lib, which, mkEnv, dockerTools, findutils, writeShellScript, mantis, mantis-source, coreutils, gnused
 , gnugrep, curl, debugUtils, procps, diffutils, restic }:
 let
   entrypoint = writeShellScript "mantis" ''
@@ -47,6 +47,14 @@ let
     while true; do
       starts="$((starts+1))"
       echo "Start Number $starts" > /dev/stderr
+
+      set +e
+      # cat running.conf | head -n2 | cut -d' ' -f2 | xargs cat > /dev/stderr
+      # which mantis  > /dev/stderr
+      # echo ${mantis} > /dev/stderr
+      ls -la > /dev/stderr
+      ln -sf ${mantis}/conf
+      set -e
       cat running.conf > /dev/stderr
       mantis "-Duser.home=$NOMAD_TASK_DIR" "$@" || true
       sleep 10
@@ -56,7 +64,7 @@ in {
   mantis = dockerTools.buildLayeredImage {
     name = "docker.mantis.pw/mantis";
     contents = debugUtils
-      ++ [ coreutils gnugrep gnused mantis mantis-source curl procps diffutils restic ];
+      ++ [ which coreutils findutils gnugrep gnused mantis mantis-source curl procps diffutils restic ];
     config.Entrypoint = [ entrypoint ];
   };
 }

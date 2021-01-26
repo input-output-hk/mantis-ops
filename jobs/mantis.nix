@@ -206,32 +206,12 @@ let
       templates = [
         {
           data = ''
-            include "${mantis}/conf/testnet-internal-nomad.conf"
+            include "${mantis-source}/src/main/resources/application.conf"
+            include "conf/testnet-internal-nomad.conf"
 
             mantis.testmode = false
-            logging.json-output = true
-            logging.logs-file = "logs"
-
-            mantis.blockchains.testnet-internal-nomad.bootstrap-nodes = [
-              {{ range service "${namespace}-mantis-miner-server" -}}
-                "enode://  {{- with secret (printf "kv/data/nomad-cluster/${namespace}/%s/enode-hash" .ServiceMeta.Name) -}}
-                  {{- .Data.data.value -}}
-                  {{- end -}}@{{ .Address }}:{{ .Port }}",
-              {{ end -}}
-            ]
-
-            mantis.blockchains.testnet-internal-nomad.checkpoint-public-keys = [
-              ${
-                lib.concatMapStringsSep "," (x: ''
-                  {{- with secret "kv/data/nomad-cluster/${namespace}/obft-node-${
-                    toString x
-                  }/obft-public-key" -}}"{{- .Data.data.value -}}"{{end}}
-                '') (lib.range 1 amountOfMorphoNodes)
-              }
-            ]
-
-            mantis.consensus.mining-enabled = true
             mantis.client-id = "${name}"
+            mantis.consensus.mining-enabled = true
             mantis.consensus.coinbase = "{{ with secret "kv/data/nomad-cluster/${namespace}/${name}/coinbase" }}{{ .Data.data.value }}{{ end }}"
             mantis.node-key-file = "{{ env "NOMAD_SECRETS_DIR" }}/secret-key"
             mantis.datadir = "/local/mantis"
@@ -244,11 +224,38 @@ let
             mantis.network.rpc.http.interface = "0.0.0.0"
             mantis.network.rpc.http.port = {{ env "NOMAD_PORT_rpc" }}
             mantis.network.server-address.port = {{ env "NOMAD_PORT_server" }}
-            mantis.blockchains.testnet-internal-nomad.custom-genesis-file = "{{ env "NOMAD_TASK_DIR" }}/genesis.json"
 
-            mantis.blockchains.testnet-internal-nomad.ecip1098-block-number = 0
-            mantis.blockchains.testnet-internal-nomad.ecip1097-block-number = 0
-            mantis.blockchains.testnet-internal.allowed-miners = []
+            mantis.blockchains.testnet-internal-nomad {
+              include "conf/chains/testnet-internal-nomad-chain.conf"
+
+              custom-genesis-file = "{{ env "NOMAD_TASK_DIR" }}/genesis.json"
+
+              ecip1098-block-number = 0
+              ecip1097-block-number = 0
+              allowed-miners = []
+              bootstrap-nodes = [
+                {{ range service "${namespace}-mantis-miner-server" -}}
+                  "enode://  {{- with secret (printf "kv/data/nomad-cluster/${namespace}/%s/enode-hash" .ServiceMeta.Name) -}}
+                    {{- .Data.data.value -}}
+                    {{- end -}}@{{ .Address }}:{{ .Port }}",
+                {{ end -}}
+              ]
+
+              checkpoint-public-keys = [
+                ${
+                  lib.concatMapStringsSep "," (x: ''
+                    {{- with secret "kv/data/nomad-cluster/${namespace}/obft-node-${
+                      toString x
+                    }/obft-public-key" -}}"{{- .Data.data.value -}}"{{end}}
+                  '') (lib.range 1 amountOfMorphoNodes)
+                }
+              ]
+
+            }
+
+            logging.json-output = true
+            logging.logs-file = "logs"
+
           '';
           changeMode = "noop";
           destination = "local/mantis.conf";
@@ -332,28 +339,37 @@ let
       templates = [
         {
           data = ''
-            include "${mantis}/conf/testnet-internal-nomad.conf"
+            include "${mantis-source}/src/main/resources/application.conf"
+            include "conf/testnet-internal-nomad.conf"
+
+            mantis.blockchains.testnet-internal-nomad {
+              include "conf/chains/testnet-internal-nomad-chain.conf"
+              custom-genesis-file = "{{ env "NOMAD_TASK_DIR" }}/genesis.json"
+              ecip1098-block-number = 0
+              ecip1097-block-number = 0
+              allowed-miners = []
+              bootstrap-nodes = [
+                {{ range service "${namespace}-mantis-miner-server" -}}
+                  "enode://  {{- with secret (printf "kv/data/nomad-cluster/${namespace}/%s/enode-hash" .ServiceMeta.Name) -}}
+                    {{- .Data.data.value -}}
+                    {{- end -}}@{{ .Address }}:{{ .Port }}",
+                {{ end -}}
+              ]
+
+              checkpoint-public-keys = [
+                ${
+                  lib.concatMapStringsSep "," (x: ''
+                    {{- with secret "kv/data/nomad-cluster/${namespace}/obft-node-${
+                      toString x
+                    }/obft-public-key" -}}"{{- .Data.data.value -}}"{{end}}
+                  '') (lib.range 1 amountOfMorphoNodes)
+                }
+              ]
+              }
 
             logging.json-output = true
             logging.logs-file = "logs"
 
-            mantis.blockchains.testnet-internal-nomad.bootstrap-nodes = [
-              {{ range service "${namespace}-mantis-miner-server" -}}
-                "enode://  {{- with secret (printf "kv/data/nomad-cluster/${namespace}/%s/enode-hash" .ServiceMeta.Name) -}}
-                  {{- .Data.data.value -}}
-                  {{- end -}}@{{ .Address }}:{{ .Port }}",
-              {{ end -}}
-            ]
-
-            mantis.blockchains.testnet-internal-nomad.checkpoint-public-keys = [
-              ${
-                lib.concatMapStringsSep "," (x: ''
-                  {{- with secret "kv/data/nomad-cluster/${namespace}/obft-node-${
-                    toString x
-                  }/obft-public-key" -}}"{{- .Data.data.value -}}"{{end}}
-                '') (lib.range 1 amountOfMorphoNodes)
-              }
-            ]
 
             mantis.client-id = "${name}"
             mantis.consensus.mining-enabled = false
@@ -364,11 +380,6 @@ let
             mantis.network.rpc.http.interface = "0.0.0.0"
             mantis.network.rpc.http.port = {{ env "NOMAD_PORT_rpc" }}
             mantis.network.server-address.port = {{ env "NOMAD_PORT_server" }}
-            mantis.blockchains.testnet-internal-nomad.custom-genesis-file = "{{ env "NOMAD_TASK_DIR" }}/genesis.json"
-
-            mantis.blockchains.testnet-internal-nomad.ecip1098-block-number = 0
-            mantis.blockchains.testnet-internal-nomad.ecip1097-block-number = 0
-            mantis.blockchains.testnet-internal.allowed-miners = []
           '';
           changeMode = "noop";
           destination = "local/mantis.conf";
