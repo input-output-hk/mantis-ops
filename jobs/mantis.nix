@@ -206,49 +206,272 @@ let
       templates = [
         {
           data = ''
-            include "${mantis}/conf/testnet-internal-nomad.conf"
+            include file("${mantis-source}/src/main/resources/application.conf")
+            include file("${builtins.trace mantis.outPath mantis}/conf/testnet-internal-nomad.conf")
 
-            mantis.testmode = false
-            logging.json-output = true
-            logging.logs-file = "logs"
+            mantis {
+              testmode = false
+              client-version = "mantis/v2.0"
 
-            mantis.blockchains.testnet-internal-nomad.bootstrap-nodes = [
-              {{ range service "${namespace}-mantis-miner-server" -}}
-                "enode://  {{- with secret (printf "kv/data/nomad-cluster/${namespace}/%s/enode-hash" .ServiceMeta.Name) -}}
-                  {{- .Data.data.value -}}
-                  {{- end -}}@{{ .Address }}:{{ .Port }}",
-              {{ end -}}
-            ]
-
-            mantis.blockchains.testnet-internal-nomad.checkpoint-public-keys = [
-              ${
-                lib.concatMapStringsSep "," (x: ''
-                  {{- with secret "kv/data/nomad-cluster/${namespace}/obft-node-${
-                    toString x
-                  }/obft-public-key" -}}"{{- .Data.data.value -}}"{{end}}
-                '') (lib.range 1 amountOfMorphoNodes)
+              consensus {
+                coinbase = "{{ with secret "kv/data/nomad-cluster/${namespace}/${name}/coinbase" }}{{ .Data.data.value }}{{ end }}"
+                mining-enabled = true
               }
-            ]
+              shutdown-timeout = 15.seconds
+              client-id = "${name}"
+              node-key-file = "{{ env "NOMAD_SECRETS_DIR" }}/secret-key"
+              datadir = "/local/mantis"
+              ethash.ethash-dir = "/local/ethash"
+              metrics {
+                enabled = true
+                port = {{ env "NOMAD_PORT_metrics" }}
+              }
+              network {
+                discovery {
+                  discovery-enabled = true
+                  host = {{ with node "monitoring" }}"{{ .Node.Address }}"{{ end }}
+                  port = ${toString publicDiscoveryPort}
+                }
 
-            mantis.consensus.mining-enabled = true
-            mantis.client-id = "${name}"
-            mantis.consensus.coinbase = "{{ with secret "kv/data/nomad-cluster/${namespace}/${name}/coinbase" }}{{ .Data.data.value }}{{ end }}"
-            mantis.node-key-file = "{{ env "NOMAD_SECRETS_DIR" }}/secret-key"
-            mantis.datadir = "/local/mantis"
-            mantis.ethash.ethash-dir = "/local/ethash"
-            mantis.metrics.enabled = true
-            mantis.metrics.port = {{ env "NOMAD_PORT_metrics" }}
-            mantis.network.discovery.discovery-enabled = true
-            mantis.network.discovery.host = {{ with node "monitoring" }}"{{ .Node.Address }}"{{ end }}
-            mantis.network.discovery.port = ${toString publicDiscoveryPort}
-            mantis.network.rpc.http.interface = "0.0.0.0"
-            mantis.network.rpc.http.port = {{ env "NOMAD_PORT_rpc" }}
-            mantis.network.server-address.port = {{ env "NOMAD_PORT_server" }}
-            mantis.blockchains.testnet-internal-nomad.custom-genesis-file = "{{ env "NOMAD_TASK_DIR" }}/genesis.json"
+                rpc {
+                  http {
+                    interface = "0.0.0.0"
+                    port = {{ env "NOMAD_PORT_rpc" }}
+                  }
+                }
+                server-address.port = {{ env "NOMAD_PORT_server" }}
+                protocol-version = 64
 
-            mantis.blockchains.testnet-internal-nomad.ecip1098-block-number = 0
-            mantis.blockchains.testnet-internal-nomad.ecip1097-block-number = 0
-            mantis.blockchains.testnet-internal.allowed-miners = []
+                peer {
+                  # Retry delay for failed attempt at connecting to a peer
+                  connect-retry-delay = 1 minute
+
+                  # Maximum number of reconnect attempts after the connection has been initiated.
+                  # After that, the connection will be dropped until its initiated again (eg. by peer discovery)
+                  connect-max-retries = 1
+
+                  disconnect-poison-pill-timeout = 5 seconds
+
+                  wait-for-hello-timeout = 3 seconds
+
+                  wait-for-status-timeout = 30 seconds
+
+                  wait-for-chain-check-timeout = 15 seconds
+
+                  wait-for-handshake-timeout = 3 seconds
+
+                  wait-for-tcp-ack-timeout = 5 seconds
+
+                  # Maximum block headers in a single response message (as a blockchain host)
+                  max-blocks-headers-per-message = 100
+
+                  # Maximum block bodies in a single response message (as a blockchain host)
+                  max-blocks-bodies-per-message = 100
+
+                  # Maximum transactions receipts in a single response message (as a blockchain host)
+                  max-receipts-per-message = 100
+
+                  # Maximum MPT components in a single response message (as a blockchain host)
+                  max-mpt-components-per-message = 200
+
+                  # Maximum number of peers this node can connect to
+                  max-outgoing-peers = 45
+
+                  # Maximum number of peers that can connect to this node
+                  max-incoming-peers = 15
+
+                  # Maximum number of peers that can be connecting to this node
+                  max-pending-peers = 20
+
+                  # Initial delay before connecting to nodes
+                  update-nodes-initial-delay = 5.seconds
+
+                  # Newly discovered nodes connect attempt interval
+                  update-nodes-interval = 10.seconds
+
+                  # Peer which disconnect during tcp connection becouse of too many peers will not be retried for this short duration
+                  short-blacklist-duration = 6.minutes
+
+                  # Peer which disconnect during tcp connection becouse of other reasons will not be retried for this long duration
+                  # other reasons include: timeout during connection, wrong protocol, incompatible network
+                  long-blacklist-duration = 30.minutes
+                }
+              }
+              blockchains {
+                network = "testnet-internal-nomad"
+                testnet-internal-nomad {
+                  # Ethereum network identifier:
+                  # 1 - mainnet, 3 - ropsten, 7 - mordor
+                  network-id = 42
+
+                  # Possibility to set Proof of Work target time for testing purposes.
+                  # null means that the standard difficulty calculation rules are used
+                  pow-target-time = 30 seconds
+
+                  # Frontier block number
+                  frontier-block-number = "0"
+
+                  # Homestead fork block number
+                  # Doc: https://github.com/ethereum/EIPs/blob/master/EIPS/eip-2.md
+                  homestead-block-number = "0"
+
+                  # EIP-106 fork block number
+                  # Doc: https://github.com/ethereum/EIPs/issues/106
+                  eip106-block-number = "1000000000000000000"
+
+                  # EIP-150 fork block number
+                  # Doc: https://github.com/ethereum/EIPs/issues/150
+                  eip150-block-number = "0"
+
+                  # EIP-155 fork block number
+                  # Doc: https://github.com/ethereum/eips/issues/155
+                  # 3 000 000 following lead of existing clients implementation to maintain compatibility
+                  # https://github.com/paritytech/parity/blob/b50fb71dd1d29dfde2a6c7e1830447cf30896c31/ethcore/res/ethereum/classic.json#L15
+                  eip155-block-number = "0"
+
+                  # EIP-160 fork block number
+                  # Doc: https://github.com/ethereum/EIPs/issues/160
+                  eip160-block-number = "0"
+
+                  # EIP-161 fork block number (ETH Only)
+                  # Doc: https://github.com/ethereum/EIPs/blob/master/EIPS/eip-161.md
+                  eip161-block-number = "1000000000000000000"
+
+                  # EIP-170 max code size (Enabled from Atlantis fork block number)
+                  # Doc: https://github.com/ethereum/EIPs/issues/170
+                  # null value indicates there's no max code size for the contract code
+                  # TODO improve this configuration format as currently it is not obvious that this is enabled only from some block number
+                  max-code-size = "24576"
+
+                  # Difficulty bomb pause block number
+                  # Doc: https://github.com/ethereumproject/ECIPs/blob/master/ECIPs/ECIP-1010.md
+                  difficulty-bomb-pause-block-number = "0"
+
+                  # Difficulty bomb continuation block number
+                  # Doc: https://github.com/ethereumproject/ECIPs/blob/master/ECIPs/ECIP-1010.md
+                  difficulty-bomb-continue-block-number = "0"
+
+                  # Difficulty bomb defusion block number
+                  # Doc: https://github.com/ethereumproject/ECIPs/blob/master/ECIPs/ECIP-1041.md
+                  difficulty-bomb-removal-block-number = "0"
+
+                  # Byzantium fork block number (ETH only)
+                  # https://github.com/ethereum/EIPs/blob/master/EIPS/eip-609.md
+                  byzantium-block-number = "1000000000000000000"
+
+                  # Atlantis fork block number (ETC only)
+                  # https://ecips.ethereumclassic.org/ECIPs/ecip-1054
+                  atlantis-block-number = "0"
+
+                  # Agharta fork block number (ETC only)
+                  # https://ecips.ethereumclassic.org/ECIPs/ecip-1056
+                  agharta-block-number = "0"
+
+                  # Phoenix fork block number (ETC only)
+                  # https://ecips.ethereumclassic.org/ECIPs/ecip-1088
+                  phoenix-block-number = "0"
+
+                  # Constantinople fork block number (ETH only)
+                  # https://github.com/ethereum/pm/issues/53
+                  constantinople-block-number = "1000000000000000000"
+
+                  # Petersburg fork block number (ETH only)
+                  # https://github.com/ethereum/EIPs/blob/master/EIPS/eip-1716.md
+                  petersburg-block-number = "1000000000000000000"
+
+                  # Istanbul fork block number (ETH only)
+                  # https://eips.ethereum.org/EIPS/eip-1679
+                  istanbul-block-number = "1000000000000000000"
+
+                  # Proto-treasury fork block number (ETC only, but deactivated for now)
+                  # https://ecips.ethereumclassic.org/ECIPs/ecip-1098
+                  treasury-address = "0358e65dfe67b350eb827ffa17a82e7bb5f4c0c6"
+                  ecip1098-block-number = "0"
+
+                  # Checkpointing fork block number
+                  # https://ecips.ethereumclassic.org/ECIPs/ecip-1097
+                  # Has to be equal or greater than ecip1098-block-number
+                  ecip1097-block-number = "0"
+
+                  # Epoch calibration block number
+                  # https://ecips.ethereumclassic.org/ECIPs/ecip-1099
+                  ecip1099-block-number = "1000000000000000000"
+
+                  # DAO fork configuration (Ethereum HF/Classic split)
+                  # https://blog.ethereum.org/2016/07/20/hard-fork-completed/
+                  dao = null
+
+                  # Starting nonce of an empty account. Some networks (like Morden) use different values.
+                  account-start-nonce = "0"
+
+                  # The ID of the accepted chain
+                  chain-id = "0x2A"
+
+                  # Custom genesis JSON file path
+                  # null value indicates using default genesis definition that matches the main network
+                  # custom-genesis-file = "chains/testnet-internal-nomad-genesis.json"
+                  custom-genesis-file = "{{ env "NOMAD_TASK_DIR" }}/genesis.json"
+
+                  # Monetary policy parameters
+                  # Doc: https://github.com/ethereumproject/ECIPs/blob/master/ECIPs/ECIP-1017.md
+                  monetary-policy {
+                      # Block reward in the first era
+                      first-era-block-reward = "5000000000000000000"
+
+                      # Reduced block reward after Byzantium fork
+                      first-era-reduced-block-reward = "3000000000000000000"
+
+                      # Reduced block reward after Constantinople fork
+                      first-era-constantinople-reduced-block-reward = "2000000000000000000"
+
+                      # Monetary policy era duration in number of blocks
+                      era-duration = 5000000
+
+                      # Rate at which rewards get reduced in successive eras.
+                      # Value in range [0.0, 1.0]
+                      reward-reduction-rate = 0.2
+                  }
+
+                  # if 2 competing blocktree branches are equal in terms of total difficulty and this is set to true, then gas
+                  # consumed in those branches will be used to resolve the tie
+                  # this is currently only used in ETS blockchain tests
+                  gas-tie-breaker = false
+
+                  # if true, account storage will use Ethereum-specific format for storing keys/value in MPT (32 byte)
+                  # if false, generic storage for arbitrary length integers will be used
+                  eth-compatible-storage = true
+                  ecip1098-block-number = 0
+                  ecip1097-block-number = 0
+                  allowed-miners = []
+                  bootstrap-nodes = [
+                    {{ range service "${namespace}-mantis-miner-server" -}}
+                      "enode://  {{- with secret (printf "kv/data/nomad-cluster/${namespace}/%s/enode-hash" .ServiceMeta.Name) -}}
+                        {{- .Data.data.value -}}
+                        {{- end -}}@{{ .Address }}:{{ .Port }}",
+                    {{ end -}}
+                  ]
+
+                  checkpoint-public-keys = [
+                    ${
+                      lib.concatMapStringsSep "," (x: ''
+                        {{- with secret "kv/data/nomad-cluster/${namespace}/obft-node-${
+                          toString x
+                        }/obft-public-key" -}}"{{- .Data.data.value -}}"{{end}}
+                      '') (lib.range 1 amountOfMorphoNodes)
+                    }
+                  ]
+                }
+              }
+
+            }
+
+            logging {
+              json-output = true
+              logs-file = "logs"
+              logs-dir = "/local"
+            }
+
+
           '';
           changeMode = "noop";
           destination = "local/mantis.conf";
@@ -332,11 +555,13 @@ let
       templates = [
         {
           data = ''
+            include "${mantis-source}/src/main/resources/application.conf"
             include "${mantis}/conf/testnet-internal-nomad.conf"
 
             logging.json-output = true
             logging.logs-file = "logs"
 
+            mantis.blockchains.network = "testnet-internal-nomad"
             mantis.blockchains.testnet-internal-nomad.bootstrap-nodes = [
               {{ range service "${namespace}-mantis-miner-server" -}}
                 "enode://  {{- with secret (printf "kv/data/nomad-cluster/${namespace}/%s/enode-hash" .ServiceMeta.Name) -}}
@@ -364,6 +589,7 @@ let
             mantis.network.rpc.http.interface = "0.0.0.0"
             mantis.network.rpc.http.port = {{ env "NOMAD_PORT_rpc" }}
             mantis.network.server-address.port = {{ env "NOMAD_PORT_server" }}
+            mantis.network.protocol-version = 64
             mantis.blockchains.testnet-internal-nomad.custom-genesis-file = "{{ env "NOMAD_TASK_DIR" }}/genesis.json"
 
             mantis.blockchains.testnet-internal-nomad.ecip1098-block-number = 0
