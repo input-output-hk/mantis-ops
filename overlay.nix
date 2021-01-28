@@ -29,8 +29,9 @@ in {
 
   mantis-staging-source = builtins.fetchGit {
     url = "https://github.com/input-output-hk/mantis";
-    rev = "dac4214e78cf0ed103f2194accf9f5a1e44d6062";
-    ref = "develop";
+    rev = "0a1c7d7adc579a91a24d05e7f834a5a3e6aadece";
+    # Fix for pure eval, https://github.com/input-output-hk/mantis/pull/912
+    ref = "nix-pure-eval";
     submodules = true;
   };
 
@@ -45,7 +46,10 @@ in {
 
   mantis = import final.mantis-source { inherit system; };
 
-  mantis-staging = import final.mantis-staging-source { inherit system; };
+  mantis-staging = import final.mantis-staging-source {
+    src = final.mantis-staging-source;
+    inherit system;
+  };
 
   mantis-faucet = import final.mantis-faucet-source { inherit system; };
 
