@@ -2,6 +2,6 @@ mantis.blockchains.testnet-internal-nomad.bootstrap-nodes = [
   {{ range service "mantis-kevm2-mantis-miner-server" -}}
     "enode://  {{- with secret (printf "kv/data/nomad-cluster/mantis-kevm2/%s/enode-hash" .ServiceMeta.Name) -}}
       {{- .Data.data.value -}}
-      {{- end -}}@{{ .ServiceMeta.Name }}.kevm.dev.cardano.org:{{ .ServiceMeta.IngressPort }}",
+      {{- end -}}@{{ .ServiceMeta.Name }}.glow.dev.cardano.org:{{ .ServiceMeta.IngressPort }}",
   {{ end -}}
 ]
