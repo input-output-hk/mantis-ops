@@ -1,9 +1,8 @@
-{ system, self }:
-final: prev:
+inputs: final: prev:
 let
-  cluster = "mantis-kevm";
-  domain = final.clusters.${cluster}.proto.config.cluster.domain;
   lib = final.lib;
+  self = final.self;
+  system = final.system;
   # Little convenience function helping us to containing the bash
   # madness: forcing our bash scripts to be shellChecked.
   writeBashChecked = final.writers.makeScriptWriter {
@@ -27,6 +26,39 @@ in {
     ref = "develop";
     submodules = true;
   };
+
+  consul-templates = let
+    sources = lib.pipe final.nomadJobs [
+      (lib.filterAttrs (n: v: v ? evaluated))
+      (lib.mapAttrsToList (n: v: {
+        path = [ n v.evaluated.Job.Namespace ];
+        taskGroups = v.evaluated.Job.TaskGroups;
+      }))
+      (map (e:
+        map (tg:
+          map (t:
+            if t.Templates != null then
+              map (tpl: {
+                name = lib.concatStringsSep "/"
+                  (e.path ++ [ tg.Name t.Name tpl.DestPath ]);
+                tmpl = tpl.EmbeddedTmpl;
+              }) t.Templates
+            else
+              null) tg.Tasks) e.taskGroups))
+      builtins.concatLists
+      builtins.concatLists
+      (lib.filter (e: e != null))
+      builtins.concatLists
+      (map (t: {
+        name = t.name;
+        path = final.writeText t.name t.tmpl;
+      }))
+    ];
+  in final.linkFarm "consul-templates" sources;
+
+  inherit (final.dockerTools) buildLayeredImage;
+
+  mkEnv = lib.mapAttrsToList (key: value: "${key}=${value}");
 
   mantis-faucet-source = builtins.fetchGit {
     url = "https://github.com/input-output-hk/mantis";
@@ -312,7 +344,32 @@ in {
     . ${./pkgs/check_fmt.sh}
   '';
 
-  devShell = prev.mkShell {
+  debugUtils = with final; [
+    bashInteractive
+    coreutils
+    curl
+    dnsutils
+    fd
+    gawk
+    gnugrep
+    iproute
+    htop
+    jq
+    lsof
+    netcat
+    nettools
+    procps
+    ripgrep
+    tmux
+    tree
+    utillinux
+    vim
+  ];
+
+  devShell = let
+    cluster = "mantis-kevm";
+    domain = final.clusters.${cluster}.proto.config.cluster.domain;
+  in prev.mkShell {
     # for bitte-cli
     LOG_LEVEL = "debug";
 
@@ -325,28 +382,27 @@ in {
     CONSUL_HTTP_ADDR = "https://consul.${domain}";
 
     buildInputs = [
-      final.bitte
-      self.inputs.bitte.legacyPackages.${system}.scaler-guard
-      final.terraform-with-plugins
-      prev.sops
-      final.vault-bin
-      final.openssl
-      final.cfssl
-      final.nixfmt
       final.awscli
-      final.nomad
+      final.bitte
+      final.cfssl
       final.consul
       final.consul-template
+      final.crystal
       final.direnv
-      final.nixFlakes
-      final.jq
       final.fd
       final.go
-      final.gopls
       final.gocode
-      # final.crystal
-      # final.pkgconfig
-      # final.openssl
+      final.gopls
+      final.jq
+      final.nixFlakes
+      final.nixfmt
+      final.nomad
+      final.openssl
+      final.pkgconfig
+      final.restic
+      final.terraform-with-plugins
+      final.vault-bin
+      prev.sops
     ];
   };
 
@@ -361,147 +417,8 @@ in {
     name = "devShell";
   };
 
-  debugUtils = with final; [
-    bashInteractive
-    coreutils
-    curl
-    dnsutils
-    fd
-    gawk
-    gnugrep
-    iproute
-    jq
-    lsof
-    netcat
-    nettools
-    procps
-    tree
-  ];
-
   mantis-explorer = self.inputs.mantis-explorer.defaultPackage.${system};
 
   mantis-faucet-web = self.inputs.mantis-faucet-web.defaultPackage.${system};
 
-  nixosConfigurations =
-    self.inputs.bitte.legacyPackages.${system}.mkNixosConfigurations
-    final.clusters;
-
-  clusters = self.inputs.bitte.legacyPackages.${system}.mkClusters {
-    root = ./clusters;
-    inherit self system;
-  };
-
-  inherit (self.inputs.bitte.legacyPackages.${system})
-    bitte vault-bin mkNomadJob terraform-with-plugins systemdSandbox nixFlakes
-    nomad consul consul-template grafana-loki;
-
-  nomadJobs = let
-    jobsDir = ./jobs;
-    contents = builtins.readDir jobsDir;
-    toImport = name: type: type == "regular" && lib.hasSuffix ".nix" name;
-    fileNames = builtins.attrNames (lib.filterAttrs toImport contents);
-    imported = lib.forEach fileNames (fileName:
-      final.callPackage (jobsDir + "/${fileName}") { inherit domain; });
-  in lib.foldl' lib.recursiveUpdate { } imported;
-
-  dockerImages = let
-    imageDir = ./docker;
-    contents = builtins.readDir imageDir;
-    toImport = name: type: type == "regular" && lib.hasSuffix ".nix" name;
-    fileNames = builtins.attrNames (lib.filterAttrs toImport contents);
-    imported = lib.forEach fileNames (fileName:
-      final.callPackages (imageDir + "/${fileName}") { inherit domain; });
-    merged = lib.foldl' lib.recursiveUpdate { } imported;
-  in lib.flip lib.mapAttrs merged (key: image:
-    let id = "${image.imageName}:${image.imageTag}";
-    in {
-      inherit id image;
-
-      # Turning this attribute set into a string will return the outPath instead.
-      outPath = id;
-
-      push = let
-        parts = builtins.split "/" image.imageName;
-        registry = builtins.elemAt parts 0;
-        repo = builtins.elemAt parts 2;
-      in final.writeShellScriptBin "push" ''
-        set -euo pipefail
-
-        export dockerLoginDone="''${dockerLoginDone:-}"
-        export dockerPassword="''${dockerPassword:-}"
-
-        if [ -z "$dockerPassword" ]; then
-          dockerPassword="$(vault kv get -field value kv/nomad-cluster/docker-developer-password)"
-        fi
-
-        if [ -z "$dockerLoginDone" ]; then
-          echo "$dockerPassword" | docker login docker.${domain} -u developer --password-stdin
-          dockerLoginDone=1
-        fi
-
-        echo -n "Pushing ${image.imageName}:${image.imageTag} ... "
-
-        if curl -s "https://developer:$dockerPassword@${registry}/v2/${repo}/tags/list" | grep "${image.imageTag}" &> /dev/null; then
-          echo "Image already exists in registry"
-        else
-          docker load -i ${image}
-          docker push ${image.imageName}:${image.imageTag}
-        fi
-      '';
-
-      load = builtins.trace key (final.writeShellScriptBin "load" ''
-        set -euo pipefail
-        echo "Loading ${image} (${image.imageName}:${image.imageTag}) ..."
-        docker load -i ${image}
-      '');
-    });
-
-  push-docker-images = final.writeShellScriptBin "push-docker-images" ''
-    set -euo pipefail
-
-    ${lib.concatStringsSep "\n"
-    (lib.mapAttrsToList (key: value: "source ${value.push}/bin/push")
-      final.dockerImages)}
-  '';
-
-  load-docker-images = final.writeShellScriptBin "load-docker-images" ''
-    set -euo pipefail
-    ${lib.concatStringsSep "\n"
-    (lib.mapAttrsToList (key: value: "${value.load}/bin/load")
-      final.dockerImages)}
-  '';
-
-  inherit ((self.inputs.nixpkgs.legacyPackages.${system}).dockerTools)
-    buildImage buildLayeredImage pullImage shadowSetup;
-
-  mkEnv = lib.mapAttrsToList (key: value: "${key}=${value}");
-
-  consul-templates = let
-    sources = lib.pipe final.nomadJobs [
-      (lib.filterAttrs (n: v: v ? evaluated))
-      (lib.mapAttrsToList (n: v: {
-        path = [ n v.evaluated.Job.Namespace ];
-        taskGroups = v.evaluated.Job.TaskGroups;
-      }))
-      (map (e:
-        map (tg:
-          map (t:
-            if t.Templates != null then
-              map (tpl: {
-                name = lib.concatStringsSep "/"
-                  (e.path ++ [ tg.Name t.Name tpl.DestPath ]);
-                tmpl = tpl.EmbeddedTmpl;
-              }) t.Templates
-            else
-              null) tg.Tasks) e.taskGroups))
-      builtins.concatLists
-      builtins.concatLists
-      (lib.filter (e: e != null))
-      builtins.concatLists
-      (map (t: {
-        name = t.name;
-        path = final.writeText t.name t.tmpl;
-      }))
-    ];
-  in final.linkFarm "consul-templates" sources;
 }

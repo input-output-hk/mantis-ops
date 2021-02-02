@@ -1,17 +1,17 @@
-{ lib, domain, mkEnv, buildImage, buildLayeredImage, writeShellScript
-, mantis-explorer, nginx, shadowSetup }: {
+{ lib, domain, mkEnv, dockerTools, buildLayeredImage, writeShellScript
+, mantis-explorer, nginx }: {
   mantis-explorer-server = let
     nginx-layered = buildLayeredImage {
       name = "docker.${domain}/nginx";
       contents = [ nginx mantis-explorer ];
     };
-  in buildImage {
+  in dockerTools.buildImage {
     name = "docker.${domain}/mantis-explorer-server";
 
     fromImage = nginx-layered;
 
     runAsRoot = writeShellScript "runAsRoot" ''
-      ${shadowSetup}
+      ${dockerTools.shadowSetup}
       groupadd --system nginx
       useradd --system --gid nginx nginx
       mkdir -p /var/cache/nginx

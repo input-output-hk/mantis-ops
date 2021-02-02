@@ -1,5 +1,4 @@
-{ lib, domain, mkEnv, buildImage, pullImage, writeShellScript, debugUtils
-, awscli }:
+{ lib, domain, mkEnv, dockerTools, writeShellScript, debugUtils, awscli }:
 let
   entrypoint = writeShellScript "mantis" ''
     set -exuo pipefail
@@ -64,7 +63,7 @@ let
     done
   '';
 
-  mantis-kevm-base = pullImage {
+  mantis-kevm-base = dockerTools.pullImage {
     imageName = "inputoutput/mantis";
     imageDigest =
       "sha256:5d4cc1522aec793e3cb008c99720bdedde80ef004a102315ee7f3a9450abda5a";
@@ -73,13 +72,13 @@ let
     finalImageName = "inputoutput/mantis";
   };
 
-  mantis-kevm-deps = buildImage {
+  mantis-kevm-deps = dockerTools.buildImage {
     name = "docker.${domain}/mantis-kevm-deps";
     fromImage = mantis-kevm-base;
     contents = debugUtils ++ [ awscli ];
   };
 in {
-  mantis-kevm = buildImage {
+  mantis-kevm = dockerTools.buildImage {
     name = "docker.${domain}/mantis-kevm";
     fromImage = mantis-kevm-deps;
     config.Entrypoint = [ entrypoint ];
