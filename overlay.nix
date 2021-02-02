@@ -29,9 +29,8 @@ in {
 
   mantis-staging-source = builtins.fetchGit {
     url = "https://github.com/input-output-hk/mantis";
-    rev = "0a1c7d7adc579a91a24d05e7f834a5a3e6aadece";
-    # Fix for pure eval, https://github.com/input-output-hk/mantis/pull/912
-    ref = "nix-pure-eval";
+    rev = "48331701a6b293aa747864fb25ee6320d48a8ab5";
+    ref = "sync-logging-debug";
     submodules = true;
   };
 
