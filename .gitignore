@@ -3,4 +3,4 @@ secrets/
 .direnv/
 cert.config
 config.tf.json
-result/
+result*

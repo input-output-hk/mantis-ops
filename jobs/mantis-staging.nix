@@ -28,6 +28,7 @@ let
     inherit namespace morpho-source vault dockerImages;
     name = "obft-node-${toString n}";
     nodeNumber = n;
+    nodeCount = amountOfMorphoNodes;
   });
 
   mkMantis = { name, resources, count ? 1, templates, serviceName, tags ? [ ]
@@ -935,7 +936,7 @@ in {
       mkMorpho = import ./tasks/morpho.nix;
       generateMorphoTaskGroup = nbNodes: node:
         lib.nameValuePair node.name (lib.recursiveUpdate (mkPassive 1)
-          (mkMorpho (node // { inherit nbNodes; })));
+          (mkMorpho (node // { inherit lib nbNodes; })));
       morphoTaskGroups =
         map (generateMorphoTaskGroup (builtins.length morphoNodes)) morphoNodes;
     in lib.listToAttrs morphoTaskGroups;

@@ -1,4 +1,4 @@
-{ namespace, name, nodeNumber, morpho-source, vault, dockerImages, nbNodes }: {
+{ lib, namespace, name, nodeNumber, nodeCount, morpho-source, vault, dockerImages, nbNodes }: {
   services = {
     "${namespace}-morpho-node" = {
       portLabel = "morpho";
@@ -19,6 +19,8 @@
 
   networks = [{
     mode = "bridge";
+    # From https://github.com/input-output-hk/bitte/blob/33cb20fa1cd7c6e4d3bc75253fc166bf048b500c/profiles/docker.nix#L16
+    dns.servers = [ "172.17.0.1" ];
     ports = {
       discovery.to = 6000;
       metrics.to = 6100;
@@ -105,33 +107,19 @@
         splay = "15m";
       }
       {
-        data = ''
-          [
-            {{- range $index1, $service1 := service "${namespace}-morpho-node" -}}
-            {{ if ne $index1 0 }},{{ end }}
-              {
-                "nodeAddress": {
-                "addr": "{{ .Address }}",
-                "port": {{ .Port }},
-                "valency": 1
-                },
-                "nodeId": {{- index (split "-" .ServiceMeta.Name) 2 -}},
-                "producers": [
-                {{- range $index2, $service2 := service "${namespace}-morpho-node" -}}
-                {{ if ne $index2 0 }},{{ end }}
-                  {
-                      "addr": "{{ .Address }}",
-                      "port": {{ .Port }},
-                      "valency": 1
-                  }
-                {{- end -}}
-                ]}
-            {{- end }}
-            ]
-        '';
+        data =
+          let
+            addressFor = n: {
+              addr = "_mantis-staging-morpho-node._obft-node-${toString n}.service.consul.";
+              # No port -> SRV query above address
+              valency = 1;
+            };
+            data = map (n: {
+              nodeId = n;
+              producers = map addressFor (lib.remove n (lib.range 1 nodeCount));
+            }) (lib.range 1 nodeCount);
+          in builtins.toJSON data;
         destination = "local/morpho-topology.json";
-        changeMode = "noop";
-        splay = "15m";
       }
     ];
 
