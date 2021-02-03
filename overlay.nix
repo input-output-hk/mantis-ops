@@ -394,7 +394,6 @@ in {
       final.gocode
       final.gopls
       final.jq
-      final.nixFlakes
       final.nixfmt
       final.nomad
       final.openssl
@@ -412,7 +411,6 @@ in {
       final.grafana-loki
       final.mantis
       final.mantis-faucet
-      final.nixFlakes
     ];
     name = "devShell";
   };
