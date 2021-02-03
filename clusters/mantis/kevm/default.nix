@@ -34,7 +34,7 @@ in {
   cluster = {
     name = "mantis-kevm";
 
-    adminNames = [ "michael.fellinger" ];
+    adminNames = [ "michael.fellinger" "craige.mcwhirter" ];
     developerGithubNames = [ ];
     developerGithubTeamNames = [ "mantis-cardano-dev" ];
     domain = "portal.dev.cardano.org";
