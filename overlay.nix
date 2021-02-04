@@ -180,9 +180,12 @@ in {
     }
     trap on_exit EXIT
 
+    set +x
+    echo "waiting for mantis to listen on 127.0.0.1:8546"
     while ! nc -z 127.0.0.1 8546; do
       sleep 0.1 # wait for 1/10 of the second before check again
     done
+    set -x
 
     generateCoinbase() {
       curl -s http://127.0.0.1:8546 -H 'Content-Type: application/json' -d @<(cat <<EOF
