@@ -35,7 +35,7 @@
 
   * *NOT RECOMMENDED:* To install Nix as a single-user install, the following
     command can be run as a regular non-root user with `sudo` access:
-
+    
     ```
     $ sh <(curl -L https://nixos.org/nix/install) --no-daemon
     ...

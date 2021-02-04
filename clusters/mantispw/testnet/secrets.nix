@@ -1,1 +1,0 @@
-{ self, ... }: { secrets.encryptedRoot = ../../../encrypted; }

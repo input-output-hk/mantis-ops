@@ -4,8 +4,16 @@
 set -e
 
 terraform force-unlock -force mantispw/mantispw-testnet_core || true
-bitte tf core plan --destroy
-bitte tf core apply
 
-aws s3 rm --recursive s3://iohk-mantispw-bitte/infra/binary-cache
-rm encrypted/*.json encrypted/nix-public-key-file secrets/*
+destroy() {
+    bitte tf $1 plan --destroy
+    bitte tf $1 apply
+}
+
+destroy clients
+destroy consul
+destroy core
+destroy network
+
+# aws s3 rm --recursive s3://iohk-mantispw-bitte/infra/binary-cache
+# rm encrypted/*.json encrypted/nix-public-key-file secrets/*

@@ -3,41 +3,34 @@
     "bitte": {
       "inputs": {
         "cli": "cli",
+        "levant-source": "levant-source",
         "nix": "nix",
         "nixpkgs": "nixpkgs_4",
+        "nomad-source": "nomad-source",
         "ops-lib": "ops-lib",
         "terranix": "terranix",
         "utils": "utils_3"
       },
       "locked": {
-        "lastModified": 1611709134,
-        "narHash": "sha256-+px5SGC5d63E1T3ebs2Od1IMKli6Zr+vSORfF0Vk6rw=",
-        "owner": "input-output-hk",
-        "repo": "bitte",
-        "rev": "3d91d3aa1d2bb40c845ac9bda40fdcd1629f9b02",
-        "type": "github"
+        "narHash": "sha256-FwGhTfQb2HknUFTFcijZY4jzp6RluNOdM44iY3tIpAY=",
+        "path": "/Users/kreisys/Werk/iohk/bitte",
+        "type": "path"
       },
       "original": {
-        "owner": "input-output-hk",
-        "ref": "trim",
-        "repo": "bitte",
-        "type": "github"
+        "path": "/Users/kreisys/Werk/iohk/bitte",
+        "type": "path"
       }
     },
     "cli": {
       "inputs": {
         "crystal": "crystal",
         "nixpkgs": "nixpkgs_2",
-        "nixpkgs/nixos-rebuild-no-systemctl": "nixpkgs/nixos-rebuild-no-systemctl",
         "utils": "utils_2"
       },
       "locked": {
-        "lastModified": 1611699435,
-        "narHash": "sha256-vdIPOtx/hTT2ADztpvafl/dzDRiX9/XpKEbTa9lQkhQ=",
-        "owner": "input-output-hk",
-        "repo": "bitte-cli",
-        "rev": "67d671b2f3dfebcd9d0df47dc0c7a6e44524b5da",
-        "type": "github"
+        "narHash": "sha256-zIVHzsUKYl4d36cH/pyhdZC9WsFGkbQnu+nTu2dFvsw=",
+        "path": "/Users/kreisys/Werk/iohk/bitte-cli",
+        "type": "path"
       },
       "original": {
         "owner": "input-output-hk",
@@ -77,6 +70,23 @@
         "owner": "input-output-hk",
         "ref": "update-flake",
         "repo": "haskell.nix",
+        "type": "github"
+      }
+    },
+    "levant-source": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1607520931,
+        "narHash": "sha256-yKLT61uCcgkUWPtaOmruy2uXhJ/ON94QqhoYg2Gulww=",
+        "owner": "hashicorp",
+        "repo": "levant",
+        "rev": "05c6c36fdf24237af32a191d2b14756dbb2a4f24",
+        "type": "github"
+      },
+      "original": {
+        "owner": "hashicorp",
+        "repo": "levant",
+        "rev": "05c6c36fdf24237af32a191d2b14756dbb2a4f24",
         "type": "github"
       }
     },
@@ -191,29 +201,13 @@
         "type": "indirect"
       }
     },
-    "nixpkgs/nixos-rebuild-no-systemctl": {
-      "locked": {
-        "lastModified": 1603912078,
-        "narHash": "sha256-T6zhWX0PG6J+yWXGjG3D7khiTeHzLu0pQ2MTHGwRz2A=",
-        "owner": "kreisys",
-        "repo": "nixpkgs",
-        "rev": "b02d5ae5a23b0532023453e5c0e861fd507b726c",
-        "type": "github"
-      },
-      "original": {
-        "owner": "kreisys",
-        "ref": "nixos-rebuild-no-systemctl",
-        "repo": "nixpkgs",
-        "type": "github"
-      }
-    },
     "nixpkgs_2": {
       "locked": {
-        "lastModified": 1608147201,
-        "narHash": "sha256-Th+tiy5RH2hiXBvS++3wtuyj9h7JZy/kiY2cvgBdFxY=",
+        "lastModified": 1612282043,
+        "narHash": "sha256-MzoN8nI1eydYHuWBAXBcw9Na0XndZHa/VjoxZRWSX68=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "ca2723567e629e9f1542c34bf20ba20f7c6d4dc9",
+        "rev": "fab6fcdceb2560a4ab943830a2b1632458c7a6ff",
         "type": "github"
       },
       "original": {
@@ -238,11 +232,11 @@
     },
     "nixpkgs_4": {
       "locked": {
-        "lastModified": 1610561118,
-        "narHash": "sha256-UI5+bEkysV3lq0O3hjz5OHMmmoqsBFYKBHiZfYPlsuY=",
+        "lastModified": 1611768454,
+        "narHash": "sha256-cqiFKE9IxBLr3ghzmfO8750Zf2y7rrlT9Eh17JvV8JY=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "3ef74a35656d03f380a84bd23555fe4bf5e340bd",
+        "rev": "0b5fd3b7847445f3683ff60c8b896a7f2adc3b0e",
         "type": "github"
       },
       "original": {
@@ -292,50 +286,35 @@
         "type": "indirect"
       }
     },
-    "nixpkgs_8": {
+    "nomad-source": {
+      "flake": false,
       "locked": {
-        "lastModified": 1610568223,
-        "narHash": "sha256-XhuydFdp2c329NCusOIVtPEwxoeqdGafiZhkfTDX4Yo=",
-        "owner": "NixOS",
-        "repo": "nixpkgs",
-        "rev": "b1961de94e807056507342be43357a935d254174",
+        "lastModified": 1610734009,
+        "narHash": "sha256-y5LDT7uYjyxnDxHEe2BlpQZRiVRB0x7JU6N7hvXUxtA=",
+        "owner": "manveru",
+        "repo": "nomad",
+        "rev": "a36f877fbf5fe679d8e9ca45fd7a500906742e5b",
         "type": "github"
       },
       "original": {
-        "id": "nixpkgs",
-        "type": "indirect"
+        "owner": "manveru",
+        "ref": "release-1.0.2",
+        "repo": "nomad",
+        "type": "github"
       }
     },
     "ops-lib": {
+      "flake": false,
       "locked": {
-        "dir": "zfs",
-        "lastModified": 1608256030,
-        "narHash": "sha256-LgYuK7OsgTtMxuQF4xeFGQbjnAXhkNPXvA8Zr79FvWs=",
+        "lastModified": 1608174889,
+        "narHash": "sha256-3q2ncBD//scq9xy39AWqUw+hip44OEz4SWP93WkKJmY=",
         "owner": "input-output-hk",
         "repo": "ops-lib",
-        "rev": "07a9d53b7552a97cb088342930ecebaddfcb1330",
+        "rev": "f5c44f7b38238a6cff47bc4c62c50212f045b630",
         "type": "github"
       },
       "original": {
         "owner": "input-output-hk",
-        "repo": "ops-lib",
-        "type": "github"
-      }
-    },
-    "ops-lib_2": {
-      "locked": {
-        "dir": "zfs",
-        "lastModified": 1608256030,
-        "narHash": "sha256-LgYuK7OsgTtMxuQF4xeFGQbjnAXhkNPXvA8Zr79FvWs=",
-        "owner": "input-output-hk",
-        "repo": "ops-lib",
-        "rev": "07a9d53b7552a97cb088342930ecebaddfcb1330",
-        "type": "github"
-      },
-      "original": {
-        "dir": "zfs",
-        "owner": "input-output-hk",
-        "ref": "zfs-image",
         "repo": "ops-lib",
         "type": "github"
       }
@@ -346,8 +325,11 @@
         "mantis-explorer": "mantis-explorer",
         "mantis-faucet-web": "mantis-faucet-web",
         "morpho-node": "morpho-node",
-        "nixpkgs": "nixpkgs_8",
-        "ops-lib": "ops-lib_2",
+        "nixpkgs": [
+          "bitte",
+          "cli",
+          "nixpkgs"
+        ],
         "utils": "utils_7"
       }
     },
