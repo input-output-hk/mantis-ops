@@ -10,7 +10,6 @@
     mantis-explorer.url = "github:input-output-hk/mantis-explorer/flake-refresh";
     mantis-faucet-web.url =
       "github:input-output-hk/mantis-faucet-web/flake-refresh";
-    nixpkgs.follows = "bitte/cli/nixpkgs";
   };
 
   outputs = { self, mantis-explorer, morpho-node, mantis-faucet-web, nixpkgs, utils, bitte, ... }:

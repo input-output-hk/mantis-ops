@@ -52,6 +52,7 @@ in {
     developerGithubTeamNames = [ "mantis-devs" ];
     domain = "mantis.pw";
     terraformOrganization = "mantispw";
+    letsEncrypt.useStaging = false;
 
     s3CachePubKey = lib.fileContents ../../../encrypted/nix-public-key-file;
     flakePath = ../../..;

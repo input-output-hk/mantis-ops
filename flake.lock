@@ -12,7 +12,7 @@
         "utils": "utils_3"
       },
       "locked": {
-        "narHash": "sha256-FwGhTfQb2HknUFTFcijZY4jzp6RluNOdM44iY3tIpAY=",
+        "narHash": "sha256-1uwVBZ+nF/adyC8/pSNwAHbm12v8aJ43ljBriZYdAZo=",
         "path": "/Users/kreisys/Werk/iohk/bitte",
         "type": "path"
       },
@@ -28,7 +28,7 @@
         "utils": "utils_2"
       },
       "locked": {
-        "narHash": "sha256-zIVHzsUKYl4d36cH/pyhdZC9WsFGkbQnu+nTu2dFvsw=",
+        "narHash": "sha256-2TpSay6rmGVkuwt4q8YhBfBBcRrk3GjPtWBKwJWDhKo=",
         "path": "/Users/kreisys/Werk/iohk/bitte-cli",
         "type": "path"
       },
@@ -203,11 +203,11 @@
     },
     "nixpkgs_2": {
       "locked": {
-        "lastModified": 1612282043,
-        "narHash": "sha256-MzoN8nI1eydYHuWBAXBcw9Na0XndZHa/VjoxZRWSX68=",
+        "lastModified": 1612478896,
+        "narHash": "sha256-24GXmHXojhucuuQTJKxkzuX0uDq7fw/Q22zW5xMRLec=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "fab6fcdceb2560a4ab943830a2b1632458c7a6ff",
+        "rev": "64c12484642a76783c7c5b5e033b1ac76944697d",
         "type": "github"
       },
       "original": {
@@ -286,6 +286,20 @@
         "type": "indirect"
       }
     },
+    "nixpkgs_8": {
+      "locked": {
+        "lastModified": 1612460611,
+        "narHash": "sha256-ib6aZ8HfyNIv0L4EqILOoGNgQdWMn3O+E++eTmvU6zs=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "1c24ff1f1f5fa9d42a6fa5a377287623def78fe3",
+        "type": "github"
+      },
+      "original": {
+        "id": "nixpkgs",
+        "type": "indirect"
+      }
+    },
     "nomad-source": {
       "flake": false,
       "locked": {
@@ -325,11 +339,7 @@
         "mantis-explorer": "mantis-explorer",
         "mantis-faucet-web": "mantis-faucet-web",
         "morpho-node": "morpho-node",
-        "nixpkgs": [
-          "bitte",
-          "cli",
-          "nixpkgs"
-        ],
+        "nixpkgs": "nixpkgs_8",
         "utils": "utils_7"
       }
     },
