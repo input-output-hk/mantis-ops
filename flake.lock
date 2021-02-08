@@ -103,16 +103,15 @@
     },
     "haskell-nix": {
       "locked": {
-        "lastModified": 1604670513,
-        "narHash": "sha256-ir7WUoKjN/RUm7xk73K1GKUREui7pXWWgIHYTrqSxPs=",
+        "lastModified": 1612789116,
+        "narHash": "sha256-l12sDNsvsu9otmUzL6TIvFzx3n4zIjtWkfoqCDW/xTw=",
         "owner": "input-output-hk",
         "repo": "haskell.nix",
-        "rev": "ddc4d650fe668c84090ccc9e3ad6a5b82c6654f7",
+        "rev": "43513e406c0348f703be6f73a7a56c1c57c8ad41",
         "type": "github"
       },
       "original": {
         "owner": "input-output-hk",
-        "ref": "update-flake",
         "repo": "haskell.nix",
         "type": "github"
       }
@@ -194,18 +193,14 @@
     "morpho-node": {
       "inputs": {
         "haskell-nix": "haskell-nix",
-        "nixpkgs": [
-          "morpho-node",
-          "haskell-nix"
-        ],
         "utils": "utils_4"
       },
       "locked": {
-        "lastModified": 1611853719,
-        "narHash": "sha256-JaBjm4lupDunk4iAHjiq49hHOIQv9dA8ujtsX64+2Zo=",
+        "lastModified": 1612807773,
+        "narHash": "sha256-wL/MnASkuEfJpLyOWLkVOQe2JcHc37Hv9R27DRpbVaw=",
         "owner": "input-output-hk",
         "repo": "ECIP-Checkpointing",
-        "rev": "72f7c3136b73718695c94a0a874e94c4bc61203e",
+        "rev": "4de0b3888642945aacf5b5eba874e5b6f1a5f6be",
         "type": "github"
       },
       "original": {
