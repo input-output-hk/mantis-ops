@@ -33,7 +33,9 @@ let
 
   mkMantis = { name, resources, count ? 1, templates, serviceName, tags ? [ ]
     , serverMeta ? { }, meta ? { }, discoveryMeta ? { }, requiredPeerCount
-    , services ? { } }: {
+    , services ? { } }:
+    let fullName = name + lib.optionalString (count > 1) "-\${NOMAD_ALLOC_INDEX}";
+    in {
       inherit count;
 
       networks = [{
@@ -172,7 +174,7 @@ let
           logging = {
             type = "journald";
             config = [{
-              tag = name;
+              tag = fullName;
               labels = "name,namespace,imageTag";
             }];
           };
@@ -294,8 +296,8 @@ let
       };
     });
 
-  mkPassive = count:
-    let name = "${namespace}-mantis-passive";
+  mkPassive = nameSuffix: count:
+    let name = "${namespace}-mantis${lib.optionalString (nameSuffix != null) "-${nameSuffix}"}-passive";
     in mkMantis {
       inherit name;
       serviceName = name;
@@ -921,7 +923,7 @@ in {
 
     taskGroups = let
       minerTaskGroups = lib.listToAttrs (map mkMiner miners);
-      passiveTaskGroups = { passive = mkPassive 3; };
+      passiveTaskGroups = { passive = mkPassive null 3; };
     in minerTaskGroups // passiveTaskGroups;
   };
 
@@ -935,7 +937,7 @@ in {
     taskGroups = let
       mkMorpho = import ./tasks/morpho.nix;
       generateMorphoTaskGroup = nbNodes: node:
-        lib.nameValuePair node.name (lib.recursiveUpdate (mkPassive 1)
+        lib.nameValuePair node.name (lib.recursiveUpdate (mkPassive node.name 1)
           (mkMorpho (node // { inherit lib nbNodes; })));
       morphoTaskGroups =
         map (generateMorphoTaskGroup (builtins.length morphoNodes)) morphoNodes;
