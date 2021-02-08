@@ -77,7 +77,7 @@
           TurnOnLogging: True
           ViewMode: SimpleView
           minSeverity: Debug
-          TracingVerbosity: NormalVerbosity
+          TracingVerbosity: MaximalVerbosity
           setupScribes:
             - scKind: StdoutSK
               scFormat: ScText
