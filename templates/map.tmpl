@@ -1,3 +1,9 @@
+{{ range services }}
+  {{ . | toJSON }}
+{{ end }}
+
+
+
 {{ range service "mantis-miner" -}}
   {{.ServiceMeta.Name}}:
   Public IP: {{ .ServiceMeta.PublicIp }}
