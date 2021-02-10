@@ -1,7 +1,6 @@
 inputs: final: prev:
 let
   lib = final.lib;
-  self = final.self;
   system = final.system;
   # Little convenience function helping us to containing the bash
   # madness: forcing our bash scripts to be shellChecked.
@@ -27,35 +26,6 @@ in {
     submodules = true;
   };
 
-  consul-templates = let
-    sources = lib.pipe final.nomadJobs [
-      (lib.filterAttrs (n: v: v ? evaluated))
-      (lib.mapAttrsToList (n: v: {
-        path = [ n v.evaluated.Job.Namespace ];
-        taskGroups = v.evaluated.Job.TaskGroups;
-      }))
-      (map (e:
-        map (tg:
-          map (t:
-            if t.Templates != null then
-              map (tpl: {
-                name = lib.concatStringsSep "/"
-                  (e.path ++ [ tg.Name t.Name tpl.DestPath ]);
-                tmpl = tpl.EmbeddedTmpl;
-              }) t.Templates
-            else
-              null) tg.Tasks) e.taskGroups))
-      builtins.concatLists
-      builtins.concatLists
-      (lib.filter (e: e != null))
-      builtins.concatLists
-      (map (t: {
-        name = t.name;
-        path = final.writeText t.name t.tmpl;
-      }))
-    ];
-  in final.linkFarm "consul-templates" sources;
-
   inherit (final.dockerTools) buildLayeredImage;
 
   mkEnv = lib.mapAttrsToList (key: value: "${key}=${value}");
@@ -74,11 +44,11 @@ in {
   mantis-faucet = import final.mantis-faucet-source { inherit system; };
 
   mantis-explorer-server = prev.callPackage ./pkgs/mantis-explorer-server.nix {
-    inherit (self.inputs.inclusive.lib) inclusive;
+    inherit (inputs.inclusive.lib) inclusive;
   };
-  morpho-source = self.inputs.morpho-node;
+  morpho-source = inputs.morpho-node;
 
-  morpho-node = self.inputs.morpho-node.morpho-node.${system};
+  morpho-node = inputs.morpho-node.morpho-node.${system};
 
   # Any:
   # - run of this command with a parameter different than the testnet (currently 10)
@@ -418,8 +388,8 @@ in {
     name = "devShell";
   };
 
-  mantis-explorer = self.inputs.mantis-explorer.defaultPackage.${system};
+  mantis-explorer = inputs.mantis-explorer.defaultPackage.${system};
 
-  mantis-faucet-web = self.inputs.mantis-faucet-web.defaultPackage.${system};
+  mantis-faucet-web = inputs.mantis-faucet-web.defaultPackage.${system};
 
 }
