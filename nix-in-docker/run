@@ -1,0 +1,13 @@
+#!/usr/bin/env sh
+
+repo_dir="$(cd "$(dirname "$0")/.." && pwd)"
+
+docker run \
+  -it \
+  --rm \
+  -v=$repo_dir:/mantis-ops \
+  -w=/mantis-ops \
+  -v=mantis-ops-root:/root \
+  -v=mantis-ops-nix:/nix \
+  mantis-ops:latest \
+  "$@"
