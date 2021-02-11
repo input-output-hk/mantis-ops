@@ -1,13 +1,14 @@
 #!/usr/bin/env sh
 
-repo_dir="$(cd "$(dirname "$0")/.." && pwd)"
+dir="$(cd "$(dirname "$0")" && pwd)"
 
 docker run \
   -it \
   --rm \
-  -v=$repo_dir:/mantis-ops \
+  -v=$dir/..:/mantis-ops \
   -w=/mantis-ops \
   -v=mantis-ops-root:/root \
   -v=mantis-ops-nix:/nix \
-  mantis-ops:latest \
-  "$@"
+  -v=$dir/nix.conf:/etc/nix/nix.conf \
+  nixpkgs/nix-unstable:latest \
+  nix-shell "$@"

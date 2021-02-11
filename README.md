@@ -11,20 +11,16 @@
 
 ### Running Nix in Docker
 
-For simple tasks such as deployment it might be sufficient to use a Nix environment via Docker. (This is especially convenient for Mac users due to Darwin-compatibility issues of some of the dependencies.) You can use the scripts in `nix-in-docker/` for this:
+For simple tasks such as deployment it might be sufficient to use a Nix environment via Docker. (This is especially convenient for Mac users due to Darwin-compatibility issues of some of the dependencies.) You can use the `nix-in-docker/run` script to run `nix-shell`:
 
-* build an image with Nix and Git installed, plus the configuration described below. The default command is `nix-shell`.
-  ```
-  $ nix-in-docker/build
-  ```
-* to run `nix-shell`:
-  ```
-  $ nix-in-docker/run
-  ```
-  Extra arguments are passed to `docker run`, eg. to access the repl directly:
-  ```
-  $ nix-in-docker/run nix-shell --run 'nix repl repl.nix'
-  ```
+```
+$ nix-in-docker/run
+```
+
+Extra arguments are passed to `nix-shell`, eg. to access the repl directly:
+```
+$ nix-in-docker/run --run 'nix repl repl.nix'
+```
 
 The `/root` and `/nix` volumes are persisted between runs, so you only need to do [Vault Authentication](#vault-authentication) once. After that you should be able to deploy eg. staging Mantis by running the following:
 
