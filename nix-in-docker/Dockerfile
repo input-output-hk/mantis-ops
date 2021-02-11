@@ -1,11 +1,10 @@
-FROM nixos/nix
+FROM nixpkgs/nix-unstable
 
-VOLUME /nix
-VOLUME /root
+RUN nix-channel --add https://nixos.org/channels/nixpkgs-unstable nixpkgs && \
+    nix-channel --update && \
+    nix-env -i git
 
-RUN nix-channel --add https://nixos.org/channels/nixpkgs-unstable nixpkgs
-RUN nix-channel --update
-RUN nix-env -i git
+VOLUME ["/nix", "/root"]
 
 COPY nix.conf /etc/nix/nix.conf
 
