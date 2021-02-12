@@ -19,17 +19,13 @@
         "utils": "utils_3"
       },
       "locked": {
-        "lastModified": 1612544058,
-        "narHash": "sha256-fSSEAA5B0ym+jjdSHSL2cn0e9Wq86yYdTOGYK2593q4=",
-        "owner": "input-output-hk",
-        "repo": "bitte",
-        "rev": "28e151fab9ad1f5b987d771c5d80777d08e86c18",
-        "type": "github"
+        "narHash": "sha256-bMw7Hnwa1a7J0IR//A7ukvuhJERvYVGcAHZkyvSspHM=",
+        "path": "/home/craige/source/IOHK/bitte",
+        "type": "path"
       },
       "original": {
-        "owner": "input-output-hk",
-        "repo": "bitte",
-        "type": "github"
+        "path": "/home/craige/source/IOHK/bitte",
+        "type": "path"
       }
     },
     "bitte-cli": {

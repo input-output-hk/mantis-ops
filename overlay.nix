@@ -11,8 +11,11 @@ let
     '';
   };
   writeBashBinChecked = name: writeBashChecked "/bin/${name}";
+
+  cluster = "mantis-kevm";
+  domain = final.clusters.${cluster}.proto.config.cluster.domain;
 in {
-  inherit writeBashChecked writeBashBinChecked;
+  inherit domain writeBashChecked writeBashBinChecked;
   # we cannot specify mantis as a flake input due to:
   # * the branch having a slash
   # * the submodules syntax is broken
@@ -339,10 +342,7 @@ in {
     vim
   ];
 
-  devShell = let
-    cluster = "mantis-kevm";
-    domain = final.clusters.${cluster}.proto.config.cluster.domain;
-  in prev.mkShell {
+  devShell = prev.mkShell {
     # for bitte-cli
     LOG_LEVEL = "debug";
 
@@ -390,6 +390,9 @@ in {
 
   mantis-explorer = inputs.mantis-explorer.defaultPackage.${system};
 
-  mantis-faucet-web = inputs.mantis-faucet-web.defaultPackage.${system};
+  mantis-faucet-web =
+    inputs.mantis-faucet-web.defaultPackage.${system}.overrideAttrs (old: {
+      FAUCET_NODE_URL = "https://faucet-kevm.${domain}";
+    });
 
 }

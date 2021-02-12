@@ -27,6 +27,8 @@ in {
   };
 
   services.nomad.namespaces = {
+    mantis-evm.description = "EVM";
+    mantis-iele.description = "IELE";
     mantis-kevm.description = "KEVM";
     mantis-radek.description = "KEVM Radek";
   };

@@ -1,9 +1,8 @@
-{ mkNomadJob, domain, lib, mantis, mantis-source, mantis-faucet
-, mantis-faucet-source, morpho-node, morpho-source, dockerImages
-, mantis-explorer }:
+{ mkNomadJob, domainSuffix, publicPortStart, lib, mantis, mantis-source
+, mantis-faucet, mantis-faucet-source, morpho-node, morpho-source, dockerImages
+, mantis-explorer, namespace, extraConfig, ... }:
 let
   # NOTE: Copy this file and change the next line if you want to start your own cluster!
-  namespace = "mantis-kevm";
   datacenters = [ "us-east-2" "eu-west-1" "eu-central-1" ];
 
   vault = {
@@ -857,17 +856,6 @@ let
         protocol = "restricted-ethash"
       }
 
-      vm {
-        mode = "external"
-        external {
-          vm-type = "kevm"
-          run-vm = true
-          executable-path = "/bin/kevm-vm"
-          host = "127.0.0.1"
-          port = {{ env "NOMAD_PORT_vm" }}
-        }
-      }
-
       network {
         protocol-version = 64
 
@@ -940,6 +928,8 @@ let
 
     mantis.blockchains.testnet-internal-nomad.ecip1098-block-number = 0
     mantis.blockchains.testnet-internal-nomad.ecip1097-block-number = 0
+
+    ${extraConfig}
   '';
 
   amountOfMorphoNodes = 5;
@@ -1428,7 +1418,7 @@ let
       tags = [ "ingress" namespace name ];
 
       serverMeta = {
-        ingressHost = "${name}.${domain}";
+        ingressHost = "${name}${domainSuffix}";
         ingressPort = toString publicServerPort;
         ingressBind = "*:${toString publicServerPort}";
         ingressMode = "tcp";
@@ -1436,7 +1426,7 @@ let
       };
 
       discoveryMeta = {
-        ingressHost = "${name}.${domain}";
+        ingressHost = "${name}${domainSuffix}";
         ingressPort = toString publicDiscoveryPort;
         ingressBind = "*:${toString publicDiscoveryPort}";
         ingressMode = "tcp";
@@ -1445,7 +1435,7 @@ let
       };
 
       rpcMeta = {
-        ingressHost = "mantis.${domain}";
+        ingressHost = "${name}${domainSuffix}";
         ingressPort = toString publicRpcPort;
         ingressBind = "*:443";
         ingressMode = "http";
@@ -1504,7 +1494,7 @@ let
       meta = {
         inherit name;
         publicIp = "\${attr.unique.platform.aws.public-ipv4}";
-        ingressHost = "explorer.${domain}";
+        ingressHost = "explorer${domainSuffix}";
         ingressMode = "http";
         ingressBind = "*:443";
         ingressServer = "_${name}._tcp.service.consul";
@@ -1624,7 +1614,7 @@ let
         meta = {
           name = faucetName;
           publicIp = "\${attr.unique.platform.aws.public-ipv4}";
-          ingressHost = "faucet.${domain}";
+          ingressHost = "faucet${domainSuffix}";
           ingressBind = "*:443";
           ingressMode = "http";
           ingressServer = "_${faucetName}._tcp.service.consul";
@@ -1675,7 +1665,7 @@ let
         meta = {
           name = faucetName;
           publicIp = "\${attr.unique.platform.aws.public-ipv4}";
-          ingressHost = "${faucetName}-web.${domain}";
+          ingressHost = "faucet-web${domainSuffix}";
           ingressBind = "*:443";
           ingressMode = "http";
           ingressServer = "_${faucetName}-web._tcp.service.consul";
@@ -2034,9 +2024,10 @@ let
   miners = lib.forEach (lib.range 1 amountOfMiners) (num: {
     name = "mantis-${toString num}";
     requiredPeerCount = num - 1;
-    publicServerPort = 9000 + num; # routed through haproxy/ingress
-    publicDiscoveryPort = 9500 + num; # routed through haproxy/ingress
-    publicRpcPort = 10000 + num; # routed through haproxy/ingress
+    publicServerPort = publicPortStart + num; # routed through haproxy/ingress
+    publicDiscoveryPort = publicPortStart + 25
+      + num; # routed through haproxy/ingress
+    publicRpcPort = publicPortStart + 25 + num; # routed through haproxy/ingress
   });
 
   minerJobs = lib.listToAttrs (lib.forEach miners (miner: {
