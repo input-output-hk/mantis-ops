@@ -54,7 +54,7 @@ in {
   };
   morpho-source = self.inputs.morpho-node;
 
-  morpho-node = self.inputs.morpho-node.morpho-node.${system};
+  morpho-node = self.inputs.morpho-node.defaultPackage.${system};
 
   # Any:
   # - run of this command with a parameter different than the testnet (currently 10)
