@@ -31,10 +31,9 @@
     };
   }];
 
-  tasks.${name} = {
-    inherit name vault;
+  tasks.morpho = {
+    inherit vault;
     driver = "docker";
-    env = { REQUIRED_PEER_COUNT = builtins.toString nbNodes; };
 
     resources = {
       cpu = 100; # mhz
@@ -58,7 +57,7 @@
           LastKnownBlockVersion-Minor: 2
           LastKnownBlockVersion-Alt: 0
           NetworkMagic: 12345
-          NodeId: {{ index (split "-" "${name}") 2 }}
+          NodeId: ${toString nodeNumber}
           NodePrivKeyFile: {{ env "NOMAD_SECRETS_DIR" }}/morpho-private-key
           NumCoreNodes: ${toString nbNodes}
           PoWBlockFetchInterval: 5000000
@@ -110,7 +109,7 @@
         data =
           let
             addressFor = n: {
-              addr = "_mantis-staging-morpho-node._obft-node-${toString n}.service.consul.";
+              addr = "_${namespace}-morpho-node._obft-node-${toString n}.service.consul.";
               # No port -> SRV query above address
               valency = 1;
             };
@@ -148,7 +147,7 @@
     };
   };
 
-  tasks.telegraf = {
+  tasks.telegraf-morpho = {
     driver = "docker";
 
     inherit vault;
@@ -193,59 +192,6 @@
         urls = [
           "http://127.0.0.1:{{ env "NOMAD_PORT_morphoPrometheus" }}"
         ]
-
-        [outputs.influxdb]
-        database = "telegraf"
-        urls = [ {{ with node "monitoring" }}"http://{{ .Node.Address }}:8428"{{ end }} ]
-      '';
-
-      destination = "local/telegraf.config";
-    }];
-  };
-
-  tasks.telegraf-morpho = {
-    driver = "docker";
-
-    inherit vault;
-
-    resources = {
-      cpu = 100; # mhz
-      memoryMB = 128;
-    };
-
-    config = {
-      image = dockerImages.telegraf;
-      args = [ "-config" "local/telegraf.config" ];
-
-      labels = [{
-        inherit namespace name;
-        imageTag = dockerImages.telegraf.image.imageTag;
-      }];
-
-      logging = {
-        type = "journald";
-        config = [{
-          tag = "${name}-telegraf-morpho";
-          labels = "name,namespace,imageTag";
-        }];
-      };
-    };
-
-    templates = [{
-      data = ''
-        [agent]
-        flush_interval = "10s"
-        interval = "10s"
-        omit_hostname = false
-
-        [global_tags]
-        client_id = "${name}-mantis"
-        namespace = "${namespace}"
-
-        [inputs.prometheus]
-        metric_version = 1
-
-        urls = [ "http://127.0.0.1:{{ env "NOMAD_PORT_metrics" }}" ]
 
         [outputs.influxdb]
         database = "telegraf"
