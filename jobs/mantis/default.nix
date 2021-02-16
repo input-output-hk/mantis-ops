@@ -1435,8 +1435,7 @@ let
       };
 
       rpcMeta = {
-        ingressHost = "${name}${domainSuffix}";
-        ingressPort = toString publicRpcPort;
+        ingressHost = "rpc${domainSuffix}";
         ingressBind = "*:443";
         ingressMode = "http";
         ingressServer = "_${namespace}-mantis-miner-rpc._tcp.service.consul";
