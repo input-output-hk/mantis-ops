@@ -72,11 +72,16 @@
           SnapshotsOnDisk: 60
           SnapshotInterval: 60
           SystemStart: "2020-11-17T00:00:00Z"
-          TurnOnLogMetrics: True
+          TurnOnLogMetrics: False
           TurnOnLogging: True
           ViewMode: SimpleView
           minSeverity: Debug
           TracingVerbosity: NormalVerbosity
+          TraceMux: False
+          TraceChainSyncProtocol: False
+          TraceBlockFetchProtocol: False
+          TraceBlockFetchProtocolSerialised: False
+          TraceTxSubmissionProtocol: False
           setupScribes:
             - scKind: StdoutSK
               scFormat: ScText
