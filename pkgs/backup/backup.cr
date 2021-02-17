@@ -29,10 +29,10 @@ class Backup
     params = HTTP::Params.encode({"query" => %(max(app_sync_block_number_gauge_gauge{namespace="#{tag}"}[1h]))})
     block_height_url = "#{ENV["MONITORING_URL"]}?" + params
 
+    old_height = 0
+    current_height = 0
     loop do
       raise "mantis died #{process.wait.exit_status}" unless process.exists?
-
-      pp! block_height_url
 
       response = HTTP::Client.get(block_height_url)
       if response.status_code != 200
@@ -43,9 +43,15 @@ class Backup
 
       body = HTTP::Client.get(block_height_url).body
       max_height = BlockHeight.from_json(response.body).data.result.first.value.last.to_s.to_i64
+      old_height = current_height
       current_height = fetch_current_height
 
-      pp! max_height, current_height
+      pp! max_height, current_height, old_height
+
+      if old_height == current_height && current_height > 0
+        raise "Wasn't able to increase block height, abandoning backup"
+      end
+
       return if current_height >= (max_height - 2)
 
       sleep 30
