@@ -300,7 +300,7 @@ let
     let name = "mantis${lib.optionalString (nameSuffix != null) "-${nameSuffix}"}-passive";
     in mkMantis {
       inherit name;
-      serviceName = name;
+      serviceName = "${namespace}-${name}";
       resources = {
         # For c5.2xlarge in clusters/mantis/testnet/default.nix, the url ref below
         # provides 3.4 GHz * 8 vCPU = 27.2 GHz max.  80% is 21760 MHz.
@@ -315,12 +315,6 @@ let
       inherit count;
 
       requiredPeerCount = builtins.length miners;
-
-      services."${name}-rpc" = {
-        addressMode = "host";
-        tags = [ "rpc" namespace name mantis-version ];
-        portLabel = "rpc";
-      };
 
       templates = [
         {
@@ -386,7 +380,7 @@ let
       addressMode = "host";
       portLabel = "explorer";
 
-      tags = [ namespace "explorer" name ];
+      tags = [ "ingress" namespace "explorer" name ];
 
       meta = {
         inherit name;
