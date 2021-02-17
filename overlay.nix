@@ -29,8 +29,8 @@ in {
 
   mantis-staging-source = builtins.fetchGit {
     url = "https://github.com/input-output-hk/mantis";
-    rev = "76ddee87724cb5e8174af9da1b109702ddc400a9";
-    ref = "special-checkpointing-latest-block-endpoint";
+    rev = "995cb5ebe3e874b7dee892aaf6aa012af7a7d47d";
+    ref = "sync-logging-debug";
     submodules = true;
   };
 
