@@ -1,6 +1,6 @@
 { mkNomadJob, domainSuffix, publicPortStart, lib, mantis, mantis-source
 , mantis-faucet, mantis-faucet-source, morpho-node, morpho-source, dockerImages
-, mantis-explorer, namespace, extraConfig, ... }:
+, mantis-explorer, mantisImage, namespace, extraConfig, ... }:
 let
   # NOTE: Copy this file and change the next line if you want to start your own cluster!
   datacenters = [ "us-east-2" "eu-west-1" "eu-central-1" ];
@@ -896,16 +896,6 @@ let
       {{ end -}}
     ]
 
-    mantis.blockchains.testnet-internal-nomad.checkpoint-public-keys = [
-      ${
-        lib.concatMapStringsSep "," (x: ''
-          {{- with secret "kv/data/nomad-cluster/${namespace}/obft-node-${
-            toString x
-          }/obft-public-key" -}}"{{- .Data.data.value -}}"{{end}}
-        '') (lib.range 1 amountOfMorphoNodes)
-      }
-    ]
-
     mantis.consensus.mining-enabled = ${lib.boolToString miningEnabled}
     mantis.client-id = "${name}"
     ${lib.optionalString miningEnabled ''
@@ -928,6 +918,7 @@ let
 
     mantis.blockchains.testnet-internal-nomad.ecip1098-block-number = 0
     mantis.blockchains.testnet-internal-nomad.ecip1097-block-number = 0
+    mantis.blockchains.testnet-internal-nomad.allowed-miners = []
 
     ${extraConfig}
   '';
@@ -1338,7 +1329,7 @@ let
         inherit vault;
 
         config = {
-          image = dockerImages.mantis-kevm;
+          image = mantisImage;
           args = [ "-Dconfig.file=running.conf" ];
           ports = [ "rpc" "server" "metrics" "vm" ];
           labels = [{

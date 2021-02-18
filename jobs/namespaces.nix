@@ -3,22 +3,30 @@
 , mantis-explorer }@args:
 let
   namespaces = {
-    #mantis-evm = import ./mantis {
-    #  namespace = "mantis-evm";
-    #  vm = evm;
-    #  publicPortStart = 9100;
-    #};
+    mantis-evm = import ./mantis (args // {
+      namespace = "mantis-evm";
+      publicPortStart = 11000;
+      domainSuffix = "-evm.${domain}";
+      mantisImage = dockerImages.mantis-evm;
 
-    #mantis-iele = import ./mantis {
-    #  namespace = "mantis-iele";
-    #  vm = iele;
-    #  publicPortStart = 9200;
-    #};
-
+      extraConfig = ''
+        mantis.vm {
+          mode = "external"
+          external {
+            vm-type = "evm"
+            run-vm = true
+            executable-path = "/bin/mantis-vm"
+            host = "127.0.0.1"
+            port = {{ env "NOMAD_PORT_vm" }}
+          }
+        }
+      '';
+    });
     mantis-iele = import ./mantis (args // {
       namespace = "mantis-iele";
       publicPortStart = 10000;
       domainSuffix = "-iele.${domain}";
+      mantisImage = dockerImages.mantis-kevm;
 
       extraConfig = ''
         mantis.vm {
@@ -37,6 +45,7 @@ let
       namespace = "mantis-kevm";
       publicPortStart = 9000;
       domainSuffix = "-kevm.${domain}";
+      mantisImage = dockerImages.mantis-kevm;
 
       extraConfig = ''
         mantis.vm {
