@@ -10,15 +10,11 @@ let
       mantisImage = dockerImages.mantis-evm;
 
       extraConfig = ''
+        mantis.consensus {
+          protocol = "ethash"
+        }
         mantis.vm {
-          mode = "external"
-          external {
-            vm-type = "evm"
-            run-vm = true
-            executable-path = "/bin/mantis-vm"
-            host = "127.0.0.1"
-            port = {{ env "NOMAD_PORT_vm" }}
-          }
+          mode = "internal"
         }
       '';
     });
@@ -48,6 +44,9 @@ let
       mantisImage = dockerImages.mantis-kevm;
 
       extraConfig = ''
+        mantis.consensus {
+          protocol = "restricted-ethash"
+        }
         mantis.vm {
           mode = "external"
           external {
