@@ -135,7 +135,7 @@ in {
 
     prefix="$1"
     desired="$2"
-    desiredObft="$3"
+    #desiredObft="$3"
     mkdir -p secrets/"$prefix"
 
     echo "generating $desired keys"
@@ -172,82 +172,7 @@ in {
       ) | jq -e -r .result | sed 's/^0x//'
     }
 
-    nodes="$(seq -f "mantis-%g" "$desired"; seq -f "obft-node-%g" "$desiredObft")"
-    for node in $nodes; do
-      mantisKeyFile="secrets/$prefix/mantis-$node.key"
-      coinbaseFile="secrets/$prefix/$node.coinbase"
-      coinbasePath="kv/nomad-cluster/$prefix/$node/coinbase"
-      mantisSecretKeyPath="kv/nomad-cluster/$prefix/$node/secret-key"
-      hashKeyPath="kv/nomad-cluster/$prefix/$node/enode-hash"
-      accountPath="kv/nomad-cluster/$prefix/$node/account"
-      genesisPath="kv/nomad-cluster/$prefix/genesis"
-
-      obftKeyFile="secrets/$prefix/obft-$node.key"
-      obftSecretKeyPath="kv/nomad-cluster/$prefix/$node/obft-secret-key"
-      obftPublicKeyPath="kv/nomad-cluster/$prefix/$node/obft-public-key"
-
-      hashKey="$(vault kv get -field value "$hashKeyPath" || true)"
-
-      if [ -z "$hashKey" ]; then
-        if ! [ -s "$mantisKeyFile" ]; then
-          echo "Generating key in $mantisKeyFile"
-          until [ -s "$mantisKeyFile" ]; do
-            echo "generating key..."
-            eckeygen 1 | sed -r '/^\s*$/d' > "$mantisKeyFile"
-          done
-        fi
-
-        echo "Uploading existing key from $mantisKeyFile to Vault"
-
-        hashKey="$(tail -1 "$mantisKeyFile")"
-        vault kv put "$hashKeyPath" "value=$hashKey"
-
-        secretKey="$(head -1 "$mantisKeyFile")"
-        vault kv put "$mantisSecretKeyPath" "value=$secretKey"
-
-        coinbase="$(generateCoinbase "$secretKey")"
-        vault kv put "$coinbasePath" "value=$coinbase"
-        echo "$coinbase" > "$coinbaseFile"
-
-        vault kv put "$accountPath" - < "$tmpdir"/.mantis/testnet-internal-nomad/keystore/*"$coinbase"
-      else
-        echo "Downloading key for $mantisKeyFile from Vault"
-        secretKey="$(vault kv get -field value "$mantisSecretKeyPath")"
-        echo "$secretKey" > "$mantisKeyFile"
-        echo "$hashKey" >> "$mantisKeyFile"
-
-        coinbase="$(vault kv get -field value "$coinbasePath")"
-        echo "$coinbase" > "$coinbaseFile"
-      fi
-
-      # OBFT-related keys for obft nodes
-      # Note: a OBFT node needs *both* the mantis and OBFT keys to
-      # work.
-      if [[ "$node" =~ ^obft-node-[0-9]+$ ]]; then
-        obftPublicKey="$(vault kv get -field value "$obftPublicKeyPath" || true)"
-        if [ -z "$obftPublicKey" ]; then
-          if ! [ -s "$obftKeyFile" ]; then
-            echo "generating OBFT key..."
-            until [ -s "$obftKeyFile" ]; do
-                echo "generating key..."
-                eckeygen 1 | sed -r '/^\s*$/d' > "$obftKeyFile"
-            done
-          fi
-
-          echo "Uploading OBFT keys"
-          obftPubKey="$(tail -1 "$obftKeyFile")"
-          vault kv put "$obftPublicKeyPath" "value=$obftPubKey"
-          obftSecretKey="$(head -1 "$obftKeyFile")"
-          vault kv put "$obftSecretKeyPath" "value=$obftSecretKey"
-        else
-          echo "Downloading OBFT keys"
-          obftSecretKey="$(vault kv get -field value "$obftSecretKeyPath")"
-          echo "$obftSecretKey" > "$obftKeyFile"
-          echo "$obftPublicKey" >> "$obftKeyFile"
-        fi
-      fi
-
-    done
+    genesisPath="kv/nomad-cluster/$prefix/genesis"
 
     read -r genesis <<EOF
       ${builtins.toJSON genesis}
