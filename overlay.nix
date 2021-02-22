@@ -1,5 +1,4 @@
-{ system, self }:
-final: prev:
+inputs: final: prev:
 let
   lib = final.lib;
   # Little convenience function helping us to containing the bash
@@ -43,21 +42,25 @@ in {
 
   restic-backup = final.callPackage ./pkgs/backup { };
 
-  mantis = import final.mantis-source { inherit system; };
+  mantis = import final.mantis-source { inherit (final) system; };
+
+  mantis-explorer = inputs.mantis-explorer.defaultPackage.${final.system};
+
+  mantis-faucet-web = inputs.mantis-faucet-web.defaultPackage.${final.system};
 
   mantis-staging = import final.mantis-staging-source {
     src = final.mantis-staging-source;
-    inherit system;
+    inherit (final) system;
   };
 
-  mantis-faucet = import final.mantis-faucet-source { inherit system; };
+  mantis-faucet = import final.mantis-faucet-source { inherit (final) system; };
 
   mantis-explorer-server = prev.callPackage ./pkgs/mantis-explorer-server.nix {
-    inherit (self.inputs.inclusive.lib) inclusive;
+    inherit (inputs.inclusive.lib) inclusive;
   };
-  morpho-source = self.inputs.morpho-node;
+  morpho-source = inputs.morpho-node;
 
-  morpho-node = self.inputs.morpho-node.defaultPackage.${system};
+  morpho-node = inputs.morpho-node.defaultPackage.${final.system};
 
   # Any:
   # - run of this command with a parameter different than the testnet (currently 10)
@@ -308,6 +311,18 @@ in {
     . ${./pkgs/check_fmt.sh}
   '';
 
+  dockerImagesCue = let
+    images = lib.mapAttrs (n: v: {
+      name = builtins.unsafeDiscardStringContext v.image.imageName;
+      tag = builtins.unsafeDiscardStringContext v.image.imageTag;
+      url = builtins.unsafeDiscardStringContext v.id;
+    }) final.dockerImages;
+    imagesJson = final.writeText "images.json"
+      (builtins.toJSON { dockerImages = images; });
+  in final.runCommand "docker_images.cue" { buildInputs = [ final.cue ]; } ''
+    cue import -p bitte json: - < ${imagesJson} > $out
+  '';
+
   devShell = let
     cluster = "mantis-testnet";
     domain = final.clusters.${cluster}.proto.config.cluster.domain;
@@ -323,23 +338,24 @@ in {
     NOMAD_ADDR = "https://nomad.${domain}";
     CONSUL_HTTP_ADDR = "https://consul.${domain}";
 
-    buildInputs = [
-      final.bitte
-      self.inputs.bitte.legacyPackages.${system}.scaler-guard
-      final.terraform-with-plugins
-      prev.sops
-      final.vault-bin
-      final.openssl
-      final.cfssl
-      final.nixfmt
-      final.awscli
-      final.nomad
-      final.consul
-      final.consul-template
-      final.direnv
-      final.nixFlakes
-      final.jq
-      final.fd
+    buildInputs = with final; [
+      bitte
+      scaler-guard
+      terraform-with-plugins
+      sops
+      vault-bin
+      openssl
+      cfssl
+      nixfmt
+      awscli
+      nomad
+      consul
+      consul-template
+      direnv
+      nixFlakes
+      jq
+      fd
+      cue
       # final.crystal
       # final.pkgconfig
       # final.openssl
@@ -374,100 +390,7 @@ in {
     tree
   ];
 
-  mantis-explorer = self.inputs.mantis-explorer.defaultPackage.${system};
-
-  mantis-faucet-web = self.inputs.mantis-faucet-web.defaultPackage.${system};
-
-  nixosConfigurations =
-    self.inputs.bitte.legacyPackages.${system}.mkNixosConfigurations
-    final.clusters;
-
-  clusters = self.inputs.bitte.legacyPackages.${system}.mkClusters {
-    root = ./clusters;
-    inherit self system;
-  };
-
-  inherit (self.inputs.bitte.legacyPackages.${system})
-    bitte vault-bin mkNomadJob terraform-with-plugins systemdSandbox nixFlakes
-    nomad consul consul-template grafana-loki;
-
-  nomadJobs = let
-    jobsDir = ./jobs;
-    contents = builtins.readDir jobsDir;
-    toImport = name: type: type == "regular" && lib.hasSuffix ".nix" name;
-    fileNames = builtins.attrNames (lib.filterAttrs toImport contents);
-    imported = lib.forEach fileNames
-      (fileName: final.callPackage (jobsDir + "/${fileName}") { });
-  in lib.foldl' lib.recursiveUpdate { } imported;
-
-  dockerImages = let
-    imageDir = ./docker;
-    contents = builtins.readDir imageDir;
-    toImport = name: type: type == "regular" && lib.hasSuffix ".nix" name;
-    fileNames = builtins.attrNames (lib.filterAttrs toImport contents);
-    imported = lib.forEach fileNames
-      (fileName: final.callPackages (imageDir + "/${fileName}") { });
-    merged = lib.foldl' lib.recursiveUpdate { } imported;
-  in lib.flip lib.mapAttrs merged (key: image:
-    let id = "${image.imageName}:${image.imageTag}";
-    in {
-      inherit id image;
-
-      # Turning this attribute set into a string will return the outPath instead.
-      outPath = id;
-
-      push = let
-        parts = builtins.split "/" image.imageName;
-        registry = builtins.elemAt parts 0;
-        repo = builtins.elemAt parts 2;
-      in final.writeShellScriptBin "push" ''
-        set -euo pipefail
-
-        export dockerLoginDone="''${dockerLoginDone:-}"
-        export dockerPassword="''${dockerPassword:-}"
-
-        if [ -z "$dockerPassword" ]; then
-          dockerPassword="$(vault kv get -field value kv/nomad-cluster/docker-developer-password)"
-        fi
-
-        if [ -z "$dockerLoginDone" ]; then
-          echo "$dockerPassword" | docker login docker.mantis.ws -u developer --password-stdin
-          dockerLoginDone=1
-        fi
-
-        echo -n "Pushing ${image.imageName}:${image.imageTag} ... "
-
-        if curl -s "https://developer:$dockerPassword@${registry}/v2/${repo}/tags/list" | grep "${image.imageTag}" &> /dev/null; then
-          echo "Image already exists in registry"
-        else
-          docker load -i ${image}
-          docker push ${image.imageName}:${image.imageTag}
-        fi
-      '';
-
-      load = builtins.trace key (final.writeShellScriptBin "load" ''
-        set -euo pipefail
-        echo "Loading ${image} (${image.imageName}:${image.imageTag}) ..."
-        docker load -i ${image}
-      '');
-    });
-
-  push-docker-images = final.writeShellScriptBin "push-docker-images" ''
-    set -euo pipefail
-
-    ${lib.concatStringsSep "\n"
-    (lib.mapAttrsToList (key: value: "source ${value.push}/bin/push")
-      final.dockerImages)}
-  '';
-
-  load-docker-images = final.writeShellScriptBin "load-docker-images" ''
-    set -euo pipefail
-    ${lib.concatStringsSep "\n"
-    (lib.mapAttrsToList (key: value: "${value.load}/bin/load")
-      final.dockerImages)}
-  '';
-
-  inherit ((self.inputs.nixpkgs.legacyPackages.${system}).dockerTools)
+  inherit ((inputs.nixpkgs.legacyPackages.${final.system}).dockerTools)
     buildImage buildLayeredImage shadowSetup;
 
   mkEnv = lib.mapAttrsToList (key: value: "${key}=${value}");
