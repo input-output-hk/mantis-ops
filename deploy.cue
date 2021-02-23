@@ -11,12 +11,12 @@ let fqdn = "mantis.ws"
 }
 
 _Namespace: [Name=_]: {
-	vars: {
+	args: {
+		images:    dockerImages
+		namespace: =~"^mantis-[a-z-]+$"
+		namespace: Name
 		let datacenter = "eu-central-1" | "us-east-2" | "eu-west-1"
-		#dockerImages: dockerImages
-		namespace:     =~"^mantis-[a-z-]+$"
-		namespace:     Name
-		datacenters:   [...datacenter] | *["eu-central-1", "us-east-2"]
+		datacenters: [...datacenter] | *["eu-central-1", "us-east-2"]
 	}
 	jobs: [string]: types.#stanza.job
 }
@@ -24,11 +24,13 @@ _Namespace: [Name=_]: {
 #namespaces: _Namespace
 
 #namespaces: {
-	"mantis-testnet": {
+	"mantis-unstable": {
 		jobs: {
-			// explorer:   jobDef.#Explorer & {#domain: "mantis-testnet-explorer.\(fqdn)"}
-			// faucet:     jobDef.#Faucet & {#domain:   "mantis-testnet-faucet.\(fqdn)"}
-			"morpho-1": jobDef.#Morpho & {}
+			explorer:  jobDef.#Explorer & {#args: {domain: "mantis-testnet-explorer.\(fqdn)"}}
+			faucet:    jobDef.#Faucet & {#args: {domain:   "mantis-testnet-faucet.\(fqdn)"}}
+			"miner":   jobDef.#Mantis & {#args: {count:    5, role: "miner"}}
+			"morpho":  jobDef.#Morpho & {#args: {count:    5}}
+			"passive": jobDef.#Mantis & {#args: {count:    3, role: "passive"}}
 		}
 	}
 	// "mantis-iele": jobs:        #defaultJobs
@@ -42,7 +44,7 @@ for nsName, nsValue in #namespaces {
 		for jName, jValue in nsValue.jobs {
 			"\(jName)": Job: types.#toJson & {
 				#jobName: jName
-				#job:     jValue & nsValue.vars
+				#job:     jValue & {#args: jValue.#args & nsValue.args}
 			}
 		}
 	}

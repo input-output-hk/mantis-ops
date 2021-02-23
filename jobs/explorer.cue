@@ -3,16 +3,25 @@ package jobs
 import "github.com/input-output-hk/mantis-ops/pkg/schemas/nomad:types"
 
 #Explorer: types.#stanza.job & {
-	namespace:  string
-	#namespace: namespace // referenced later
-	type:       "service"
-	#name:      "\(namespace)-explorer"
-	#domain:    string
-	#dockerImages: [string]: {
-		name: string
-		tag:  string
-		url:  string
+	#args: {
+		datacenters: [...string]
+		namespace: string
+		domain:    string
+		images: [string]: {
+			name: string
+			tag:  string
+			url:  string
+		}
 	}
+
+	#images:    #args.images
+	#domain:    #args.domain
+	#name:      "\(namespace)-explorer"
+	#namespace: #args.namespace
+
+	datacenters: #args.datacenters
+	namespace:   #args.namespace
+	type:        "service"
 
 	group: explorer: {
 		service: "\(#name)": {
@@ -52,13 +61,14 @@ import "github.com/input-output-hk/mantis-ops/pkg/schemas/nomad:types"
 			driver: "docker"
 
 			config: {
-				image: #dockerImages["mantis-explorer-server"].url
+				image: #images["mantis-explorer-server"].url
 				args: ["nginx", "-c", "/local/nginx.conf"]
 				ports: ["explorer"]
+
 				labels: {
 					namespace: #namespace
 					name:      #name
-					imageTag:  #dockerImages["mantis-explorer-server"].tag
+					imageTag:  #images["mantis-explorer-server"].tag
 				}
 
 				logging: {
@@ -72,7 +82,7 @@ import "github.com/input-output-hk/mantis-ops/pkg/schemas/nomad:types"
 
 			template: "local/nginx.conf": {
 				change_mode: "restart"
-				data: """
+				data:        """
 					user nginx nginx;
 					error_log /dev/stderr info;
 					pid /dev/null;
@@ -84,7 +94,7 @@ import "github.com/input-output-hk/mantis-ops/pkg/schemas/nomad:types"
 
 						upstream	backend	{
 							least_conn;
-							{{	range	service	"${namespace}-mantis-passive-rpc"	}}
+							{{	range	service	"\(namespace)-mantis-passive-rpc"	}}
 								server	{{	.Address	}}:{{	.Port	}};
 							{{	end	}}
 						}

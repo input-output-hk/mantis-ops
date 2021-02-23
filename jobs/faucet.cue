@@ -3,17 +3,26 @@ package jobs
 import "github.com/input-output-hk/mantis-ops/pkg/schemas/nomad:types"
 
 #Faucet: types.#stanza.job & {
-	namespace:  string
-	#namespace: namespace // referenced later
-	type:       "service"
-	#name:      "\(namespace)-faucet"
-	#domain:    string
-	#wallet:    string | *"mantis-1"
-	#dockerImages: [string]: {
-		name: string
-		tag:  string
-		url:  string
+	#args: {
+		datacenters: [...string]
+		namespace: string
+		domain:    string
+		wallet:    string | *"mantis-1"
+		images: [string]: {
+			name: string
+			tag:  string
+			url:  string
+		}
 	}
+
+	#images:    #args.images
+	#name:      "\(namespace)-faucet"
+	#domain:    #args.domain
+	#wallet:    #args.wallet
+	#namespace: #args.namespace
+
+	namespace: #args.namespace
+	type:      "service"
 
 	group: explorer: {
 		network: {
@@ -80,13 +89,13 @@ import "github.com/input-output-hk/mantis-ops/pkg/schemas/nomad:types"
 			}
 
 			config: {
-				image: #dockerImages["mantis-faucet"].url
+				image: #images["mantis-faucet"].url
 				args: ["-Dconfig.file=running.conf"]
 				ports: ["rpc", "metrics"]
 				labels: {
 					namespace: #namespace
 					name:      "faucet"
-					imageTag:  #dockerImages["mantis-faucet"].tag
+					imageTag:  #images["mantis-faucet"].tag
 				}
 
 				logging: {

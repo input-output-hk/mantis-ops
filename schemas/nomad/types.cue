@@ -18,7 +18,7 @@ import (
 		ConsulToken: *null | string
 		VaultToken:  *null | string
 		Vault:       *null | #json.Vault
-		Update:      #json.Update
+		Update:      *null | #json.Update
 	}
 
 	Constraint: {
@@ -62,8 +62,8 @@ import (
 
 	ReschedulePolicy: *null | {
 		Attempts:      uint | *10
-		DelayFunction: "constant" | "exponential" | *"fibonacci"
-		Delay:         uint | *30000000000
+		DelayFunction: "constant" | "exponential" | "fibonacci"
+		Delay:         uint & >=time.ParseDuration("5s") | *50000000000
 		Interval:      uint | *0
 		MaxDelay:      uint | *3600000000000
 		Unlimited:     bool | *true
@@ -112,12 +112,11 @@ import (
 			Sticky:  bool
 		}
 		Migrate: #json.Migrate
-		Update:  #json.Update
+		Update:  *null | #json.Update
 		Networks: [...#json.Network]
 		StopAfterClientDisconnect: *null | uint
 		Scaling:                   null
 		Vault:                     *null | #json.Vault
-		RestartPolicy:             null
 	}
 
 	Port: {
@@ -201,7 +200,7 @@ import (
 			DiskMB:   *null | uint
 		}
 		Meta: {}
-		RestartPolicy: null
+		RestartPolicy: *null | #json.RestartPolicy
 		ShutdownDelay: uint | *0
 		User:          string | *""
 		Lifecycle:     null
@@ -297,11 +296,31 @@ let durationType = string & =~"^[1-9]\\d*[hms]$"
 
 		Count: tg.count
 
+		if tg.reschedule != null {
+			ReschedulePolicy: {
+				Attempts:      tg.reschedule.attempts
+				DelayFunction: tg.reschedule.delay_function
+				Delay:         time.ParseDuration(tg.reschedule.delay)
+				Interval:      time.ParseDuration(tg.reschedule.interval)
+				MaxDelay:      time.ParseDuration(tg.reschedule.max_delay)
+				Unlimited:     tg.reschedule.unlimited
+			}
+		}
+
 		if tg.ephemeral_disk != null {
 			EphemeralDisk: {
 				Size:    tg.ephemeral_disk.size
 				Migrate: tg.ephemeral_disk.migrate
 				Sticky:  tg.ephemeral_disk.sticky
+			}
+		}
+
+		if tg.restart_policy != null {
+			RestartPolicy: {
+				Interval: time.ParseDuration(tg.restart_policy.interval)
+				Attempts: tg.restart_policy.attempts
+				Delay:    time.ParseDuration(tg.restart_policy.delay)
+				Mode:     tg.restart_policy.mode
 			}
 		}
 
@@ -370,6 +389,15 @@ let durationType = string & =~"^[1-9]\\d*[hms]$"
 			Config:     t.config
 			Env:        t.env
 			KillSignal: t.kill_signal
+
+			if t.restart_policy != null {
+				RestartPolicy: {
+					Interval: time.ParseDuration(t.restart_policy.interval)
+					Attempts: t.restart_policy.attempts
+					Delay:    time.ParseDuration(t.restart_policy.delay)
+					Mode:     t.restart_policy.mode
+				}
+			}
 
 			Resources: {
 				CPU:      t.resources.cpu
@@ -463,18 +491,56 @@ let durationType = string & =~"^[1-9]\\d*[hms]$"
 	}
 
 	group: {
+		#type:          "service" | "batch" | "system"
 		ephemeral_disk: #stanza.ephemeral_disk
 		network:        #stanza.network
 		service: [string]: #stanza.service
 		task: [string]:    #stanza.task
 		count: uint | *1
 		volume: [string]: #stanza.volume
-		restart: #stanza.restart & {#type: #type}
-		vault:   *null | #stanza.vault
+		restart:        #stanza.restart & {#type: #type}
+		vault:          *null | #stanza.vault
+		restart_policy: *null | #stanza.restart_policy
+
+		reschedule: *null | #stanza.rescheduleService | #stanza.rescheduleBatch
+		if #type == "service" || #type == "system" {
+			reschedule: *null | #stanza.rescheduleService
+		}
+
+		if #type == "batch" {
+			reschedule: *null | #stanza.rescheduleBatch
+		}
 	}
+
+	// The default batch reschedule policy is:
+
+	rescheduleBatch: {
+		attempts:       uint | *1
+		delay:          durationType | *"5s"
+		delay_function: *"constant" | "exponential" | "fibonacci"
+		max_delay:      durationType | *"30m"
+		interval:       durationType | *"24h"
+		unlimited:      bool | *false
+	}
+
+	// The default service reschedule policy is:
+
+	rescheduleService: {
+		attempts:       uint | *3
+		delay:          durationType | *"30s"
+		delay_function: "constant" | *"exponential" | "fibonacci"
+		max_delay:      durationType | *"1h"
+		interval:       durationType | *"5m"
+		unlimited:      bool | *true
+	}
+
+	reschedule: rescheduleService | rescheduleBatch
 
 	network: {
 		mode: "host" | "bridge"
+		dns:  *null | {
+			servers: [...string]
+		}
 		port: [string]: {
 			static:       *null | uint
 			to:           *null | uint
@@ -575,7 +641,7 @@ let durationType = string & =~"^[1-9]\\d*[hms]$"
 
 		config: #stanza.taskConfig & {#driver: driver}
 
-		driver: "exec" | "docker"
+		driver: "exec" | "docker" | "nspawn"
 
 		env: [string]: string
 
@@ -600,10 +666,19 @@ let durationType = string & =~"^[1-9]\\d*[hms]$"
 			change_signal:   *"" | string
 			left_delimiter:  string | *"{{"
 			right_delimiter: string | *"}}"
+			splay:           durationType | *"3s"
 		}
 
 		vault: *null | #stanza.vault
 		volume_mount: [string]: #stanza.volume_mount
+		restart_policy: *null | #stanza.restart_policy
+	}
+
+	restart_policy: {
+		interval: durationType
+		attempts: uint
+		delay:    durationType
+		mode:     "delay" | "fail"
 	}
 
 	update: {

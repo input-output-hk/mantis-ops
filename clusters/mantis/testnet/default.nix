@@ -32,6 +32,7 @@ in {
     mantis-qa-load.description = "Mantis QA Load";
     mantis-qa-fastsync.description = "Mantis QA FastSync";
     mantis-staging.description = "Mantis Staging";
+    mantis-unstable.description = "Mantis Unstable";
   };
 
   cluster = {
