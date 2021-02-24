@@ -78,7 +78,7 @@ class Backup
     ]
 
     Process.run "restic", output: STDOUT, error: STDERR, args: [
-      "forget", "--prune", "--keep-last", "100"
+      "forget", "--prune", "--keep-last", "100", "--group-by", "tag"
     ]
   end
 end
