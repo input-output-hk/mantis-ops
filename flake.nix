@@ -43,6 +43,7 @@
           devShellPath bitte nixFlakes sops generate-mantis-keys
           terraform-with-plugins cfssl consul nomad vault-bin cue grafana
           haproxy grafana-loki victoriametrics;
-      };
+      } // (pkgs.lib.mapAttrs (_: v: v.config.system.build.toplevel)
+        nixosConfigurations);
     };
 }
