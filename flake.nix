@@ -38,6 +38,10 @@
       inherit nixosConfigurations;
       legacyPackages.x86_64-linux = pkgs;
       devShell.x86_64-linux = pkgs.devShell;
-      hydraJobs = { inherit (pkgs) devShellPath; };
+      hydraJobs.x86_64-linux = {
+        inherit (pkgs)
+          devShellPath bitte nixFlakes sops generate-mantis-keys
+          terraform-with-plugins cfssl consul nomad vault-bin cue;
+      };
     };
 }
