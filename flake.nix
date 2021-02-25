@@ -33,11 +33,11 @@
       };
 
       nixosConfigurations = hashiStack.nixosConfigurations;
-    in hashiStack // {
-      inherit self;
-      inherit (pkgs) sources;
-      packages.x86_64-linux = pkgs;
+    in {
+      inherit (hashiStack) clusters;
+      inherit nixosConfigurations;
       legacyPackages.x86_64-linux = pkgs;
       devShell.x86_64-linux = pkgs.devShell;
+      hydraJobs = { inherit (pkgs) devShellPath; };
     };
 }
