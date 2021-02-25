@@ -41,7 +41,8 @@
       hydraJobs.x86_64-linux = {
         inherit (pkgs)
           devShellPath bitte nixFlakes sops generate-mantis-keys
-          terraform-with-plugins cfssl consul nomad vault-bin cue;
+          terraform-with-plugins cfssl consul nomad vault-bin cue grafana
+          haproxy grafana-loki victoriametrics;
       };
     };
 }
