@@ -26,13 +26,14 @@ _Namespace: [Name=_]: {
 #namespaces: {
 	"mantis-unstable": {
 		jobs: {
-			explorer:  jobDef.#Explorer & {#args: {domain: "mantis-testnet-explorer.\(fqdn)"}}
-			faucet:    jobDef.#Faucet & {#args: {domain:   "mantis-testnet-faucet.\(fqdn)"}}
+			explorer:  jobDef.#Explorer & {#args: {domain: "mantis-unstable-explorer.\(fqdn)"}}
+			faucet:    jobDef.#Faucet & {#args: {domain:   "mantis-unstable-faucet.\(fqdn)"}}
 			"miner":   jobDef.#Mantis & {#args: {count:    5, role: "miner"}}
 			"morpho":  jobDef.#Morpho & {#args: {count:    5}}
 			"passive": jobDef.#Mantis & {#args: {count:    3, role: "passive"}}
 		}
 	}
+	// "mantis-testnet": jobs:     #defaultJobs
 	// "mantis-iele": jobs:        #defaultJobs
 	// "mantis-qa-load": jobs:     #defaultJobs
 	// "mantis-qa-fastsync": jobs: #defaultJobs

@@ -50,11 +50,11 @@ HOCON
 set -e
 
 prefix="$1"
-desired="$2"
-desiredObft="$3"
+desired="$(($2 - 1))"
+desiredObft="$(($3 - 1))"
 mkdir -p secrets/"$prefix"
 
-echo "generating $desired keys"
+echo "generating $((desired + 1)) keys"
 
 baseConf="$(dirname "$(dirname "$(readlink -f "$(which mantis)")")")/conf/base.conf"
 
@@ -89,7 +89,7 @@ EOF
 
 genesisPath="kv/nomad-cluster/$prefix/genesis"
 
-nodes="$(seq -f "mantis-%g" "$desired"; seq -f "obft-node-%g" "$desiredObft")"
+nodes="$(seq -f "mantis-%g" 0 "$desired"; seq -f "obft-node-%g" 0 "$desiredObft")"
 for node in $nodes; do
 	mantisKeyFile="secrets/$prefix/mantis-$node.key"
 	coinbaseFile="secrets/$prefix/$node.coinbase"
@@ -166,7 +166,7 @@ for node in $nodes; do
 done
 
 # Every address gets 2^200 ETC
-for count in $(seq "$desired"); do
+for count in $(seq 0 "$desired"); do
 	updatedGenesis="$(
 		echo "$genesis" \
 		| jq --arg address "$(< "secrets/$prefix/mantis-$count.coinbase")" \

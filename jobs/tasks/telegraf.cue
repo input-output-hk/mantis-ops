@@ -32,11 +32,11 @@ import (
 		image: #taskArgs.image.url
 		args: ["-config", "/local/telegraf.config"]
 
-		labels: {
+		labels: [{
 			namespace: #taskArgs.namespace
 			name:      #taskArgs.name
 			imageTag:  #taskArgs.image.tag
-		}
+		}]
 
 		logging: {
 			type: "journald"
@@ -61,7 +61,7 @@ import (
 		[inputs.prometheus]
 		metric_version = 1
 
-		urls = [ "http://127.0.0.1:{{ env "NOMAD_PORT_\(#taskArgs.prometheusPort)" }}" ]
+		urls = [ "http://{{ env "NOMAD_ADDR_\(#taskArgs.prometheusPort)" }}" ]
 
 		[outputs.influxdb]
 		database = "telegraf"

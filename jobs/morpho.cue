@@ -88,11 +88,11 @@ import (
 				image: #args.images.morpho.url
 				args: []
 
-				labels: {
+				labels: [{
 					namespace: #args.namespace
 					name:      "morpho-${NOMAD_ALLOC_INDEX}"
 					imageTag:  #args.images.morpho.tag
-				}
+				}]
 
 				logging: {
 					type: "journald"

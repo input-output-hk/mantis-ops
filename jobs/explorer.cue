@@ -65,11 +65,11 @@ import "github.com/input-output-hk/mantis-ops/pkg/schemas/nomad:types"
 				args: ["nginx", "-c", "/local/nginx.conf"]
 				ports: ["explorer"]
 
-				labels: {
+				labels: [{
 					namespace: #namespace
 					name:      #name
 					imageTag:  #images["mantis-explorer-server"].tag
-				}
+				}]
 
 				logging: {
 					type: "journald"

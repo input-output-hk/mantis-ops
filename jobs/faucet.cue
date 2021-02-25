@@ -92,11 +92,11 @@ import "github.com/input-output-hk/mantis-ops/pkg/schemas/nomad:types"
 				image: #images["mantis-faucet"].url
 				args: ["-Dconfig.file=running.conf"]
 				ports: ["rpc", "metrics"]
-				labels: {
+				labels: [{
 					namespace: #namespace
 					name:      "faucet"
 					imageTag:  #images["mantis-faucet"].tag
-				}
+				}]
 
 				logging: {
 					type: "journald"

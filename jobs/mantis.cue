@@ -21,15 +21,27 @@ import (
 	#count: #args.count
 	#role:  #args.role
 
+	update: {
+		max_parallel:      1
+		health_check:      "checks"
+		min_healthy_time:  "5m"
+		healthy_deadline:  "10m"
+		progress_deadline: "15m"
+		auto_revert:       true
+		auto_promote:      true
+		canary:            1
+		stagger:           "10m"
+	}
+
 	group: mantis: {
 		count: #count
 		network: {
-			mode: "bridge"
+			mode: "host"
 			port: {
-				discovery: to: 6000
-				metrics: to:   7000
-				rpc: to:       8000
-				server: to:    9000
+				discovery: {}
+				metrics: {}
+				rpc: {}
+				server: {}
 			}
 		}
 
@@ -62,9 +74,6 @@ import (
 		}
 
 		let baseTags = [namespace, #role]
-		let discoveryMeta = {}
-		let serverMeta = {}
-		let baseMeta = {}
 
 		#baseTags: baseTags
 		if #role == "passive" {
@@ -88,6 +97,23 @@ import (
 				address_mode: "host"
 				port:         "rpc"
 				tags:         ["rpc"] + #baseTags
+
+				check: rpc: {
+					// needs https://github.com/hashicorp/nomad/issues/10084
+					// type: "http"
+					// path: "/"
+					// header: "Content-Type": ["application/json"]
+					// body:     json.Marshal({jsonrpc: "2.0", method: "eth_chainId", params: [], id: 1})
+					address_mode: "host"
+					interval:     "30s"
+					port:         "rpc"
+					timeout:      "3s"
+					type:         "tcp"
+					check_restart: {
+						limit: 5
+						grace: "300s"
+					}
+				}
 			}
 
 			"\(namespace)-mantis-\(#role)-discovery": {
@@ -96,12 +122,13 @@ import (
 				meta: {
 					Name:     "mantis-${NOMAD_ALLOC_INDEX}"
 					PublicIp: "${attr.unique.platform.aws.public-ipv4}"
-				} & discoveryMeta
+				}
 			}
 
 			"\(namespace)-mantis-\(#role)-server": {
-				port: "server"
-				tags: ["server"] + #baseTags
+				address_mode: "host"
+				port:         "server"
+				tags:         ["server"] + #baseTags
 				meta: {
 					Name:     "mantis-${NOMAD_ALLOC_INDEX}"
 					PublicIp: "${attr.unique.platform.aws.public-ipv4}"

@@ -26,7 +26,7 @@ import (
 	driver: "docker"
 
 	resources: {
-		cpu:    500
+		cpu:    3500
 		memory: 5 * 1024
 	}
 
@@ -40,11 +40,11 @@ import (
 		image: #taskArgs.image.url
 		args: ["-Dconfig.file=running.conf"]
 		ports: ["rpc", "server", "metrics", "discovery"]
-		labels: {
+		labels: [{
 			namespace: #namespace
 			name:      "mantis-\(#role)-${NOMAD_ALLOC_INDEX}"
 			imageTag:  #taskArgs.image.tag
-		}
+		}]
 
 		logging: {
 			type: "journald"
@@ -68,26 +68,45 @@ import (
 		NAMESPACE:           #namespace
 	}
 
+	#vaultPrefix: 'kv/data/nomad-cluster/\(#namespace)/mantis-%s'
+
+	template: "secrets/secret-key": {
+		#prefix:     'kv/data/nomad-cluster/\(#namespace)/mantis-%s'
+		change_mode: "restart"
+		splay:       "15m"
+		data:        """
+		{{ with secret (printf "\(#vaultPrefix)/secret-key" (env "NOMAD_ALLOC_INDEX")) }}{{.Data.data.value}}{{end}}
+		{{ with secret (printf "\(#vaultPrefix)/enode-hash" (env "NOMAD_ALLOC_INDEX")) }}{{.Data.data.value}}{{end}}
+		"""
+	}
+
 	template: "local/mantis.conf": {
-		let checkpointRange = list.Range(1, #amountOfMorphoNodes, 1)
-		let checkpointKeys = [ for n in checkpointRange {
+		#checkpointRange: list.Range(1, #amountOfMorphoNodes, 1)
+		#checkpointKeys: [ for n in #checkpointRange {
 			"""
 			{{- with secret "kv/data/nomad-cluster/\(#namespace)/obft-node-\(n)/obft-public-key" -}}
 			"{{- .Data.data.value -}}"
-			{{- end -}}
+			{{ end -}}
 			"""
 		}]
+		#checkPointKeysString: strings.Join(#checkpointKeys, ",")
 
-		_extraConfig: string
+		#extraConfig: string
 
 		if #role == "miner" {
-			_extraConfig: """
-			mantis.consensus.mining-enabled = true
+			#extraConfig: """
+			mantis = {
+				node-key-file = "/secrets/secret-key"
+				consensus = {
+					mining-enabled = true
+					coinbase = "{{ with secret (printf "\(#vaultPrefix)/coinbase" (env "NOMAD_ALLOC_INDEX")) }}{{.Data.data.value}}{{end}}"
+				}
+			}
 			"""
 		}
 
 		if #role == "passive" {
-			_extraConfig: """
+			#extraConfig: """
 			mantis.consensus.mining-enabled = false
 			"""
 		}
@@ -95,17 +114,16 @@ import (
 		change_mode: "noop"
 		splay:       "15m"
 		data:        """
+		include "/conf/base.conf"
 		include "/conf/testnet-internal-nomad.conf"
 
-		logging.json-output = true
+		logging.json-output = false
 		logging.logs-file = "logs"
 
 		mantis = {
 			blockchains.network = "testnet-internal-nomad"
 			blockchains.testnet-internal-nomad = {
 				custom-genesis-file = "/local/genesis.json"
-				ecip1098-block-number = 0
-				ecip1097-block-number = 0
 				allowed-miners = []
 
 				bootstrap-nodes = [
@@ -117,7 +135,7 @@ import (
 				]
 
 				checkpoint-public-keys = [
-					\(strings.Join(checkpointKeys, ","))
+					\(#checkPointKeysString)
 				]
 			}
 
@@ -131,16 +149,16 @@ import (
 			network.server-address.port = {{ env "NOMAD_PORT_server" }}
 		}
 
-		\(_extraConfig)
-	"""
+		\(#extraConfig)
+		"""
 	}
 
 	template: "local/genesis.json": {
 		change_mode: "restart"
 		data:        """
-			{{- with secret "kv/nomad-cluster/\(#namespace)/genesis" -}}
-			{{.Data.data | toJSON }}
-			{{- end -}}
+		{{- with secret "kv/nomad-cluster/\(#namespace)/genesis" -}}
+		{{.Data.data | toJSON }}
+		{{- end -}}
 		"""
 	}
 }
