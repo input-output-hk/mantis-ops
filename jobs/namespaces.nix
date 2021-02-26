@@ -8,6 +8,9 @@ let
       publicPortStart = 11000;
       domainSuffix = "-evm.${domain}";
       mantisImage = dockerImages.mantis-evm;
+      explorerImage = dockerImages.mantis-explorer-evm;
+      faucetImage = dockerImages.mantis-faucet-web-evm;
+      domainTitle = "EVM";
 
       extraConfig = ''
         mantis.consensus {
@@ -23,6 +26,9 @@ let
       publicPortStart = 10000;
       domainSuffix = "-iele.${domain}";
       mantisImage = dockerImages.mantis-kevm;
+      explorerImage = dockerImages.mantis-explorer-iele;
+      faucetImage = dockerImages.mantis-faucet-web-iele;
+      domainTitle = "IELE";
 
       extraConfig = ''
         mantis.vm {
@@ -42,6 +48,9 @@ let
       publicPortStart = 9000;
       domainSuffix = "-kevm.${domain}";
       mantisImage = dockerImages.mantis-kevm;
+      explorerImage = dockerImages.mantis-explorer-kevm;
+      faucetImage = dockerImages.mantis-faucet-web-kevm;
+      domainTitle = "KEVM";
 
       extraConfig = ''
         mantis.consensus {

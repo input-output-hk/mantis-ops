@@ -1,9 +1,11 @@
 { lib, domain, mkEnv, dockerTools, buildLayeredImage, writeShellScript
-, mantis-explorer, nginx }: {
-  mantis-explorer-server = let
+, mantis-explorer, nginx }:
+let
+  makeExplorer =  extraAttrs: let
+    web = mantis-explorer.overrideAttrs (old: extraAttrs);
     nginx-layered = buildLayeredImage {
       name = "docker.${domain}/nginx";
-      contents = [ nginx mantis-explorer ];
+      contents = [ nginx web ];
     };
   in dockerTools.buildImage {
     name = "docker.${domain}/mantis-explorer-server";
@@ -15,12 +17,23 @@
       groupadd --system nginx
       useradd --system --gid nginx nginx
       mkdir -p /var/cache/nginx
-      ln -s ${mantis-explorer} /mantis-explorer
+      ln -s ${web} /mantis-explorer
     '';
 
     config = {
       Cmd = [ "nginx" ];
       ExposedPorts = { "8080/tcp" = { }; };
     };
+  };
+in
+{
+  mantis-explorer-evm = makeExplorer {
+    MANTIS_VM = "EVM";
+  };
+  mantis-explorer-iele = makeExplorer {
+    MANTIS_VM = "IELE";
+  };
+  mantis-explorer-kevm = makeExplorer {
+    MANTIS_VM = "KEVM";
   };
 }

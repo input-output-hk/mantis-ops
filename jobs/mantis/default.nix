@@ -1,6 +1,6 @@
 { mkNomadJob, domainSuffix, publicPortStart, lib, mantis, mantis-source
 , mantis-faucet, mantis-faucet-source, morpho-node, morpho-source, dockerImages
-, mantis-explorer, mantisImage, namespace, extraConfig, ... }:
+, mantis-explorer, mantisImage, explorerImage, faucetImage, namespace, extraConfig, ... }:
 let
   # NOTE: Copy this file and change the next line if you want to start your own cluster!
   datacenters = [ "us-east-2" "eu-west-1" "eu-central-1" ];
@@ -1521,12 +1521,12 @@ let
       };
 
       config = {
-        image = dockerImages.mantis-explorer-server;
+        image = explorerImage;
         args = [ "nginx" "-c" "/local/nginx.conf" ];
         ports = [ "explorer" ];
         labels = [{
           inherit namespace name;
-          imageTag = dockerImages.mantis-explorer-server.image.imageTag;
+          imageTag = explorerImage.image.imageTag;
         }];
 
         logging = {
@@ -1882,13 +1882,13 @@ let
         memoryMB = 128;
       };
       config = {
-        image = dockerImages.mantis-faucet-web;
+        image = faucetImage;
         args = [ "nginx" "-c" "/local/nginx.conf" ];
         ports = [ "faucet-web" ];
         labels = [{
           inherit namespace;
           name = "faucet-web";
-          imageTag = dockerImages.mantis-faucet-web.image.imageTag;
+          imageTag = faucetImage.image.imageTag;
         }];
 
         logging = {
@@ -2081,7 +2081,7 @@ in minerJobs // {
     };
 
     taskGroups.backup = let name = "${namespace}-backup";
-    in import ./tasks/backup.nix {
+    in import ../tasks/backup.nix {
       inherit lib dockerImages namespace name mantis;
       config = config {
         inherit namespace name;

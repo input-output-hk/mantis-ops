@@ -158,16 +158,15 @@
         "nixpkgs": "nixpkgs_5"
       },
       "locked": {
-        "lastModified": 1608645333,
-        "narHash": "sha256-ZPwLM1w336E0qrrWX0/jWzmNCRZpAhUQ4jfsSO0iYr0=",
+        "lastModified": 1614341279,
+        "narHash": "sha256-MsktksQES7SAZabF/emZTnIG8lVDZ2bw455WOCmcZcU=",
         "owner": "input-output-hk",
         "repo": "mantis-explorer",
-        "rev": "1c4bbe01a9d137ab88237e8da6bd342d611c95ed",
+        "rev": "d72aa0d5d182b6700bb31cfea3f28284f0619430",
         "type": "github"
       },
       "original": {
         "owner": "input-output-hk",
-        "ref": "kevm",
         "repo": "mantis-explorer",
         "type": "github"
       }
@@ -178,16 +177,15 @@
         "nixpkgs": "nixpkgs_6"
       },
       "locked": {
-        "lastModified": 1607432251,
-        "narHash": "sha256-MAHjZQKnhmDN5Re4EE7o83prZ53Y3LLhnrWGPedhr0Y=",
+        "lastModified": 1614341313,
+        "narHash": "sha256-xu2wOsgQLedyyR/E0zn81SIe5t188D08/q+6LTMYG3k=",
         "owner": "input-output-hk",
         "repo": "mantis-faucet-web",
-        "rev": "2b36e4ad4e073b08f577bc16264b17e025caf505",
+        "rev": "9da14f10408254597d6a709723b21d5f52f42de2",
         "type": "github"
       },
       "original": {
         "owner": "input-output-hk",
-        "ref": "nix-build",
         "repo": "mantis-faucet-web",
         "type": "github"
       }
@@ -328,11 +326,12 @@
     },
     "nixpkgs_6": {
       "locked": {
-        "lastModified": 1605721780,
-        "narHash": "sha256-MhaNS4HGHcOCwW+HadSxustHTzD1LWznh584eYBvJ5Q=",
-        "path": "/nix/store/5c45nyf2kwjq40lz4nfycwkhjwg21rhn-source",
-        "rev": "58f9c4c7d3a42c912362ca68577162e38ea8edfb",
-        "type": "path"
+        "lastModified": 1606940130,
+        "narHash": "sha256-feZRQOfUWLfTuYUTEUxGadrS0QksS+TLHOx7kz8vgIY=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "1176af94d32008050a447dd1c1a2c8c459aa9dcb",
+        "type": "github"
       },
       "original": {
         "id": "nixpkgs",

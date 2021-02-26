@@ -46,9 +46,6 @@ in {
 
   mantis-faucet = import final.mantis-faucet-source { inherit system; };
 
-  mantis-explorer-server = prev.callPackage ./pkgs/mantis-explorer-server.nix {
-    inherit (inputs.inclusive.lib) inclusive;
-  };
   morpho-source = inputs.morpho-node;
 
   morpho-node = inputs.morpho-node.morpho-node.${system};
@@ -314,10 +311,5 @@ in {
   };
 
   mantis-explorer = inputs.mantis-explorer.defaultPackage.${system};
-
-  mantis-faucet-web =
-    inputs.mantis-faucet-web.defaultPackage.${system}.overrideAttrs (old: {
-      FAUCET_NODE_URL = "https://faucet-kevm.${domain}";
-    });
-
+  mantis-faucet-web = inputs.mantis-faucet-web.defaultPackage.${system};
 }
