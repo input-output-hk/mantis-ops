@@ -29,8 +29,8 @@ in {
 
   mantis-staging-source = builtins.fetchGit {
     url = "https://github.com/input-output-hk/mantis";
-    rev = "640eaae1672b722e20dcc124790e52a7de8dbbd5";
-    ref = "sync-logging-debug";
+    rev = "4cd66bb7db48b0f75059f5e2f99c717a30258a7b";
+    ref = "etcm-678-resolve-branch-after-restart";
     submodules = true;
   };
 
