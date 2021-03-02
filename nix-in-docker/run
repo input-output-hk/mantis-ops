@@ -1,0 +1,16 @@
+#!/usr/bin/env sh
+
+dir="$(cd "$(dirname "$0")" && pwd)"
+
+docker volume create mantis-ops-root
+docker volume create mantis-ops-nix
+docker run \
+  -it \
+  --rm \
+  -v=$dir/..:/mantis-ops \
+  -w=/mantis-ops \
+  -v=mantis-ops-root:/root \
+  -v=mantis-ops-nix:/nix \
+  -v=$dir/nix.conf:/etc/nix/nix.conf \
+  nixpkgs/nix-unstable:latest \
+  nix-shell "$@"

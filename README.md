@@ -9,6 +9,28 @@
 
 ## Getting Started for Developers
 
+### Running Nix in Docker
+
+For simple tasks such as deployment it might be sufficient to use a Nix environment via Docker. (This is especially convenient for Mac users due to Darwin-compatibility issues of some of the dependencies.) You can use the `nix-in-docker/run` script to run `nix-shell`:
+
+```
+$ nix-in-docker/run
+```
+
+Extra arguments are passed to `nix-shell`, eg. to access the repl directly:
+```
+$ nix-in-docker/run --run 'nix repl repl.nix'
+```
+
+The `/root` and `/nix` volumes are persisted between runs, so you only need to do [Vault Authentication](#vault-authentication) once. After that you should be able to deploy eg. staging Mantis by running the following:
+
+```
+$ nix-in-docker/run
+...
+[nix-shell:/mantis-ops]# nix run .#nomadJobs.mantis-staging-mantis.run
+```
+
+
 ### Nix Installation
 
 * Nix is a requirement for this project.
@@ -107,6 +129,7 @@
     ) || nix profile install github:input-output-hk/mantis-ops#nixFlakes
     '
     ```
+  NB. This should not be done for Nix in Docker.
 
 * Finally, enter the development environment with the following command.  This command should be executed whenever you have a new shell and you'd like to enter the development enviroment:
     ```
