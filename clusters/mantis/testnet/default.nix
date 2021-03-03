@@ -8,8 +8,9 @@ let
     securityGroupRules;
 
   bitte = self.inputs.bitte;
-
 in {
+  imports = [ ./iam.nix ];
+
   services.consul.policies.developer.servicePrefix."mantis-" = {
     policy = "write";
     intentions = "write";
@@ -33,6 +34,7 @@ in {
     mantis-qa-fastsync.description = "Mantis QA FastSync";
     mantis-staging.description = "Mantis Staging";
     mantis-unstable.description = "Mantis Unstable";
+    mantis-paliga.description = "Mantis Paliga";
   };
 
   cluster = {

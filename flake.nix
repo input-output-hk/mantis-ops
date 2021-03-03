@@ -2,7 +2,7 @@
   description = "Bitte for Mantis";
 
   inputs = {
-    bitte.url = "github:input-output-hk/bitte";
+    bitte.url = "github:input-output-hk/bitte/terraform-state-in-vault";
     nixpkgs.follows = "bitte/nixpkgs";
     terranix.follows = "bitte/terranix";
     utils.follows = "bitte/utils";
@@ -34,8 +34,8 @@
 
       nixosConfigurations = hashiStack.nixosConfigurations;
     in {
-      inherit (hashiStack) clusters;
       inherit nixosConfigurations;
+      clusters.x86_64-linux = hashiStack.clusters;
       legacyPackages.x86_64-linux = pkgs;
       devShell.x86_64-linux = pkgs.devShell;
       hydraJobs.x86_64-linux = {

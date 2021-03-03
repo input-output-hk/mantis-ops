@@ -16,7 +16,7 @@ import (
 		}
 	}
 
-	driver: "docker"
+	driver: "exec"
 
 	vault: {
 		policies: ["nomad-cluster"]
@@ -29,22 +29,9 @@ import (
 	}
 
 	config: {
-		image: #taskArgs.image.url
+		flake:   "github:NixOS/nixpkgs/nixos-20.09#telegraf"
+		command: "/bin/telegraf"
 		args: ["-config", "/local/telegraf.config"]
-
-		labels: [{
-			namespace: #taskArgs.namespace
-			name:      #taskArgs.name
-			imageTag:  #taskArgs.image.tag
-		}]
-
-		logging: {
-			type: "journald"
-			config: [{
-				tag:    "\(#taskArgs.name)-telegraf"
-				labels: "name,namespace,imageTag"
-			}]
-		}
 	}
 
 	template: "local/telegraf.config": {

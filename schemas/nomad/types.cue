@@ -643,7 +643,13 @@ let durationType = string & =~"^[1-9]\\d*[hms]$"
 			source: string
 		}
 
-		config: #stanza.taskConfig & {#driver: driver}
+    if driver == "docker" {
+      config: #stanza.dockerConfig
+    }
+
+    if driver == "exec" {
+      config: #stanza.execConfig
+    }
 
 		driver: "exec" | "docker" | "nspawn"
 
