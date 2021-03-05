@@ -29,7 +29,7 @@ in {
 
   mantis-staging-source = builtins.fetchGit {
     url = "https://github.com/input-output-hk/mantis";
-    rev = "15cef24177c1e326565f35f772f735d4b586ce79";
+    rev = "f80a3d84eef5b696a98f4711b7cec0344bc1e82b";
     ref = "checkpointing-rebased-03.03";
     submodules = true;
   };
