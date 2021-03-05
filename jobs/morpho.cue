@@ -126,10 +126,10 @@ import (
 
 			template: "secrets/morpho-private-key": {
 				data: """
-				{{- with secret "kv/data/nomad-cluster/${namespace}/${name}/obft-secret-key" -}}
-				{{- .Data.data.value -}}
-				{{- end -}}
-				"""
+					{{- with secret "kv/data/nomad-cluster/${namespace}/${name}/obft-secret-key" -}}
+					{{- .Data.data.value -}}
+					{{- end -}}
+					"""
 				change_mode: "restart"
 				splay:       "15m"
 			}
@@ -193,8 +193,22 @@ import (
 			#taskArgs: {
 				namespace:      #args.namespace
 				name:           "morpho-${NOMAD_ALLOC_INDEX}"
-				image:          #args.images["telegraf"]
 				prometheusPort: "morphoPrometheus"
+			}
+		}
+
+		task: promtail: tasks.#Promtail & {
+			#taskArgs: {
+				namespace: #args.namespace
+				name:      "morpho-${NOMAD_ALLOC_INDEX}"
+			}
+		}
+
+		task: mantis: tasks.#Mantis & {
+			#taskArgs: {
+				namespace: #args.namespace
+				image:     #args.images["mantis"]
+				role:      "passive"
 			}
 		}
 	}

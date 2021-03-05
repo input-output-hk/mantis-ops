@@ -73,6 +73,13 @@ import (
 			}
 		}
 
+		task: promtail: tasks.#Promtail & {
+			#taskArgs: {
+				namespace: #args.namespace
+				name:      "\(#role)-${NOMAD_ALLOC_INDEX}"
+			}
+		}
+
 		let baseTags = [namespace, #role]
 
 		#baseTags: baseTags

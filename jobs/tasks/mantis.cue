@@ -23,36 +23,22 @@ import (
 	#requiredPeerCount:   len(#miners)
 	#namespace:           #taskArgs.namespace
 
-	driver: "docker"
+	driver: "exec"
 
 	resources: {
 		cpu:    3500
-		memory: 5 * 1024
+		memory: 4 * 1024
 	}
 
-	driver: "docker"
 	vault: {
 		policies: ["nomad-cluster"]
 		change_mode: "noop"
 	}
 
 	config: {
-		image: #taskArgs.image.url
-		args: ["-Dconfig.file=running.conf"]
-		ports: ["rpc", "server", "metrics", "discovery"]
-		labels: [{
-			namespace: #namespace
-			name:      "mantis-\(#role)-${NOMAD_ALLOC_INDEX}"
-			imageTag:  #taskArgs.image.tag
-		}]
-
-		logging: {
-			type: "journald"
-			config: [{
-				tag:    "mantis-\(#role)-${NOMAD_ALLOC_INDEX}"
-				labels: "name,namespace,imageTag"
-			}]
-		}
+		flake:   "github:input-output-hk/mantis?rev=079bbde133fba00b222fe30ee4e08a70f5b40ec4#mantis"
+		command: "/bin/mantis"
+		args: ["-Dconfig.file=/local/mantis.conf"]
 	}
 
 	restart: {
@@ -107,8 +93,8 @@ import (
 
 		if #role == "passive" {
 			#extraConfig: """
-			mantis.consensus.mining-enabled = false
-			"""
+				mantis.consensus.mining-enabled = false
+				"""
 		}
 
 		change_mode: "noop"
