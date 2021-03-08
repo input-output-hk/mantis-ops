@@ -7,7 +7,7 @@ let
   writeBashChecked = final.writers.makeScriptWriter {
     interpreter = "${final.bash}/bin/bash";
     check = final.writers.writeBash "shellcheck-check" ''
-      ${final.shellcheck}/bin/shellcheck "$1"
+      ${final.shellcheck}/bin/shellcheck -x "$1"
     '';
   };
   writeBashBinChecked = name: writeBashChecked "/bin/${name}";
@@ -50,143 +50,27 @@ in {
 
   morpho-node = inputs.morpho-node.morpho-node.${system};
 
-  # Any:
-  # - run of this command with a parameter different than the testnet (currently 10)
-  # - change in the genesis file here
-  # Requires an update on the mantis repository and viceversa
-  generate-mantis-keys = let
-    genesis = {
-      difficulty = "0x80000";
-      extraData =
-        "0x11bbe8db4e347b4e8c937c1c8370e4b5ed33adb3db69cbdb7a38e1e50b1b82fa";
-      gasLimit = "0x5000000";
-      nonce = "0x0000000000000042";
-      ommersHash =
-        "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347";
-      timestamp = "0x5FDB2B16";
-      coinbase = "0x0000000000000000000000000000000000000000";
-      mixHash =
-        "0x0000000000000000000000000000000000000000000000000000000000000000";
-      alloc = {
-        "25c0bb1a5203af87869951aef7cf3fedd8e330fc" = {
-          _comment = {
-            prvKey =
-              "1167a41c432d1a494408b8fdeecd79bff89a5689925606dff8adf01f4bf92922";
-            pubKey =
-              "3dfbd16d74816ad656f6c98e2a6634ca1930b5fc450eb93ca0a92574a30d00ff8eefd9d1cc3cd81cbb021b3f29abbbabfd29da7feef93f40f63a1e512c240517";
-          };
-          balance =
-            "1606938044258990275541962092341162602522202993782792835301376";
-        };
-      };
-    };
+  iele = final.callPackage ./pkgs/iele.nix { };
 
-    mantisConfigJson = {
-      mantis = {
-        consensus.mining-enabled = false;
-        blockchains.network = "testnet-internal-nomad";
-
-        network.rpc = {
-          http = {
-            mode = "http";
-            interface = "0.0.0.0";
-            port = 8546;
-            cors-allowed-origins = "*";
-          };
-        };
-      };
-    };
-
-    mantisConfigHocon =
-      prev.runCommand "mantis.conf" { buildInputs = [ prev.jq ]; } ''
-        cat <<EOF > $out
-        include "${final.mantis}/conf/testnet-internal-nomad.conf"
-        EOF
-
-        jq . < ${
-          prev.writeText "mantis.json" (builtins.toJSON mantisConfigJson)
-        } \
-        | head -c -2 \
-        | tail -c +2 \
-        | sed 's/^  //' \
-        >> $out
-      '';
-  in writeBashBinChecked "generate-mantis-keys" ''
-    set -xeuo pipefail
-
+  generate-mantis-keys = final.writeBashBinChecked "generate-mantis-keys" ''
     export PATH="${
       lib.makeBinPath (with final; [
-        final.coreutils
-        final.mantis
-        final.gawk
-        final.vault-bin
-        final.gnused
-        final.curl
-        final.jq
-        final.netcat
-        final.gnused
+        coreutils
+        curl
+        gawk
+        gnused
+        gnused
+        jq
+        mantis
+        netcat
+        vault-bin
+        which
+        shellcheck
+        tree
       ])
     }"
 
-    [ $# -eq 3 ] || { echo "Three arguments are required. Pass the prefix, the number of mantis keys to generate and the number of OBFT keys to generate."; exit 1; }
-
-    prefix="$1"
-    desired="$2"
-    #desiredObft="$3"
-    mkdir -p secrets/"$prefix"
-
-    echo "generating $desired keys"
-
-    tmpdir="$(mktemp -d)"
-
-    mantis "-Duser.home=$tmpdir" "-Dconfig.file=${mantisConfigHocon}" > /dev/null &
-    pid="$!"
-    on_exit() {
-      kill "$pid"
-      while kill -0 "$pid"; do
-        sleep 0.1
-      done
-      rm -rf "$tmpdir"
-    }
-    trap on_exit EXIT
-
-    set +x
-    echo "waiting for mantis to listen on 127.0.0.1:8546"
-    while ! nc -z 127.0.0.1 8546; do
-      sleep 0.1 # wait for 1/10 of the second before check again
-    done
-    set -x
-
-    generateCoinbase() {
-      curl -s http://127.0.0.1:8546 -H 'Content-Type: application/json' -d @<(cat <<EOF
-        {
-          "jsonrpc": "2.0",
-          "method": "personal_importRawKey",
-          "params": ["$1", ""],
-          "id": 1
-        }
-    EOF
-      ) | jq -e -r .result | sed 's/^0x//'
-    }
-
-    genesisPath="kv/nomad-cluster/$prefix/genesis"
-
-    read -r genesis <<EOF
-      ${builtins.toJSON genesis}
-    EOF
-
-    for count in $(seq "$desired"); do
-      updatedGenesis="$(
-        echo "$genesis" \
-        | jq --arg address "$(< "secrets/$prefix/mantis-$count.coinbase")" \
-          '.alloc[$address] = {"balance": "1606938044258990275541962092341162602522202993782792835301376"}'
-      )"
-      genesis="$updatedGenesis"
-    done
-
-    echo "$genesis" | jq . \
-    | tee "secrets/$prefix/genesis.json" \
-    | vault kv put "$genesisPath" -
+    . ${./pkgs/generate-mantis-keys.sh}
   '';
 
   generate-mantis-qa-genesis =
@@ -302,11 +186,8 @@ in {
 
   # Used for caching
   devShellPath = prev.symlinkJoin {
-    paths = final.devShell.buildInputs ++ [
-      final.grafana-loki
-      final.mantis
-      final.mantis-faucet
-    ];
+    paths = final.devShell.buildInputs
+      ++ [ final.grafana-loki final.mantis final.mantis-faucet ];
     name = "devShell";
   };
 
