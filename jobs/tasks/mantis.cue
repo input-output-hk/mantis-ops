@@ -22,7 +22,7 @@ import (
 	driver: "exec"
 
 	resources: {
-		cpu:    3500
+		cpu:    2 * 3300
 		memory: 4 * 1024
 	}
 
@@ -32,9 +32,9 @@ import (
 	}
 
 	config: {
-		flake:   "github:input-output-hk/mantis?rev=\(#taskArgs.mantisRev)#mantis"
-		command: "/bin/mantis"
-		args: ["-Dconfig.file=/local/mantis.conf"]
+		flake:   "github:input-output-hk/mantis?rev=\(#taskArgs.mantisRev)#mantis-entrypoint"
+		command: "/bin/mantis-entrypoint"
+		args: ["-Dconfig.file=/local/running.conf", "-XX:ActiveProcessorCount=2"]
 	}
 
 	restart: {
@@ -48,6 +48,10 @@ import (
 		REQUIRED_PEER_COUNT: "\(#requiredPeerCount)"
 		STORAGE_DIR:         "/local/mantis"
 		NAMESPACE:           #namespace
+		DAG_NAME:            "full-R23-0000000000000000"
+		DAG_BUCKET:          "mantis-dag"
+		MONITORING_ADDR:     "http://172.16.0.20:9000"
+		AWS_DEFAULT_REGION:  "us-east-1"
 	}
 
 	#vaultPrefix: 'kv/data/nomad-cluster/\(#namespace)/mantis-%s'
@@ -60,6 +64,15 @@ import (
 		{{ with secret (printf "\(#vaultPrefix)/secret-key" (env "NOMAD_ALLOC_INDEX")) }}{{.Data.data.value}}{{end}}
 		{{ with secret (printf "\(#vaultPrefix)/enode-hash" (env "NOMAD_ALLOC_INDEX")) }}{{.Data.data.value}}{{end}}
 		"""
+	}
+
+	template: "secrets/env.txt": {
+		data: """
+			  AWS_ACCESS_KEY_ID="{{with secret "kv/data/nomad-cluster/restic"}}{{.Data.data.aws_access_key_id}}{{end}}"
+			  AWS_SECRET_ACCESS_KEY="{{with secret "kv/data/nomad-cluster/restic"}}{{.Data.data.aws_secret_access_key}}{{end}}"
+			"""
+		env:         true
+		change_mode: "noop"
 	}
 
 	template: "local/mantis.conf": {

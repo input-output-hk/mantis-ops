@@ -52,7 +52,7 @@ import (
 
 		[outputs.influxdb]
 		database = "telegraf"
-		urls = [ {{ with node "monitoring" }}"http://{{ .Node.Address }}:8428"{{ end }} ]
+		urls = [ "http://172.16.0.20:8428" ]
 		"""
 	}
 }
