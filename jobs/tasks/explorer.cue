@@ -12,7 +12,7 @@ import (
 	driver: "exec"
 
 	config: {
-		flake: "github:input-output-hk/mantis-ops#mantis-explorer-server"
+		flake: "github:input-output-hk/mantis-ops/cue#mantis-explorer-server"
 		args: ["-c", "/local/nginx.conf"]
 		command: "/bin/mantis-explorer-server"
 	}

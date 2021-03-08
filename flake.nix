@@ -42,7 +42,7 @@
         inherit (pkgs)
           devShellPath bitte nixFlakes sops generate-mantis-keys
           terraform-with-plugins cfssl consul nomad vault-bin cue grafana
-          haproxy grafana-loki victoriametrics;
+          haproxy grafana-loki victoriametrics mantis-explorer-server;
       } // (pkgs.lib.mapAttrs (_: v: v.config.system.build.toplevel)
         nixosConfigurations);
     };
