@@ -11,7 +11,7 @@ let
       "$@"
   '';
   # Needed for DNS to work
-  etcRoot = runCommandNoCC "etc" {} ''
+  etcRoot = runCommandNoCC "etc" { } ''
     mkdir -p $out/etc
     ln -s ${iana-etc}/etc/services $out/etc/services
   '';

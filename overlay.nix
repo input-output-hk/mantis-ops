@@ -55,9 +55,9 @@ in {
 
   mantis-faucet = import final.mantis-faucet-source { inherit (final) system; };
 
-  mantis-explorer-server = prev.callPackage ./pkgs/mantis-explorer-server.nix {
-    inherit (inputs.inclusive.lib) inclusive;
-  };
+  mantis-explorer-server =
+    prev.callPackage ./pkgs/mantis-explorer-server.nix { };
+
   morpho-source = inputs.morpho-node;
 
   morpho-node = inputs.morpho-node.defaultPackage.${final.system};

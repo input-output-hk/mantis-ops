@@ -2,14 +2,10 @@ package tasks
 
 import (
 	"github.com/input-output-hk/mantis-ops/pkg/schemas/nomad:types"
+	"encoding/yaml"
 )
 
 #Promtail: types.#stanza.task & {
-	#taskArgs: {
-		namespace: string
-		name:      string
-	}
-
 	driver: "exec"
 
 	config: {
@@ -19,27 +15,33 @@ import (
 	}
 
 	template: "local/config.yaml": {
-		data: """
-    server:
-      http_listen_port: 0
-      grpc_listen_port: 0
-
-    positions:
-      filename: /local/positions.yaml
-
-    client:
-      url: http://{{with node "monitoring" }}{{ .Node.Address }}{{ end }}:3100/loki/api/v1/push
-
-    scrape_configs:
-     - job_name: \(#taskArgs.name)
-       pipeline_stages:
-       static_configs:
-       - labels:
-          syslog_identifier: \(#taskArgs.name)
-          namespace: \(#taskArgs.namespace)
-          dc: {{ env "NOMAD_DC" }}
-          host: {{ env "HOSTNAME" }}
-          __path__: /alloc/logs/*.std*.0
-  """
+		data: yaml.Marshal({
+			server: {
+				http_listen_port: 0
+				grpc_listen_port: 0
+			}
+			positions: filename: "/local/positions.yaml"
+			client: url:         "http://172.16.0.20:3100/loki/api/v1/push"
+			scrape_configs: [{
+				job_name:        "{{ env \"NOMAD_JOB_NAME\" }}-{{ env \"NOMAD_ALLOC_INDEX\" }}"
+				pipeline_stages: null
+				static_configs: [{
+					labels: {
+						nomad_alloc_id:      "{{ env \"NOMAD_ALLOC_ID\" }}"
+						nomad_alloc_index:   "{{ env \"NOMAD_ALLOC_INDEX\" }}"
+						nomad_alloc_name:    "{{ env \"NOMAD_ALLOC_NAME\" }}"
+						nomad_dc:            "{{ env \"NOMAD_DC\" }}"
+						nomad_group_name:    "{{ env \"NOMAD_GROUP_NAME\" }}"
+						nomad_job_id:        "{{ env \"NOMAD_JOB_ID\" }}"
+						nomad_job_name:      "{{ env \"NOMAD_JOB_NAME\" }}"
+						nomad_job_parent_id: "{{ env \"NOMAD_JOB_PARENT_ID\" }}"
+						nomad_namespace:     "{{ env \"NOMAD_NAMESPACE\" }}"
+						nomad_region:        "{{ env \"NOMAD_REGION\" }}"
+						nomad_task_name:     "{{ env \"NOMAD_TASK_NAME\" }}"
+						"__path__":          "/alloc/logs/*.std*.0"
+					}
+				}]
+			}]
+		})
 	}
 }

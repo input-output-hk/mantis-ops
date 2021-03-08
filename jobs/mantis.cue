@@ -10,8 +10,13 @@ import (
 		namespace: string
 		count:     uint
 		role:      "passive" | "miner" | "backup"
-		images: [string]: [string]: string
+		mantisRev: string
 		datacenters: [...string]
+		images: [string]: {
+			name: string
+			tag:  string
+			url:  string
+		}
 	}
 
 	datacenters: #args.datacenters
@@ -22,15 +27,15 @@ import (
 	#role:  #args.role
 
 	update: {
-		max_parallel:      1
+		max_parallel:      2
 		health_check:      "checks"
-		min_healthy_time:  "5m"
-		healthy_deadline:  "10m"
-		progress_deadline: "15m"
+		min_healthy_time:  "10s"
+		healthy_deadline:  "5m"
+		progress_deadline: "6m"
 		auto_revert:       true
 		auto_promote:      true
 		canary:            1
-		stagger:           "10m"
+		stagger:           "15m"
 	}
 
 	group: mantis: {
@@ -60,7 +65,6 @@ import (
 			#taskArgs: {
 				namespace:      #args.namespace
 				name:           "\(#role)-${NOMAD_ALLOC_INDEX}"
-				image:          #args.images["telegraf"]
 				prometheusPort: "metrics"
 			}
 		}
@@ -68,17 +72,12 @@ import (
 		task: mantis: tasks.#Mantis & {
 			#taskArgs: {
 				namespace: #args.namespace
-				image:     #args.images["mantis"]
+				mantisRev: #args.mantisRev
 				role:      #role
 			}
 		}
 
-		task: promtail: tasks.#Promtail & {
-			#taskArgs: {
-				namespace: #args.namespace
-				name:      "\(#role)-${NOMAD_ALLOC_INDEX}"
-			}
-		}
+		task: promtail: tasks.#Promtail
 
 		let baseTags = [namespace, #role]
 
@@ -112,13 +111,13 @@ import (
 					// header: "Content-Type": ["application/json"]
 					// body:     json.Marshal({jsonrpc: "2.0", method: "eth_chainId", params: [], id: 1})
 					address_mode: "host"
-					interval:     "30s"
+					interval:     "10s"
 					port:         "rpc"
 					timeout:      "3s"
 					type:         "tcp"
 					check_restart: {
 						limit: 5
-						grace: "300s"
+						grace: "10m"
 					}
 				}
 			}

@@ -12,7 +12,6 @@ let fqdn = "mantis.ws"
 
 _Namespace: [Name=_]: {
 	args: {
-		images:    dockerImages
 		namespace: =~"^mantis-[a-z-]+$"
 		namespace: Name
 		let datacenter = "eu-central-1" | "us-east-2" | "eu-west-1"
@@ -23,14 +22,21 @@ _Namespace: [Name=_]: {
 
 #namespaces: _Namespace
 
+#defaults: {
+	mantisRev: "079bbde133fba00b222fe30ee4e08a70f5b40ec4"
+	morphoRev: "eb1eee7900ffb57826ded4387dca0d97c7e39861"
+}
+
 #namespaces: {
 	"mantis-unstable": {
 		jobs: {
-			explorer:  jobDef.#Explorer & {#args: {domain: "mantis-unstable-explorer.\(fqdn)"}}
-			faucet:    jobDef.#Faucet & {#args: {domain:   "mantis-unstable-faucet.\(fqdn)"}}
-			"miner":   jobDef.#Mantis & {#args: {count:    5, role: "miner"}}
-			"morpho":  jobDef.#Morpho & {#args: {count:    5}}
-			"passive": jobDef.#Mantis & {#args: {count:    3, role: "passive"}}
+			explorer: jobDef.#Explorer & {#args: {domain: "mantis-unstable-explorer.\(fqdn)"}}
+			faucet:   jobDef.#Faucet & {#args: {domain:   "mantis-unstable-faucet.\(fqdn)"}}
+
+			"miner":   jobDef.#Mantis & {#args: {count: 5, role: "miner", mantisRev:   #defaults.mantisRev}}
+			"passive": jobDef.#Mantis & {#args: {count: 2, role: "passive", mantisRev: #defaults.mantisRev}}
+
+			"morpho": jobDef.#Morpho & {#args: {count: 5, morphoRev: #defaults.morphoRev, mantisRev: #defaults.mantisRev}}
 		}
 	}
 	// "mantis-testnet": jobs:     #defaultJobs

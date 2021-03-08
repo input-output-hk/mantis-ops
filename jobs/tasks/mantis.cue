@@ -10,11 +10,7 @@ import (
 	#taskArgs: {
 		namespace: string
 		role:      "passive" | "miner" | "backup"
-		image: {
-			name: string
-			tag:  string
-			url:  string
-		}
+		mantisRev: string
 	}
 
 	#role: #taskArgs.role
@@ -36,7 +32,7 @@ import (
 	}
 
 	config: {
-		flake:   "github:input-output-hk/mantis?rev=079bbde133fba00b222fe30ee4e08a70f5b40ec4#mantis"
+		flake:   "github:input-output-hk/mantis?rev=\(#taskArgs.mantisRev)#mantis"
 		command: "/bin/mantis"
 		args: ["-Dconfig.file=/local/mantis.conf"]
 	}
