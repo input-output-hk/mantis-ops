@@ -30,7 +30,25 @@ $ nix-in-docker/run
 [nix-shell:/mantis-ops]# nix run .#nomadJobs.mantis-staging-mantis.run
 ```
 
+#### Trouble shooting running Nix in Docker
 
+* If you see something like this when running the build
+```
+Error ------------------------------------------------------------------------------------------------------------------------------------------------------ nix
+builder for '/nix/store/kszgacdv6gfdsk0hm4xg3bmx86b7zv34-mantis-3.2.1.drv' failed with exit code 137
+error: --- Error ------------------------------------------------------------------------------------------------------------------------------------------------------ nix
+1 dependencies of derivation '/nix/store/3dw8fzklhhl7bnsamw9mnhanfgmbcryb-docker.mantis.ws-mantis-bulk-layers.drv' failed to build
+```
+that means you use automatically allocated memory in Docker and it's not enough. Go to Docker -> Resources -> Memory, setting it to 4Gb should be enough.
+
+* If you encounter this error when running the deploy command 
+```
+FATA[0000] Error initializing source docker-archive:///nix/store/hmnzy4n45fmn1p9caq47pz652f6d6q1m-docker.mantis.ws-mantis.tar.gz: error creating temporary file: open /var/tmp/docker-tar540472188: no such file or directory
+```
+it means you have to create mentioned folders manually with this command: 
+```
+mkdir -p /var/tmp
+```
 ### Nix Installation
 
 * Nix is a requirement for this project.
