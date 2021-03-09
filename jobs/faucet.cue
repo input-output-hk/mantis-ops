@@ -3,22 +3,24 @@ package jobs
 import (
 	"github.com/input-output-hk/mantis-ops/pkg/schemas/nomad:types"
 	"github.com/input-output-hk/mantis-ops/pkg/jobs/tasks:tasks"
+	"list"
 )
 
 #Faucet: types.#stanza.job & {
 	#args: {
-		datacenters: [...string]
-		namespace: string
-		domain:    string
-		wallet:    string | *"mantis-1"
+		datacenters: list.MinItems(1)
+		namespace:   string
+		domain:      string
+		wallet:      string | *"mantis-1"
 	}
 
 	#name:      "\(namespace)-faucet"
 	#domain:    #args.domain
 	#namespace: #args.namespace
 
-	namespace: #args.namespace
-	type:      "service"
+	datacenters: #args.datacenters
+	namespace:   #args.namespace
+	type:        "service"
 
 	group: explorer: {
 		network: {

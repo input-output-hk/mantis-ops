@@ -3,13 +3,14 @@ package jobs
 import (
 	"github.com/input-output-hk/mantis-ops/pkg/schemas/nomad:types"
 	"github.com/input-output-hk/mantis-ops/pkg/jobs/tasks:tasks"
+	"list"
 )
 
 #Explorer: types.#stanza.job & {
 	#args: {
-		datacenters: [...string]
-		namespace: string
-		domain:    string
+		datacenters: list.MinItems(1)
+		namespace:   string
+		domain:      string
 	}
 
 	#domain:    #args.domain

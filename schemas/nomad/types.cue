@@ -7,12 +7,12 @@ import (
 
 #json: {
 	Job: {
-		Namespace: string
-		ID:        Name
-		Name:      string
-		Type:      "service" | "system" | "batch"
-		Priority:  uint
-		Datacenters: [...string]
+		Namespace:   string
+		ID:          Name
+		Name:        string
+		Type:        "service" | "system" | "batch"
+		Priority:    uint
+		Datacenters: list.MinItems(1)
 		TaskGroups: [...TaskGroup]
 		Constraints: [...Constraint]
 		ConsulToken: *null | string
@@ -487,9 +487,9 @@ let durationType = string & =~"^[1-9]\\d*[hms]$"
 
 #stanza: {
 	job: {
-		datacenters: [...string]
-		namespace: string
-		type:      "batch" | *"service" | "system"
+		datacenters: list.MinItems(1)
+		namespace:   string
+		type:        "batch" | *"service" | "system"
 		constraints: [...#stanza.constraint]
 		group: [string]: #stanza.group & {#type: type}
 		update:   #stanza.update | *null
@@ -643,13 +643,13 @@ let durationType = string & =~"^[1-9]\\d*[hms]$"
 			source: string
 		}
 
-    if driver == "docker" {
-      config: #stanza.dockerConfig
-    }
+		if driver == "docker" {
+			config: #stanza.dockerConfig
+		}
 
-    if driver == "exec" {
-      config: #stanza.execConfig
-    }
+		if driver == "exec" {
+			config: #stanza.execConfig
+		}
 
 		driver: "exec" | "docker" | "nspawn"
 

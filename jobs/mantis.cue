@@ -3,20 +3,16 @@ package jobs
 import (
 	"github.com/input-output-hk/mantis-ops/pkg/schemas/nomad:types"
 	"github.com/input-output-hk/mantis-ops/pkg/jobs/tasks:tasks"
+	"list"
 )
 
 #Mantis: types.#stanza.job & {
 	#args: {
-		namespace: string
-		count:     uint
-		role:      "passive" | "miner" | "backup"
-		mantisRev: string
-		datacenters: [...string]
-		images: [string]: {
-			name: string
-			tag:  string
-			url:  string
-		}
+		namespace:   string
+		count:       uint
+		role:        "passive" | "miner" | "backup"
+		mantisRev:   string
+		datacenters: list.MinItems(1)
 	}
 
 	datacenters: #args.datacenters

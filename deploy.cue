@@ -3,6 +3,7 @@ package bitte
 import (
 	"github.com/input-output-hk/mantis-ops/pkg/schemas/nomad:types"
 	jobDef "github.com/input-output-hk/mantis-ops/pkg/jobs:jobs"
+	"list"
 )
 
 let fqdn = "mantis.ws"
@@ -15,7 +16,7 @@ _Namespace: [Name=_]: {
 		namespace: =~"^mantis-[a-z-]+$"
 		namespace: Name
 		let datacenter = "eu-central-1" | "us-east-2" | "eu-west-1"
-		datacenters: [...datacenter] | *["eu-central-1", "us-east-2"]
+		datacenters: list.MinItems(1) | [...datacenter] | *["eu-central-1", "us-east-2"]
 	}
 	jobs: [string]: types.#stanza.job
 }

@@ -3,16 +3,17 @@ package jobs
 import (
 	"github.com/input-output-hk/mantis-ops/pkg/schemas/nomad:types"
 	"github.com/input-output-hk/mantis-ops/pkg/jobs/tasks:tasks"
+	"list"
 )
 
 #Morpho: types.#stanza.job & {
 	#args: {
-		datacenters: [...string]
-		namespace: string
-		index:     uint
-		count:     uint
-		mantisRev: string
-		morphoRev: string
+		datacenters: list.MinItems(1)
+		namespace:   string
+		index:       uint
+		count:       uint
+		mantisRev:   string
+		morphoRev:   string
 	}
 
 	#name: "morpho-\(#args.index)"
