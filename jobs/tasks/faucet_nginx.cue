@@ -4,17 +4,19 @@ import (
 	"github.com/input-output-hk/mantis-ops/pkg/schemas/nomad:types"
 )
 
-#FaucetWeb: types.#stanza.task & {
+#FaucetNginx: types.#stanza.task & {
 	#taskArgs: {
 		upstreamServiceName: string
+		mantisOpsRev:        #args.mantisOpsRev
+		namespace:           #args.namespace
 	}
 
 	driver: "exec"
 
 	config: {
-		flake: "github:input-output-hk/mantis-ops/cue#mantis-explorer-server"
-		args: ["-c", "/local/nginx.conf", "-g", "error_log stderr;"]
-		command: "/bin/mantis-explorer-server"
+		flake: "github:input-output-hk/mantis-ops?rev=\(#taskArgs.mantisOpsRev)#mantis-explorer-nginx"
+		args: ["-c", "/local/nginx.conf"]
+		command: "/bin/entrypoint"
 	}
 
 	template: "local/nginx.conf": {

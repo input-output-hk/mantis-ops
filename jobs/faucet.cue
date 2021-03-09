@@ -8,10 +8,11 @@ import (
 
 #Faucet: types.#stanza.job & {
 	#args: {
-		datacenters: list.MinItems(1)
-		namespace:   string
-		domain:      string
-		wallet:      string | *"mantis-1"
+		datacenters:  list.MinItems(1)
+		namespace:    string
+		domain:       string
+		wallet:       string | *"mantis-1"
+		mantisOpsRev: string
 	}
 
 	#name:      "\(namespace)-faucet"
@@ -85,10 +86,18 @@ import (
 			}
 		}
 
-		task: faucet: tasks.#Faucet & {
+		task: "faucet-nginx": tasks.#FaucetNginx & {
 			#taskArgs: {
-				namespace: #args.namespace
-				wallet:    #args.wallet
+				mantisOpsRev: #args.mantisOpsRev
+				namespace:    #args.namespace
+			}
+		}
+
+		task: "faucet-server": tasks.#FaucetServer & {
+			#taskArgs: {
+				mantisOpsRev: #args.mantisOpsRev
+				namespace:    #args.namespace
+				wallet:       #args.wallet
 			}
 		}
 	}

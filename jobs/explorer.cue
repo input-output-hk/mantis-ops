@@ -8,9 +8,10 @@ import (
 
 #Explorer: types.#stanza.job & {
 	#args: {
-		datacenters: list.MinItems(1)
-		namespace:   string
-		domain:      string
+		datacenters:  list.MinItems(1)
+		namespace:    string
+		domain:       string
+		mantisOpsRev: string
 	}
 
 	#domain:    #args.domain
@@ -70,6 +71,7 @@ import (
 		task: explorer: tasks.#Explorer & {
 			#taskArgs: {
 				upstreamServiceName: "\(namespace)-mantis-passive-rpc"
+				mantisOpsRev:        #args.mantisOpsRev
 			}
 		}
 	}

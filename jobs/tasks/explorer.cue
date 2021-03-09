@@ -7,14 +7,15 @@ import (
 #Explorer: types.#stanza.task & {
 	#taskArgs: {
 		upstreamServiceName: string
+		mantisOpsRev:        string
 	}
 
 	driver: "exec"
 
 	config: {
-		flake: "github:input-output-hk/mantis-ops/cue#mantis-explorer-nginx"
+		flake: "github:input-output-hk/mantis-ops?rev=\(#taskArgs.mantisOpsRev)#mantis-faucet-nginx"
 		args: ["-c", "/local/nginx.conf"]
-		command: "/bin/mantis-explorer-server"
+		command: "/bin/entrypoint"
 	}
 
 	template: "local/nginx.conf": {
