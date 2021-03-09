@@ -193,12 +193,7 @@ in {
 
   # Used for caching
   devShellPath = prev.symlinkJoin {
-    paths = final.devShell.buildInputs ++ [
-      final.grafana-loki
-      final.mantis
-      final.mantis-faucet
-      final.nixFlakes
-    ];
+    paths = final.devShell.buildInputs;
     name = "devShell";
   };
 
