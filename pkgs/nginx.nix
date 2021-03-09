@@ -6,7 +6,7 @@ writeBashBinChecked "entrypoint" ''
 
   config="$1"
   echo "waiting for valid nginx config..."
-  until nginx -t "$config"; do
+  until nginx -t -c "$config"; do
     sleep 1
   done
 
