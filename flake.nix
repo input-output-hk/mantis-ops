@@ -9,9 +9,10 @@
     ops-lib.url = "github:input-output-hk/ops-lib/zfs-image?dir=zfs";
     inclusive.follows = "bitte/inclusive";
     morpho-node.url = "github:input-output-hk/ECIP-Checkpointing";
+    mantis.url =
+      "github:input-output-hk/mantis?rev=2cce0ba56ea6b880704fd601b37508cc9a302f33";
     mantis-explorer.url = "github:input-output-hk/mantis-explorer";
-    mantis-faucet-web.url =
-      "github:input-output-hk/mantis-faucet-web/nix-build";
+    mantis-faucet-web.url = "github:input-output-hk/mantis-faucet-web";
   };
 
   outputs = { self, nixpkgs, utils, ops-lib, bitte, ... }@inputs:
@@ -42,7 +43,8 @@
         inherit (pkgs)
           bitte cfssl consul cue devShellPath generate-mantis-keys grafana
           grafana-loki haproxy mantis-explorer-server mantis mantis-faucet
-          nixFlakes nomad sops terraform-with-plugins vault-bin victoriametrics;
+          mantis-faucet-web nixFlakes nomad sops terraform-with-plugins
+          vault-bin victoriametrics;
       } // (pkgs.lib.mapAttrs (_: v: v.config.system.build.toplevel)
         nixosConfigurations);
     };

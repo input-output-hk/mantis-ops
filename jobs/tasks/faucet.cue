@@ -23,7 +23,7 @@ import (
 	}
 
 	config: {
-		flake:   "github:input-output-hk/mantis-ops#mantis-faucet"
+		flake:   "github:input-output-hk/mantis-ops/cue#mantis-faucet"
 		command: "/bin/mantis-faucet"
 		args: ["-Dconfig.file=running.conf"]
 	}

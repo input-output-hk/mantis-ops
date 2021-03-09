@@ -51,6 +51,21 @@
     },
     "flake-utils": {
       "locked": {
+        "lastModified": 1614513358,
+        "narHash": "sha256-LakhOx3S1dRjnh0b5Dg3mbZyH0ToC9I8Y2wKSkBaTzU=",
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "rev": "5466c5bbece17adaab2d82fae80b46e807611bf3",
+        "type": "github"
+      },
+      "original": {
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "type": "github"
+      }
+    },
+    "flake-utils_2": {
+      "locked": {
         "lastModified": 1601282935,
         "narHash": "sha256-WQAFV6sGGQxrRs3a+/Yj9xUYvhTpukQJIcMbIi7LCJ4=",
         "owner": "numtide",
@@ -64,7 +79,7 @@
         "type": "github"
       }
     },
-    "flake-utils_2": {
+    "flake-utils_3": {
       "locked": {
         "lastModified": 1605370193,
         "narHash": "sha256-YyMTf3URDL/otKdKgtoMChu4vfVL3vCMkRqpGifhUn0=",
@@ -129,10 +144,31 @@
         "type": "github"
       }
     },
-    "mantis-explorer": {
+    "mantis": {
       "inputs": {
         "flake-utils": "flake-utils",
-        "nixpkgs": "nixpkgs_4"
+        "nixpkgs": "nixpkgs_4",
+        "sbt-derivation": "sbt-derivation"
+      },
+      "locked": {
+        "lastModified": 1615220462,
+        "narHash": "sha256-C80qOIdZtk9kaYic0PwRrU5Ym38bKNyCpHjFAmitymk=",
+        "owner": "input-output-hk",
+        "repo": "mantis",
+        "rev": "2cce0ba56ea6b880704fd601b37508cc9a302f33",
+        "type": "github"
+      },
+      "original": {
+        "owner": "input-output-hk",
+        "repo": "mantis",
+        "rev": "2cce0ba56ea6b880704fd601b37508cc9a302f33",
+        "type": "github"
+      }
+    },
+    "mantis-explorer": {
+      "inputs": {
+        "flake-utils": "flake-utils_2",
+        "nixpkgs": "nixpkgs_5"
       },
       "locked": {
         "lastModified": 1606398004,
@@ -150,20 +186,19 @@
     },
     "mantis-faucet-web": {
       "inputs": {
-        "flake-utils": "flake-utils_2",
-        "nixpkgs": "nixpkgs_5"
+        "flake-utils": "flake-utils_3",
+        "nixpkgs": "nixpkgs_6"
       },
       "locked": {
-        "lastModified": 1607432251,
-        "narHash": "sha256-MAHjZQKnhmDN5Re4EE7o83prZ53Y3LLhnrWGPedhr0Y=",
+        "lastModified": 1614341313,
+        "narHash": "sha256-xu2wOsgQLedyyR/E0zn81SIe5t188D08/q+6LTMYG3k=",
         "owner": "input-output-hk",
         "repo": "mantis-faucet-web",
-        "rev": "2b36e4ad4e073b08f577bc16264b17e025caf505",
+        "rev": "9da14f10408254597d6a709723b21d5f52f42de2",
         "type": "github"
       },
       "original": {
         "owner": "input-output-hk",
-        "ref": "nix-build",
         "repo": "mantis-faucet-web",
         "type": "github"
       }
@@ -271,6 +306,22 @@
     },
     "nixpkgs_4": {
       "locked": {
+        "lastModified": 1610118011,
+        "narHash": "sha256-a17vwGBOqmAsy/Wkvf10ygDyfgjJpvlPyNnf7SAk+Ac=",
+        "owner": "nixos",
+        "repo": "nixpkgs",
+        "rev": "a98302aa9b9628915878a6ea9776c40a0bb02950",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nixos",
+        "repo": "nixpkgs",
+        "rev": "a98302aa9b9628915878a6ea9776c40a0bb02950",
+        "type": "github"
+      }
+    },
+    "nixpkgs_5": {
+      "locked": {
         "lastModified": 1603802751,
         "narHash": "sha256-K3CeF3CYy7LCu0J1NnSdo77oVIkcwf0cXDAA/HFjP58=",
         "owner": "NixOS",
@@ -283,7 +334,7 @@
         "type": "indirect"
       }
     },
-    "nixpkgs_5": {
+    "nixpkgs_6": {
       "locked": {
         "lastModified": 1605721780,
         "narHash": "sha256-MhaNS4HGHcOCwW+HadSxustHTzD1LWznh584eYBvJ5Q=",
@@ -354,6 +405,7 @@
           "bitte",
           "inclusive"
         ],
+        "mantis": "mantis",
         "mantis-explorer": "mantis-explorer",
         "mantis-faucet-web": "mantis-faucet-web",
         "morpho-node": "morpho-node",
@@ -390,6 +442,21 @@
         "owner": "input-output-hk",
         "ref": "work",
         "repo": "rust.nix",
+        "type": "github"
+      }
+    },
+    "sbt-derivation": {
+      "locked": {
+        "lastModified": 1602145051,
+        "narHash": "sha256-P71MgJhJoTYba/5fI5xYeKuh/dpQuqlXp3REArciJ58=",
+        "owner": "zaninime",
+        "repo": "sbt-derivation",
+        "rev": "9666b2b589ed68823fff1cefa4cd8a8ab54956c1",
+        "type": "github"
+      },
+      "original": {
+        "owner": "zaninime",
+        "repo": "sbt-derivation",
         "type": "github"
       }
     },

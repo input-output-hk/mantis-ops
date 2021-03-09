@@ -22,9 +22,21 @@ import (
 	namespace:   #args.namespace
 	type:        "service"
 
-	group: explorer: {
+	update: {
+		max_parallel:      1
+		health_check:      "checks"
+		min_healthy_time:  "10s"
+		healthy_deadline:  "7m"
+		progress_deadline: "10m"
+		auto_revert:       true
+		auto_promote:      true
+		canary:            1
+		stagger:           "5m"
+	}
+
+	group: faucet: {
 		network: {
-			mode: "bridge"
+			mode: "host"
 			port: metrics: to:      7000
 			port: rpc: to:          8000
 			port: "faucet-web": to: 8080
