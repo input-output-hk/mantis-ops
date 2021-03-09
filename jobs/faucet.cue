@@ -93,10 +93,17 @@ import (
 			}
 		}
 
+		service: "\(#name)-rpc": {
+			address_mode: "host"
+			port:         "rpc"
+			task:         "mantis"
+			tags: ["ingress", "faucet", namespace, #name]
+		}
+
 		task: nginx: tasks.#FaucetNginx & {
 			#taskArgs: {
 				mantisOpsRev:        #args.mantisOpsRev
-				upstreamServiceName: #name
+				upstreamServiceName: "\(#name)-rpc"
 			}
 		}
 

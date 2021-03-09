@@ -19,7 +19,7 @@ import (
 
 	config: {
 		flake: "github:input-output-hk/mantis-ops?rev=\(#taskArgs.mantisOpsRev)#mantis-faucet-nginx"
-		args: ["-c", "/local/nginx.conf"]
+		args: ["/local/nginx.conf"]
 		command: "/bin/entrypoint"
 	}
 
