@@ -4,7 +4,7 @@ import (
 	"github.com/input-output-hk/mantis-ops/pkg/schemas/nomad:types"
 )
 
-#Faucet: types.#stanza.task & {
+#FaucetServer: types.#stanza.task & {
 	#taskArgs: {
 		namespace: string
 		wallet:    string

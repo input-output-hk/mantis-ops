@@ -9,7 +9,7 @@ let
 
   bitte = self.inputs.bitte;
 in {
-  imports = [ ./iam.nix ];
+  imports = [ ./iam.nix ./nix.nix ];
 
   services.consul.policies.developer.servicePrefix."mantis-" = {
     policy = "write";
@@ -86,6 +86,7 @@ in {
             "${self.inputs.nixpkgs}/nixos/modules/virtualisation/ec2-data.nix"
             ./secrets.nix
             ./docker-auth.nix
+            ./nix.nix
           ];
 
           securityGroupRules = {

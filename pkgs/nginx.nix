@@ -1,7 +1,7 @@
-{ lib, writeBashBinChecked, nginx, coreutils, mantis-explorer }:
+{ lib, writeBashBinChecked, nginx, coreutils, package, target }:
 writeBashBinChecked "mantis-explorer-server" ''
   export PATH="${lib.makeBinPath [ nginx coreutils ]}"
   mkdir -p /var/cache/nginx
-  ln -fs ${mantis-explorer} /mantis-explorer
+  ln -fs ${package} ${target}
   exec nginx "$@"
 ''

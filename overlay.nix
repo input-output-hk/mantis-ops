@@ -33,23 +33,28 @@ in {
     submodules = true;
   };
 
-  restic-backup = final.callPackage ./pkgs/backup { };
-
   mantis = inputs.mantis.defaultPackage.${final.system};
-
-  mantis-explorer = inputs.mantis-explorer.defaultPackage.${final.system};
-
-  mantis-faucet-web = inputs.mantis-faucet-web.defaultPackage.${final.system};
 
   mantis-staging = import final.mantis-staging-source {
     src = final.mantis-staging-source;
     inherit (final) system;
   };
 
-  mantis-faucet = import final.mantis-faucet-source { inherit (final) system; };
+  mantis-faucet-web = inputs.mantis-faucet-web.defaultPackage.${final.system};
 
-  mantis-explorer-server =
-    prev.callPackage ./pkgs/mantis-explorer-server.nix { };
+  mantis-faucet-nginx = final.callPackage ./pkgs/nginx.nix {
+    package = final.mantis-faucet-web;
+    target = "/mantis-faucet";
+  };
+
+  mantis-faucet-server = final.callPackage ./pkgs/mantis-faucet-server.nix { };
+
+  mantis-explorer = inputs.mantis-explorer.defaultPackage.${final.system};
+
+  mantis-explorer-nginx = prev.callPackage ./pkgs/nginx.nix {
+    package = final.mantis-explorer;
+    target = "/mantis-explorer";
+  };
 
   morpho-source = inputs.morpho-node;
 
@@ -209,6 +214,8 @@ in {
 
   inherit ((inputs.nixpkgs.legacyPackages.${final.system}).dockerTools)
     buildImage buildLayeredImage shadowSetup;
+
+  restic-backup = final.callPackage ./pkgs/backup { };
 
   mkEnv = lib.mapAttrsToList (key: value: "${key}=${value}");
 }
