@@ -30,12 +30,12 @@ import (
 		max_parallel:      2
 		health_check:      "checks"
 		min_healthy_time:  "10s"
-		healthy_deadline:  "5m"
-		progress_deadline: "6m"
+		healthy_deadline:  "7m"
+		progress_deadline: "10m"
 		auto_revert:       true
 		auto_promote:      true
 		canary:            1
-		stagger:           "15m"
+		stagger:           "5m"
 	}
 
 	group: mantis: {
@@ -124,20 +124,36 @@ import (
 
 			"\(namespace)-mantis-\(#role)-discovery": {
 				port: "discovery"
-				tags: ["discovery"] + #baseTags
+				tags: ["ingress", "discovery"] + #baseTags
 				meta: {
 					Name:     "mantis-${NOMAD_ALLOC_INDEX}"
 					PublicIp: "${attr.unique.platform.aws.public-ipv4}"
+
+					if #role == "miner" {
+						IngressServer: "_\(namespace)-mantis-\(#role)._mantis-${NOMAD_ALLOC_INDEX}-discovery.service.consul"
+						IngressBind:   "*:950${NOMAD_ALLOC_INDEX}"
+						IngressHost:   "mantis-${NOMAD_ALLOC_INDEX}.mantis.ws"
+						IngressMode:   "tcp"
+						IngressPort:   "950${NOMAD_ALLOC_INDEX}"
+					}
 				}
 			}
 
 			"\(namespace)-mantis-\(#role)-server": {
 				address_mode: "host"
 				port:         "server"
-				tags:         ["server"] + #baseTags
+				tags:         ["ingress", "server"] + #baseTags
 				meta: {
 					Name:     "mantis-${NOMAD_ALLOC_INDEX}"
 					PublicIp: "${attr.unique.platform.aws.public-ipv4}"
+
+					if #role == "miner" {
+						IngressServer: "_\(namespace)-mantis-\(#role)._mantis-${NOMAD_ALLOC_INDEX}.service.consul"
+						IngressBind:   "*:900${NOMAD_ALLOC_INDEX + 1}"
+						IngressHost:   "mantis-${NOMAD_ALLOC_INDEX}.mantis.ws"
+						IngressMode:   "tcp"
+						IngressPort:   "900${NOMAD_ALLOC_INDEX}"
+					}
 				}
 			}
 

@@ -13,7 +13,7 @@ import (
 
 	config: {
 		flake: "github:input-output-hk/mantis-ops/cue#mantis-explorer-server"
-		args: ["-c", "/local/nginx.conf"]
+		args: ["-c", "/local/nginx.conf", "-g", "error_log stderr;"]
 		command: "/bin/mantis-explorer-server"
 	}
 

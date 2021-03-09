@@ -23,7 +23,7 @@ _Namespace: [Name=_]: {
 #namespaces: _Namespace
 
 #defaults: {
-	mantisRev: "65cdd1db0b143c5cf200331493a67066581f65d8"
+	mantisRev: "2cce0ba56ea6b880704fd601b37508cc9a302f33"
 	morphoRev: "eb1eee7900ffb57826ded4387dca0d97c7e39861"
 }
 
@@ -39,7 +39,7 @@ _Namespace: [Name=_]: {
 			"morpho": jobDef.#Morpho & {#args: {count: 5, morphoRev: #defaults.morphoRev, mantisRev: #defaults.mantisRev}}
 		}
 	}
-	"mantis-testnet": jobs: {
+	"mantis-testnet": {
 		jobs: {
 			explorer: jobDef.#Explorer & {#args: {domain: "mantis-testnet-explorer.\(fqdn)"}}
 			faucet:   jobDef.#Faucet & {#args: {domain:   "mantis-testnet-faucet.\(fqdn)"}}

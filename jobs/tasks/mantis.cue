@@ -45,7 +45,7 @@ import (
 	}
 
 	env: {
-		REQUIRED_PEER_COUNT: "\(#requiredPeerCount)"
+		REQUIRED_PEER_COUNT: "${NOMAD_ALLOC_INDEX}"
 		STORAGE_DIR:         "/local/mantis"
 		NAMESPACE:           #namespace
 		DAG_NAME:            "full-R23-0000000000000000"
@@ -122,7 +122,8 @@ import (
 				allowed-miners = []
 
 				bootstrap-nodes = [
-					{{ range service "\(#namespace)-mantis-miner-server" -}}
+					"enode://b7424cf5f083d5b7a68fb9950458bca41415b44d10c122cf684116cb70a2db1211956be712c725650bcf13040b4e4e5bf093187cd239718a92b0c96f82f65945@10.24.154.116:24922",
+					{{ range service "\(#namespace)-mantis-miner" -}}
 						"enode://  {{- with secret (printf "kv/data/nomad-cluster/\(#namespace)/%s/enode-hash" .ServiceMeta.Name) -}}
 							{{- .Data.data.value -}}
 							{{- end -}}@{{ .Address }}:{{ .Port }}",
@@ -137,11 +138,19 @@ import (
 			client-id = "mantis-\(#role)-{{env "NOMAD_ALLOC_INDEX"}}"
 			datadir = "/local/mantis"
 			ethash.ethash-dir = "/local/ethash"
+
 			metrics.enabled = true
 			metrics.port = {{ env "NOMAD_PORT_metrics" }}
+
 			network.rpc.http.interface = "0.0.0.0"
 			network.rpc.http.port = {{ env "NOMAD_PORT_rpc" }}
+
 			network.server-address.port = {{ env "NOMAD_PORT_server" }}
+			network.server-address.interface = "0.0.0.0"
+
+			mantis.network.discovery.discovery-enabled = true
+			mantis.network.discovery.host = "172.16.0.20"
+			mantis.network.discovery.port = {{ env "NOMAD_PORT_discovery" }}
 		}
 
 		\(#extraConfig)

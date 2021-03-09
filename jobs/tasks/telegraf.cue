@@ -9,11 +9,6 @@ import (
 		namespace:      string
 		name:           string
 		prometheusPort: string
-		image: {
-			name: string
-			tag:  string
-			url:  string
-		}
 	}
 
 	driver: "exec"

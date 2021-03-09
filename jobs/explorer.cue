@@ -20,6 +20,18 @@ import (
 	namespace:   #args.namespace
 	type:        "service"
 
+	update: {
+		max_parallel:      1
+		health_check:      "checks"
+		min_healthy_time:  "10s"
+		healthy_deadline:  "7m"
+		progress_deadline: "10m"
+		auto_revert:       true
+		auto_promote:      true
+		canary:            1
+		stagger:           "5m"
+	}
+
 	group: explorer: {
 		service: "\(#name)": {
 			address_mode: "host"
