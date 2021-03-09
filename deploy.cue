@@ -24,7 +24,7 @@ _Namespace: [Name=_]: {
 #namespaces: _Namespace
 
 #defaults: {
-	mantisOpsRev: "9bbbdd785b5dee5564c4d305e00f92fe3f68ba81"
+	mantisOpsRev: "41c3853f54d87a5501a2f3ba9a245a35e313baba"
 	mantisRev:    "2cce0ba56ea6b880704fd601b37508cc9a302f33"
 	morphoRev:    "eb1eee7900ffb57826ded4387dca0d97c7e39861"
 }
@@ -43,8 +43,8 @@ _Namespace: [Name=_]: {
 	}
 	"mantis-testnet": {
 		jobs: {
-			explorer: jobDef.#Explorer & {#args: {domain: "mantis-testnet-explorer.\(fqdn)"}}
-			faucet:   jobDef.#Faucet & {#args: {domain:   "mantis-testnet-faucet.\(fqdn)"}}
+			explorer: jobDef.#Explorer & {#args: {mantisOpsRev: #defaults.mantisOpsRev, domain: "mantis-testnet-explorer.\(fqdn)"}}
+			faucet:   jobDef.#Faucet & {#args: {mantisOpsRev:   #defaults.mantisOpsRev, domain: "mantis-testnet-faucet.\(fqdn)"}}
 
 			"miner":   jobDef.#Mantis & {#args: {count: 5, role: "miner", mantisRev:   #defaults.mantisRev}}
 			"passive": jobDef.#Mantis & {#args: {count: 2, role: "passive", mantisRev: #defaults.mantisRev}}

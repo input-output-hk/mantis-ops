@@ -38,16 +38,17 @@ import (
 	group: faucet: {
 		network: {
 			mode: "host"
-			port: metrics: to:      7000
-			port: rpc: to:          8000
-			port: "faucet-web": to: 8080
+			port: metrics: to: 7000
+			port: rpc: to:     8000
+			port: nginx: to:   8080
 		}
 
 		service: "\(#name)": {
 			address_mode: "host"
 			port:         "rpc"
-			task:         "faucet"
+			task:         "nginx"
 			tags: ["ingress", "faucet", namespace, #name]
+
 			meta: {
 				Name:          #name
 				PublicIp:      "${attr.unique.platform.aws.public-ipv4}"
@@ -63,18 +64,24 @@ import (
 					reqidel ^X-Forwarded-For:.*
 					"""
 			}
-		}
 
-		service: "\(#name)-prometheus": {
-			address_mode: "host"
-			port:         "metrics"
-			tags: ["prometheus", "faucet", namespace, #name]
+			check: nginx: {
+				type:     "http"
+				path:     "/"
+				port:     "nginx"
+				timeout:  "3s"
+				interval: "30s"
+				check_restart: {
+					limit: 0
+					grace: "60s"
+				}
+			}
 		}
 
 		service: "\(#name)-web": {
 			address_mode: "host"
-			port:         "faucet-web"
-			tags: ["ingress", "faucet", namespace]
+			port:         "nginx"
+			tags: ["ingress", "faucet", namespace, #name]
 			meta: {
 				Name:          #name
 				PublicIp:      "${attr.unique.platform.aws.public-ipv4}"
@@ -86,18 +93,28 @@ import (
 			}
 		}
 
-		task: "faucet-nginx": tasks.#FaucetNginx & {
+		task: nginx: tasks.#FaucetNginx & {
 			#taskArgs: {
-				mantisOpsRev: #args.mantisOpsRev
-				namespace:    #args.namespace
+				mantisOpsRev:        #args.mantisOpsRev
+				upstreamServiceName: #name
 			}
 		}
 
-		task: "faucet-server": tasks.#FaucetServer & {
+		task: mantis: tasks.#FaucetServer & {
 			#taskArgs: {
 				mantisOpsRev: #args.mantisOpsRev
 				namespace:    #args.namespace
 				wallet:       #args.wallet
+			}
+		}
+
+		task: promtail: tasks.#Promtail
+
+		task: telegraf: tasks.#Telegraf & {
+			#taskArgs: {
+				namespace:      #args.namespace
+				name:           "faucet"
+				prometheusPort: "metrics"
 			}
 		}
 	}

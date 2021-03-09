@@ -25,13 +25,13 @@ import (
 	update: {
 		max_parallel:      1
 		health_check:      "checks"
-		min_healthy_time:  "10s"
-		healthy_deadline:  "7m"
-		progress_deadline: "10m"
+		min_healthy_time:  "1m"
+		healthy_deadline:  "10m"
+		progress_deadline: "11m"
 		auto_revert:       true
 		auto_promote:      true
 		canary:            1
-		stagger:           "5m"
+		stagger:           "1m"
 	}
 
 	group: explorer: {
@@ -57,8 +57,8 @@ import (
 				timeout:  "3s"
 				interval: "30s"
 				check_restart: {
-					limit: 5
-					grace: "300s"
+					limit: 0
+					grace: "60s"
 				}
 			}
 		}

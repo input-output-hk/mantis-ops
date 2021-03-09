@@ -30,28 +30,28 @@ import (
     http {
       access_log /dev/stdout;
 
-      upstream	backend	{
+      upstream backend {
         least_conn;
-        {{	range	service	"\(#taskArgs.upstreamServiceName)"	}}
-          server	{{	.Address	}}:{{	.Port	}};
-        {{	end	}}
+        {{ range service "\(#taskArgs.upstreamServiceName)" }}
+          server {{ .Address }}:{{ .Port }};
+        {{ end }}
       }
 
-      server	{
-        listen	8080;
+      server {
+        listen {{ env "NOMAD_PORT_explorer" }};
 
-        location	/	{
-          root	/mantis-explorer;
-          index	index.html;
-          try_files	$uri	$uri/	/index.html;
+        location / {
+          root /mantis-explorer;
+          index index.html;
+          try_files $uri $uri/ /index.html;
         }
 
-        location	/rpc/node	{
-          proxy_pass	http://backend/;
+        location /rpc/node {
+          proxy_pass http://backend/;
         }
 
-        location	/sockjs-node	{
-          proxy_pass	http://backend/;
+        location /sockjs-node {
+          proxy_pass http://backend/;
         }
       }
     }

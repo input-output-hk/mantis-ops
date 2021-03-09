@@ -7,14 +7,18 @@ import (
 #FaucetNginx: types.#stanza.task & {
 	#taskArgs: {
 		upstreamServiceName: string
-		mantisOpsRev:        #args.mantisOpsRev
-		namespace:           #args.namespace
+		mantisOpsRev:        string
+	}
+
+	vault: {
+		policies: ["nomad-cluster"]
+		change_mode: "noop"
 	}
 
 	driver: "exec"
 
 	config: {
-		flake: "github:input-output-hk/mantis-ops?rev=\(#taskArgs.mantisOpsRev)#mantis-explorer-nginx"
+		flake: "github:input-output-hk/mantis-ops?rev=\(#taskArgs.mantisOpsRev)#mantis-faucet-nginx"
 		args: ["-c", "/local/nginx.conf"]
 		command: "/bin/entrypoint"
 	}
@@ -22,7 +26,6 @@ import (
 	template: "local/nginx.conf": {
 		change_mode: "restart"
 		data:        """
-    user nobody nogroup;
     error_log /dev/stderr info;
     pid /dev/null;
     events {}
@@ -31,28 +34,24 @@ import (
     http {
       access_log /dev/stdout;
 
-      upstream	backend	{
+      upstream backend {
         least_conn;
-        {{	range	service	"\(#taskArgs.upstreamServiceName)"	}}
-          server	{{	.Address	}}:{{	.Port	}};
-        {{	end	}}
+        {{ range service "\(#taskArgs.upstreamServiceName)" }}
+          server {{ .Address }}:{{ .Port }};
+        {{ end }}
       }
 
-      server	{
-        listen	8080;
+      server {
+        listen {{ env "NOMAD_PORT_nginx" }};
 
-        location	/	{
-          root	/mantis-explorer;
-          index	index.html;
-          try_files	$uri	$uri/	/index.html;
+        location / {
+          root /mantis-faucet;
+          index index.html;
+          try_files $uri $uri/ /index.html;
         }
 
-        location	/rpc/node	{
-          proxy_pass	http://backend/;
-        }
-
-        location	/sockjs-node	{
-          proxy_pass	http://backend/;
+        location /rpc/node {
+          proxy_pass http://backend;
         }
       }
     }

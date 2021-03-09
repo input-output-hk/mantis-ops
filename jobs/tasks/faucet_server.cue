@@ -6,8 +6,9 @@ import (
 
 #FaucetServer: types.#stanza.task & {
 	#taskArgs: {
-		namespace: string
-		wallet:    string
+		namespace:    string
+		wallet:       string
+		mantisOpsRev: string
 	}
 
 	driver: "exec"
@@ -19,12 +20,12 @@ import (
 
 	resources: {
 		cpu:    100
-		memory: 1024
+		memory: 1024 * 3
 	}
 
 	config: {
-		flake:   "github:input-output-hk/mantis-ops/cue#mantis-faucet"
-		command: "/bin/mantis-faucet"
+		flake:   "github:input-output-hk/mantis-ops?rev=\(#taskArgs.mantisOpsRev)#mantis-faucet-server"
+		command: "/bin/mantis-faucet-entrypoint"
 		args: ["-Dconfig.file=running.conf"]
 	}
 
