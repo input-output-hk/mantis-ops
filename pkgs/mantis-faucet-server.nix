@@ -4,7 +4,9 @@ let
   entrypoint = writeBashBinChecked "mantis-faucet-entrypoint" ''
     set -exuo pipefail
 
-    export PATH="${lib.makeBinPath [ coreutils gnugrep gnused mantis curl ]}"
+    export PATH="${
+      lib.makeBinPath [ coreutils gnugrep gnused mantis curl bat ]
+    }"
 
     case $1 in
       healthcheck)
@@ -25,6 +27,7 @@ let
         cd "$NOMAD_TASK_DIR"
 
         cp faucet.conf running.conf
+        bat running.conf
         cp "$NOMAD_SECRETS_DIR/account" "$NOMAD_SECRETS_DIR/keystore/UTC--2020-10-16T14-48-29.47Z-$COINBASE"
 
         chown --reference . --recursive . || true

@@ -62,7 +62,7 @@ import (
 
       # Wallet address used to send transactions from
       wallet-address =
-        {{- with secret "kv/nomad-cluster/\(#taskArgs.namespace)/mantis-1/coinbase" -}}
+        {{- with secret "kv/nomad-cluster/\(#taskArgs.namespace)/\(#taskArgs.wallet)/coinbase" -}}
           "{{.Data.data.value}}"
         {{- end }}
 
@@ -83,9 +83,9 @@ import (
 
       rpc-client {
         # Address of Ethereum node used to send the transaction
-        rpc-address = {{- range service "mantis-1.\(#taskArgs.namespace)-mantis-miner-rpc" -}}
-            "http://{{ .Address }}:{{ .Port }}"
-          {{- end }}
+        {{ range service "\(#taskArgs.wallet).\(#taskArgs.namespace)-mantis-miner-rpc" }}
+          rpc-address = "http://{{ .Address }}:{{ .Port }}"
+        {{ end }}
 
         # certificate of Ethereum node used to send the transaction when use HTTP(S)
         certificate = null
@@ -132,7 +132,7 @@ import (
 
     logging {
       # Flag used to switch logs to the JSON format
-      json-output = true
+      json-output = false
 
       # Logs directory
       #logs-dir = /local/mantis-faucet/logs
