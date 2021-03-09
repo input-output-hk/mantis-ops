@@ -1,5 +1,5 @@
 { lib, writeBashBinChecked, symlinkJoin, coreutils, gnugrep, gnused, mantis
-, curl }:
+, curl, bat }:
 let
   entrypoint = writeBashBinChecked "mantis-faucet-entrypoint" ''
     set -exuo pipefail
