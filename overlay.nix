@@ -40,7 +40,12 @@ in {
     inherit (final) system;
   };
 
-  mantis-faucet-web = inputs.mantis-faucet-web.defaultPackage.${final.system};
+  mantis-faucet-web =
+    inputs.mantis-faucet-web.defaultPackage.${final.system}.overrideAttrs
+    (old: {
+      FAUCET_NODE_URL = "https://mantis-testnet-faucet.mantis.ws";
+      MANTIS_VM = "Mantis Testnet";
+    });
 
   mantis-faucet-nginx = final.callPackage ./pkgs/nginx.nix {
     package = final.mantis-faucet-web;

@@ -25,13 +25,13 @@ import (
 	update: {
 		max_parallel:      2
 		health_check:      "checks"
-		min_healthy_time:  "10s"
-		healthy_deadline:  "7m"
-		progress_deadline: "10m"
+		min_healthy_time:  "5m"
+		healthy_deadline:  "30m"
+		progress_deadline: "1h"
 		auto_revert:       true
 		auto_promote:      true
 		canary:            1
-		stagger:           "5m"
+		stagger:           "1m"
 	}
 
 	group: mantis: {
@@ -75,17 +75,14 @@ import (
 
 		task: promtail: tasks.#Promtail
 
-		let baseTags = [namespace, #role]
+		#baseTags: [namespace, #role, "mantis-${NOMAD_ALLOC_INDEX}"]
 
-		#baseTags: baseTags
 		if #role == "passive" {
 			service: "\(namespace)-mantis-\(#role)-rpc": {
 				address_mode: "host"
-				tags:         ["rpc"] + baseTags
+				tags:         ["rpc"] + #baseTags
 				port:         "rpc"
 			}
-
-			#baseTags: [ namespace, "passive"]
 		}
 
 		service: {
@@ -145,10 +142,10 @@ import (
 
 					if #role == "miner" {
 						IngressServer: "_\(namespace)-mantis-\(#role)._mantis-${NOMAD_ALLOC_INDEX}.service.consul"
-						IngressBind:   "*:900${NOMAD_ALLOC_INDEX + 1}"
+						IngressBind:   "*:910${NOMAD_ALLOC_INDEX}"
 						IngressHost:   "mantis-${NOMAD_ALLOC_INDEX}.mantis.ws"
 						IngressMode:   "tcp"
-						IngressPort:   "900${NOMAD_ALLOC_INDEX}"
+						IngressPort:   "910${NOMAD_ALLOC_INDEX}"
 					}
 				}
 			}

@@ -38,9 +38,12 @@ import (
 	group: faucet: {
 		network: {
 			mode: "host"
-			port: metrics: to: 7000
-			port: rpc: to:     8000
-			port: nginx: to:   8080
+			port: {
+				metrics: {}
+				rpc: {}
+				nginx: {}
+				server: {}
+			}
 		}
 
 		service: "\(#name)": {

@@ -34,6 +34,12 @@ import (
     http {
       access_log /dev/stdout;
 
+      types {
+        text/css         css;
+        text/javascript  js;
+        text/html        html htm;
+      }
+
       upstream backend {
         least_conn;
         {{ range service "\(#taskArgs.upstreamServiceName)" }}

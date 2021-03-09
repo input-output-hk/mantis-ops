@@ -22,8 +22,8 @@ import (
 	driver: "exec"
 
 	resources: {
-		cpu:    2 * 3300
-		memory: 4 * 1024
+		cpu:    7500
+		memory: 5 * 1024
 	}
 
 	vault: {
@@ -148,9 +148,9 @@ import (
 			network.server-address.port = {{ env "NOMAD_PORT_server" }}
 			network.server-address.interface = "0.0.0.0"
 
-			mantis.network.discovery.discovery-enabled = true
-			mantis.network.discovery.host = "172.16.0.20"
-			mantis.network.discovery.port = {{ env "NOMAD_PORT_discovery" }}
+			network.discovery.discovery-enabled = true
+			network.discovery.host = "172.16.0.20"
+			network.discovery.port = {{ env "NOMAD_PORT_discovery" }}
 		}
 
 		\(#extraConfig)

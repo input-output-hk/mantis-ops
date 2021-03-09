@@ -24,7 +24,7 @@ _Namespace: [Name=_]: {
 #namespaces: _Namespace
 
 #defaults: {
-	mantisOpsRev: "ab16e6eebd7ed7b39adcf3340d5739e359624e5e"
+	mantisOpsRev: "5ec528812364de0b42cd5c2ae1d95daa4557ec9a"
 	mantisRev:    "2cce0ba56ea6b880704fd601b37508cc9a302f33"
 	morphoRev:    "eb1eee7900ffb57826ded4387dca0d97c7e39861"
 }
