@@ -13,8 +13,8 @@ import (
 	driver: "exec"
 
 	config: {
-		flake: "github:input-output-hk/mantis-ops?rev=\(#taskArgs.mantisOpsRev)#mantis-faucet-nginx"
-		args: ["-c", "/local/nginx.conf"]
+		flake: "github:input-output-hk/mantis-ops?rev=\(#taskArgs.mantisOpsRev)#mantis-explorer-nginx"
+		args: ["/local/nginx.conf"]
 		command: "/bin/entrypoint"
 	}
 

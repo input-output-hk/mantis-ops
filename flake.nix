@@ -4,6 +4,7 @@
   inputs = {
     bitte.url = "github:input-output-hk/bitte/terraform-state-in-vault";
     nixpkgs.follows = "bitte/nixpkgs";
+    nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     terranix.follows = "bitte/terranix";
     utils.follows = "bitte/utils";
     ops-lib.url = "github:input-output-hk/ops-lib/zfs-image?dir=zfs";

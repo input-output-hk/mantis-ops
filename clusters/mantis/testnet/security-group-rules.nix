@@ -104,5 +104,11 @@ in {
       to = 9010;
       cidrs = global;
     };
+
+    routing = {
+      from = 30000;
+      to = 40000;
+      cidrs = global;
+    };
   };
 }

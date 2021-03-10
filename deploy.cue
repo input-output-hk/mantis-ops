@@ -24,7 +24,7 @@ _Namespace: [Name=_]: {
 #namespaces: _Namespace
 
 #defaults: {
-	mantisOpsRev: "5ec528812364de0b42cd5c2ae1d95daa4557ec9a"
+	mantisOpsRev: "3fd7de89c67900bd20dafc824816f4309d2b4f5b"
 	mantisRev:    "2cce0ba56ea6b880704fd601b37508cc9a302f33"
 	morphoRev:    "eb1eee7900ffb57826ded4387dca0d97c7e39861"
 }
@@ -32,24 +32,56 @@ _Namespace: [Name=_]: {
 #namespaces: {
 	"mantis-unstable": {
 		jobs: {
-			explorer: jobDef.#Explorer & {#args: {mantisOpsRev: #defaults.mantisOpsRev, domain: "mantis-unstable-explorer.\(fqdn)"}}
-			faucet:   jobDef.#Faucet & {#args: {mantisOpsRev:   #defaults.mantisOpsRev, domain: "mantis-unstable-faucet.\(fqdn)"}}
-
-			"miner":   jobDef.#Mantis & {#args: {count: 5, role: "miner", mantisRev:   #defaults.mantisRev}}
-			"passive": jobDef.#Mantis & {#args: {count: 2, role: "passive", mantisRev: #defaults.mantisRev}}
-
-			"morpho": jobDef.#Morpho & {#args: {count: 5, morphoRev: #defaults.morphoRev, mantisRev: #defaults.mantisRev}}
+			explorer: jobDef.#Explorer & {#args: {
+				mantisOpsRev: #defaults.mantisOpsRev
+				domain:       "mantis-unstable-explorer.\(fqdn)"
+			}}
+			faucet: jobDef.#Faucet & {#args: {
+				mantisOpsRev: #defaults.mantisOpsRev
+				domain:       "mantis-unstable-faucet.\(fqdn)"
+			}}
+			"miner": jobDef.#Mantis & {#args: {
+				count:     5
+				role:      "miner"
+				mantisRev: #defaults.mantisRev
+			}}
+			"passive": jobDef.#Mantis & {#args: {
+				count:     2
+				role:      "passive"
+				mantisRev: #defaults.mantisRev
+			}}
+			"morpho": jobDef.#Morpho & {#args: {
+				count:     5
+				morphoRev: #defaults.morphoRev
+				mantisRev: #defaults.mantisRev
+			}}
 		}
 	}
 	"mantis-testnet": {
 		jobs: {
-			explorer: jobDef.#Explorer & {#args: {mantisOpsRev: #defaults.mantisOpsRev, domain: "mantis-testnet-explorer.\(fqdn)"}}
-			faucet:   jobDef.#Faucet & {#args: {mantisOpsRev:   #defaults.mantisOpsRev, domain: "mantis-testnet-faucet.\(fqdn)"}}
-
-			"miner":   jobDef.#Mantis & {#args: {count: 5, role: "miner", mantisRev:   #defaults.mantisRev}}
-			"passive": jobDef.#Mantis & {#args: {count: 2, role: "passive", mantisRev: #defaults.mantisRev}}
-
-			"morpho": jobDef.#Morpho & {#args: {count: 5, morphoRev: #defaults.morphoRev, mantisRev: #defaults.mantisRev}}
+			explorer: jobDef.#Explorer & {#args: {
+				mantisOpsRev: #defaults.mantisOpsRev
+				domain:       "mantis-testnet-explorer.\(fqdn)"
+			}}
+			faucet: jobDef.#Faucet & {#args: {
+				mantisOpsRev: #defaults.mantisOpsRev
+				domain:       "mantis-testnet-faucet.\(fqdn)"
+			}}
+			"miner": jobDef.#Mantis & {#args: {
+				count:     5
+				role:      "miner"
+				mantisRev: #defaults.mantisRev
+			}}
+			"passive": jobDef.#Mantis & {#args: {
+				count:     2
+				role:      "passive"
+				mantisRev: #defaults.mantisRev
+			}}
+			"morpho": jobDef.#Morpho & {#args: {
+				count:     5
+				morphoRev: #defaults.morphoRev
+				mantisRev: #defaults.mantisRev
+			}}
 		}
 	}
 	// "mantis-iele": jobs:        #defaultJobs

@@ -49,8 +49,14 @@ import (
 		service: "\(#name)": {
 			address_mode: "host"
 			port:         "rpc"
-			task:         "nginx"
-			tags: ["ingress", "faucet", namespace, #name]
+			task:         "mantis"
+
+			tags: ["ingress", "faucet", namespace, #name,
+				"traefik.enable=true",
+				"traefik.http.routers.\(namespace)-faucet-rpc.rule=Host(`\(#domain)`)",
+				"traefik.http.routers.\(namespace)-faucet-rpc.entrypoints=https",
+				"traefik.http.routers.\(namespace)-faucet-rpc.tls=true",
+			]
 
 			meta: {
 				Name:          #name
@@ -84,15 +90,19 @@ import (
 		service: "\(#name)-web": {
 			address_mode: "host"
 			port:         "nginx"
-			tags: ["ingress", "faucet", namespace, #name]
+			task:         "nginx"
+
+			tags: ["ingress", "faucet", namespace, #name,
+				"traefik.enable=true",
+				"traefik.http.routers.\(namespace)-faucet-nginx.rule=Host(`\(#name)-web.mantis.ws`)",
+				"traefik.http.routers.\(namespace)-faucet-nginx.entrypoints=https",
+				"traefik.http.routers.\(namespace)-faucet-nginx.tls=true",
+			]
+
 			meta: {
-				Name:          #name
-				PublicIp:      "${attr.unique.platform.aws.public-ipv4}"
-				Wallet:        #args.wallet
-				IngressHost:   "\(#name)-web.mantis.ws"
-				IngressBind:   "*:443"
-				IngressMode:   "http"
-				IngressServer: "_\(#name)-web._tcp.service.consul"
+				Name:     #name
+				PublicIp: "${attr.unique.platform.aws.public-ipv4}"
+				Wallet:   #args.wallet
 			}
 		}
 

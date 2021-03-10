@@ -222,5 +222,7 @@ in {
 
   restic-backup = final.callPackage ./pkgs/backup { };
 
+  inherit (inputs.nixpkgs-unstable.legacyPackages.${final.system}) traefik;
+
   mkEnv = lib.mapAttrsToList (key: value: "${key}=${value}");
 }

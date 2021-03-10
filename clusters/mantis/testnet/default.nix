@@ -149,7 +149,12 @@ in {
         privateIP = "172.16.0.20";
         subnet = cluster.vpc.subnets.core-1;
         volumeSize = 1000;
-        route53.domains = [ "*.${cluster.domain}" ];
+        route53.domains = [
+          "consul.${cluster.domain}"
+          "nomad.${cluster.domain}"
+          "vault.${cluster.domain}"
+          "monitoring.${cluster.domain}"
+        ];
 
         modules = [
           (bitte + /profiles/monitoring.nix)
@@ -160,6 +165,20 @@ in {
         securityGroupRules = {
           inherit (securityGroupRules)
             internet internal ssh http mantis-server-public;
+        };
+      };
+
+      routing = {
+        instanceType = "t3a.large";
+        privateIP = "172.16.1.20";
+        subnet = cluster.vpc.subnets.core-2;
+        volumeSize = 100;
+        route53.domains = [ "*.${cluster.domain}" ];
+
+        modules = [ ./traefik.nix ];
+
+        securityGroupRules = {
+          inherit (securityGroupRules) internet internal ssh http routing;
         };
       };
     };

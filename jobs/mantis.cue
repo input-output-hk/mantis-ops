@@ -115,20 +115,46 @@ import (
 				}
 			}
 
-			"\(namespace)-mantis-\(#role)-discovery": {
+			"\(namespace)-mantis-\(#role)-discovery-${NOMAD_ALLOC_INDEX}": {
 				port: "discovery"
-				tags: ["ingress", "discovery"] + #baseTags
+
+				if #role == "miner" {
+					tags: ["ingress", "discovery",
+						"traefik.enable=true",
+						"traefik.tcp.routers.\(namespace)-discovery-${NOMAD_ALLOC_INDEX}.rule=HostSNI(`*`)",
+						"traefik.tcp.routers.\(namespace)-discovery-${NOMAD_ALLOC_INDEX}.entrypoints=\(namespace)-discovery-${NOMAD_ALLOC_INDEX}",
+					] + #baseTags
+				}
+
+				if #role == "passive" {
+					tags: ["discovery"] + #baseTags
+				}
+
 				meta: {
 					Name:     "mantis-${NOMAD_ALLOC_INDEX}"
 					PublicIp: "${attr.unique.platform.aws.public-ipv4}"
+				}
+			}
 
-					if #role == "miner" {
-						IngressServer: "_\(namespace)-mantis-\(#role)._mantis-${NOMAD_ALLOC_INDEX}-discovery.service.consul"
-						IngressBind:   "*:950${NOMAD_ALLOC_INDEX}"
-						IngressHost:   "mantis-${NOMAD_ALLOC_INDEX}.mantis.ws"
-						IngressMode:   "tcp"
-						IngressPort:   "950${NOMAD_ALLOC_INDEX}"
-					}
+			"\(namespace)-mantis-\(#role)-server-${NOMAD_ALLOC_INDEX}": {
+				address_mode: "host"
+				port:         "server"
+
+				if #role == "miner" {
+					tags: ["ingress", "server",
+						"traefik.enable=true",
+						"traefik.tcp.routers.\(namespace)-server-${NOMAD_ALLOC_INDEX}.rule=HostSNI(`*`)",
+						"traefik.tcp.routers.\(namespace)-server-${NOMAD_ALLOC_INDEX}.entrypoints=\(namespace)-server-${NOMAD_ALLOC_INDEX}",
+					] + #baseTags
+				}
+
+				if #role == "passive" {
+					tags: ["server"] + #baseTags
+				}
+
+				meta: {
+					Name:     "mantis-\(#role)-${NOMAD_ALLOC_INDEX}"
+					PublicIp: "${attr.unique.platform.aws.public-ipv4}"
 				}
 			}
 
@@ -139,14 +165,6 @@ import (
 				meta: {
 					Name:     "mantis-${NOMAD_ALLOC_INDEX}"
 					PublicIp: "${attr.unique.platform.aws.public-ipv4}"
-
-					if #role == "miner" {
-						IngressServer: "_\(namespace)-mantis-\(#role)._mantis-${NOMAD_ALLOC_INDEX}.service.consul"
-						IngressBind:   "*:910${NOMAD_ALLOC_INDEX}"
-						IngressHost:   "mantis-${NOMAD_ALLOC_INDEX}.mantis.ws"
-						IngressMode:   "tcp"
-						IngressPort:   "910${NOMAD_ALLOC_INDEX}"
-					}
 				}
 			}
 

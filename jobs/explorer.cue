@@ -38,7 +38,14 @@ import (
 		service: "\(#name)": {
 			address_mode: "host"
 			port:         "explorer"
-			tags: [namespace, #name, "ingress", "explorer"]
+
+			tags: [namespace, #name, "ingress", "explorer",
+				"traefik.enable=true",
+				"traefik.http.routers.\(namespace)-explorer.rule=Host(`\(#domain)`)",
+				"traefik.http.routers.\(namespace)-explorer.entrypoints=https",
+				"traefik.http.routers.\(namespace)-explorer.tls=true",
+			]
+
 			meta: {
 				PublicIp:      "${attr.unique.platform.aws.public-ipv4}"
 				IngressHost:   #domain
