@@ -58,7 +58,7 @@ import (
 
 	template: "secrets/secret-key": {
 		#prefix:     'kv/data/nomad-cluster/\(#namespace)/mantis-%s'
-		change_mode: "restart"
+		change_mode: "noop"
 		splay:       "15m"
 		data:        """
 		{{ with secret (printf "\(#vaultPrefix)/secret-key" (env "NOMAD_ALLOC_INDEX")) }}{{.Data.data.value}}{{end}}
@@ -158,7 +158,7 @@ import (
 	}
 
 	template: "local/genesis.json": {
-		change_mode: "restart"
+		change_mode: "noop"
 		data:        """
 		{{- with secret "kv/nomad-cluster/\(#namespace)/genesis" -}}
 		{{.Data.data | toJSON }}

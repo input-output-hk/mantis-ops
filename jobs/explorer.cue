@@ -71,8 +71,8 @@ import (
 		}
 
 		network: {
-			mode: "bridge"
-			port: explorer: to: 8080
+			mode: "host"
+			port: explorer: {}
 		}
 
 		task: explorer: tasks.#Explorer & {

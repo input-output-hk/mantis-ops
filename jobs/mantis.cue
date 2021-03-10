@@ -134,6 +134,18 @@ import (
 					Name:     "mantis-${NOMAD_ALLOC_INDEX}"
 					PublicIp: "${attr.unique.platform.aws.public-ipv4}"
 				}
+
+				check: discovery: {
+					address_mode: "host"
+					interval:     "10s"
+					port:         "discovery"
+					timeout:      "3s"
+					type:         "tcp"
+					check_restart: {
+						limit: 5
+						grace: "10m"
+					}
+				}
 			}
 
 			"\(namespace)-mantis-\(#role)-server-${NOMAD_ALLOC_INDEX}": {
@@ -155,6 +167,18 @@ import (
 				meta: {
 					Name:     "mantis-\(#role)-${NOMAD_ALLOC_INDEX}"
 					PublicIp: "${attr.unique.platform.aws.public-ipv4}"
+				}
+
+				check: server: {
+					address_mode: "host"
+					interval:     "10s"
+					port:         "server"
+					timeout:      "3s"
+					type:         "tcp"
+					check_restart: {
+						limit: 5
+						grace: "10m"
+					}
 				}
 			}
 
