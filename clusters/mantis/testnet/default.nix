@@ -8,8 +8,19 @@ let
     securityGroupRules;
 
   bitte = self.inputs.bitte;
+
 in {
   imports = [ ./iam.nix ./nix.nix ];
+
+  services.nomad.namespaces = {
+    mantis-testnet.description = "Mantis testnet";
+    mantis-iele.description = "Mantis IELE";
+    mantis-qa-load.description = "Mantis QA Load";
+    mantis-qa-fastsync.description = "Mantis QA FastSync";
+    mantis-staging.description = "Mantis Staging";
+    mantis-unstable.description = "Mantis Unstable";
+    mantis-paliga.description = "Mantis Paliga";
+  };
 
   services.consul.policies.developer.servicePrefix."mantis-" = {
     policy = "write";
@@ -25,16 +36,6 @@ in {
       node.policy = "read";
       hostVolume."*".policy = "read";
     };
-  };
-
-  services.nomad.namespaces = {
-    mantis-testnet.description = "Mantis testnet";
-    mantis-iele.description = "Mantis IELE";
-    mantis-qa-load.description = "Mantis QA Load";
-    mantis-qa-fastsync.description = "Mantis QA FastSync";
-    mantis-staging.description = "Mantis Staging";
-    mantis-unstable.description = "Mantis Unstable";
-    mantis-paliga.description = "Mantis Paliga";
   };
 
   cluster = {
@@ -87,6 +88,7 @@ in {
             ./secrets.nix
             ./docker-auth.nix
             ./nix.nix
+            ./reserve.nix
           ];
 
           securityGroupRules = {

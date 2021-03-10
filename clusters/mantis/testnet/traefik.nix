@@ -51,18 +51,53 @@
           traefik = {
             rule = "Host(`routing.mantis.ws`)";
             service = "api@internal";
+            entrypoints = "https";
+            tls = true;
           };
         };
       };
     };
 
     staticConfigOptions = {
-      api = {
-        dashboard = true;
-        insecure = true;
+      metrics.influxDB = {
+        address =
+          "http://${config.cluster.instances.monitoring.privateIP}:8428";
+        protocol = "http";
+        database = "traefik";
+        addEntryPointsLabels = true;
+        addServicesLabels = true;
+        pushInterval = "10s";
       };
 
-      entryPoints = {
+      api = { dashboard = true; };
+
+      entryPoints = let
+        publicPortMappings = lib.pipe {
+          mantis-testnet = 33000;
+          mantis-iele = 33100;
+          mantis-qa-load = 33200;
+          mantis-qa-fastsync = 33300;
+          mantis-staging = 33400;
+          mantis-unstable = 33500;
+          mantis-paliga = 33600;
+        } [
+          (lib.mapAttrsToList (namespace: port:
+            lib.genList (n: [
+              {
+                name = "${namespace}-discovery-${toString n}";
+                value.address = ":${toString (port + 50 + n)}";
+              }
+              {
+                name = "${namespace}-server-${toString n}";
+                value.address = ":${toString (port + n)}";
+              }
+            ]) 5))
+          lib.concatLists
+          lib.concatLists
+          lib.listToAttrs
+        ];
+
+      in publicPortMappings // {
         http = {
           address = ":80";
           http = {
@@ -76,20 +111,6 @@
         };
 
         https = { address = ":443"; };
-
-        traefik.address = ":33333";
-
-        mantis-testnet-discovery-0.address = ":33100";
-        mantis-testnet-discovery-1.address = ":33101";
-        mantis-testnet-discovery-2.address = ":33102";
-        mantis-testnet-discovery-3.address = ":33103";
-        mantis-testnet-discovery-4.address = ":33104";
-
-        mantis-testnet-server-0.address = ":33000";
-        mantis-testnet-server-1.address = ":33001";
-        mantis-testnet-server-2.address = ":33002";
-        mantis-testnet-server-3.address = ":33003";
-        mantis-testnet-server-4.address = ":33004";
       };
 
       providers.consulCatalog = {
