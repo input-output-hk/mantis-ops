@@ -10,6 +10,8 @@ let
   bitte = self.inputs.bitte;
 
 in {
+  imports = [ ./iam.nix ];
+
   services.consul.policies.developer.servicePrefix."mantis-" = {
     policy = "write";
     intentions = "write";
