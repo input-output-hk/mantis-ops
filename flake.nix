@@ -53,7 +53,7 @@
 
           mantis-explorer mantis-explorer-nginx
 
-          morpho-node
+          morpho-node morpho-node-entrypoint
 
         ;
       } // (pkgs.lib.mapAttrs (_: v: v.config.system.build.toplevel)

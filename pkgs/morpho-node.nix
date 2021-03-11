@@ -14,5 +14,5 @@ let
   '';
 in symlinkJoin {
   paths = [ entrypoint morpho-node iana-etc bashInteractive coreutils ];
-  name = "devShell";
+  name = "morpho-node";
 }
