@@ -13,6 +13,7 @@ import (
 		role:        "passive" | "miner" | "backup"
 		mantisRev:   string
 		datacenters: list.MinItems(1)
+		fqdn:        string
 	}
 
 	datacenters: #args.datacenters
@@ -21,6 +22,7 @@ import (
 
 	#count: #args.count
 	#role:  #args.role
+	#fqdn:  #args.fqdn
 
 	update: {
 		max_parallel:      2
@@ -80,19 +82,20 @@ import (
 		if #role == "passive" {
 			service: "\(namespace)-mantis-\(#role)-rpc": {
 				address_mode: "host"
-				tags:         ["rpc"] + #baseTags
 				port:         "rpc"
+				tags:         [
+						"rpc",
+						"ingress",
+						"traefik.enable=true",
+						"traefik.http.routers.\(namespace)-mantis-\(#role).rule=Host(`\(namespace)-\(#role).\(#fqdn)`)",
+						"traefik.http.routers.\(namespace)-mantis-\(#role).entrypoints=https",
+						"traefik.http.routers.\(namespace)-mantis-\(#role).tls=true",
+				] + #baseTags
 			}
 		}
 
-		service: {
-			"\(namespace)-mantis-\(#role)-prometheus": {
-				address_mode: "host"
-				port:         "metrics"
-				tags:         ["prometheus"] + #baseTags
-			}
-
-			"\(namespace)-mantis-\(#role)-rpc": {
+		if #role == "server" {
+			service: "\(namespace)-mantis-\(#role)-rpc": {
 				address_mode: "host"
 				port:         "rpc"
 				tags:         ["rpc"] + #baseTags
@@ -113,6 +116,14 @@ import (
 						grace: "10m"
 					}
 				}
+			}
+		}
+
+		service: {
+			"\(namespace)-mantis-\(#role)-prometheus": {
+				address_mode: "host"
+				port:         "metrics"
+				tags:         ["prometheus"] + #baseTags
 			}
 
 			"\(namespace)-mantis-\(#role)-discovery-${NOMAD_ALLOC_INDEX}": {

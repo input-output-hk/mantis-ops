@@ -14,16 +14,15 @@
         "utils": "utils_2"
       },
       "locked": {
-        "lastModified": 1615421494,
-        "narHash": "sha256-oYn78rC71zniJYCK3nMmSuc6w6FWxPds1S+lJM7dIhc=",
+        "lastModified": 1615451929,
+        "narHash": "sha256-vNCYU2tsi/IMpW//wRGF5+zuYa2AeotLpipusW0jqDw=",
         "owner": "input-output-hk",
         "repo": "bitte",
-        "rev": "d776f646fb1318ca35bf8c7d6926268912a98178",
+        "rev": "a566feac1f577578b7ebb5da21d70c00fcccec52",
         "type": "github"
       },
       "original": {
         "owner": "input-output-hk",
-        "ref": "terraform-state-in-vault",
         "repo": "bitte",
         "type": "github"
       }
@@ -35,11 +34,11 @@
         "utils": "utils"
       },
       "locked": {
-        "lastModified": 1614956684,
-        "narHash": "sha256-jnew14CIKJqdl+LtwuPCCVoN6iDwDKCoyp//IaSoKV0=",
+        "lastModified": 1615450146,
+        "narHash": "sha256-+G6OAsOgNoc4peDwenA6my72ZHVVFvk+X3BZAQrzG5o=",
         "owner": "input-output-hk",
         "repo": "bitte-cli",
-        "rev": "5da8b19d37a08300eddd9ae0638ba2b28243ea11",
+        "rev": "c24c33a8e885211e363ebf780e56f6c33a983bd7",
         "type": "github"
       },
       "original": {

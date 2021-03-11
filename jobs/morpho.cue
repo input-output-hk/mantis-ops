@@ -14,6 +14,7 @@ import (
 		count:       uint
 		mantisRev:   string
 		morphoRev:   string
+		fqdn:        string
 	}
 
 	#name: "morpho-\(#args.index)"

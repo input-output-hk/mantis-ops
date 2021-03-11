@@ -10,11 +10,11 @@ import (
 	#args: {
 		datacenters:  list.MinItems(1)
 		namespace:    string
-		domain:       string
+		fqdn:         string
 		mantisOpsRev: string
 	}
 
-	#domain:    #args.domain
+	#fqdn:      #args.fqdn
 	#name:      "\(namespace)-explorer"
 	#namespace: #args.namespace
 
@@ -41,21 +41,10 @@ import (
 
 			tags: [namespace, #name, "ingress", "explorer",
 				"traefik.enable=true",
-				"traefik.http.routers.\(namespace)-explorer.rule=Host(`\(#domain)`)",
+				"traefik.http.routers.\(namespace)-explorer.rule=Host(`\(namespace)-explorer.\(#fqdn)`)",
 				"traefik.http.routers.\(namespace)-explorer.entrypoints=https",
 				"traefik.http.routers.\(namespace)-explorer.tls=true",
 			]
-
-			meta: {
-				PublicIp:      "${attr.unique.platform.aws.public-ipv4}"
-				IngressHost:   #domain
-				IngressMode:   "http"
-				IngressBind:   "*:443"
-				IngressServer: "_\(#name)._tcp.service.consul"
-				IngressBackendExtra: """
-					http-response set-header X-Server %s
-					"""
-			}
 
 			check: explorer: {
 				type:     "http"

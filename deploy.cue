@@ -6,8 +6,6 @@ import (
 	"list"
 )
 
-let fqdn = "mantis.ws"
-
 #defaultJobs: {
 }
 
@@ -17,6 +15,7 @@ _Namespace: [Name=_]: {
 		namespace: Name
 		let datacenter = "eu-central-1" | "us-east-2" | "eu-west-1"
 		datacenters: list.MinItems(1) | [...datacenter] | *["eu-central-1", "us-east-2"]
+		fqdn:        "mantis.ws"
 	}
 	jobs: [string]: types.#stanza.job
 }
@@ -34,11 +33,9 @@ _Namespace: [Name=_]: {
 		jobs: {
 			explorer: jobDef.#Explorer & {#args: {
 				mantisOpsRev: #defaults.mantisOpsRev
-				domain:       "mantis-unstable-explorer.\(fqdn)"
 			}}
 			faucet: jobDef.#Faucet & {#args: {
 				mantisOpsRev: #defaults.mantisOpsRev
-				domain:       "mantis-unstable-faucet.\(fqdn)"
 			}}
 			"miner": jobDef.#Mantis & {#args: {
 				count:     5
@@ -61,11 +58,9 @@ _Namespace: [Name=_]: {
 		jobs: {
 			explorer: jobDef.#Explorer & {#args: {
 				mantisOpsRev: #defaults.mantisOpsRev
-				domain:       "mantis-testnet-explorer.\(fqdn)"
 			}}
 			faucet: jobDef.#Faucet & {#args: {
 				mantisOpsRev: #defaults.mantisOpsRev
-				domain:       "mantis-testnet-faucet.\(fqdn)"
 			}}
 			"miner": jobDef.#Mantis & {#args: {
 				count:     5

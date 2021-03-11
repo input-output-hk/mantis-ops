@@ -10,13 +10,13 @@ import (
 	#args: {
 		datacenters:  list.MinItems(1)
 		namespace:    string
-		domain:       string
+		fqdn:         string
 		wallet:       string | *"mantis-1"
 		mantisOpsRev: string
 	}
 
 	#name:      "\(namespace)-faucet"
-	#domain:    #args.domain
+	#fqdn:      #args.fqdn
 	#namespace: #args.namespace
 
 	datacenters: #args.datacenters
@@ -53,26 +53,10 @@ import (
 
 			tags: ["ingress", "faucet", namespace, #name,
 				"traefik.enable=true",
-				"traefik.http.routers.\(namespace)-faucet-rpc.rule=Host(`\(#domain)`)",
+				"traefik.http.routers.\(namespace)-faucet-rpc.rule=Host(`\(#name).\(#fqdn)`)",
 				"traefik.http.routers.\(namespace)-faucet-rpc.entrypoints=https",
 				"traefik.http.routers.\(namespace)-faucet-rpc.tls=true",
 			]
-
-			meta: {
-				Name:          #name
-				PublicIp:      "${attr.unique.platform.aws.public-ipv4}"
-				IngressHost:   #domain
-				IngressBind:   "*:443"
-				IngressMode:   "http"
-				IngressServer: "_\(#name)._tcp.service.consul"
-				IngressBackendExtra: """
-					option forwardfor
-					http-response set-header X-Server %s
-					"""
-				IngressFrontendExtra: """
-					reqidel ^X-Forwarded-For:.*
-					"""
-			}
 
 			check: nginx: {
 				type:     "http"
@@ -94,7 +78,7 @@ import (
 
 			tags: ["ingress", "faucet", namespace, #name,
 				"traefik.enable=true",
-				"traefik.http.routers.\(namespace)-faucet-nginx.rule=Host(`\(#name)-web.mantis.ws`)",
+				"traefik.http.routers.\(namespace)-faucet-nginx.rule=Host(`\(#name)-web.\(#fqdn)`)",
 				"traefik.http.routers.\(namespace)-faucet-nginx.entrypoints=https",
 				"traefik.http.routers.\(namespace)-faucet-nginx.tls=true",
 			]
