@@ -89,6 +89,7 @@ in {
             ./docker-auth.nix
             ./nix.nix
             ./reserve.nix
+            ./host-volumes.nix
           ];
 
           securityGroupRules = {
