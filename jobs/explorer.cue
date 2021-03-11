@@ -12,6 +12,7 @@ import (
 		namespace:    string
 		fqdn:         string
 		mantisOpsRev: string
+		network:      string
 	}
 
 	#fqdn:      #args.fqdn

@@ -14,6 +14,7 @@ import (
 		mantisRev:   string
 		datacenters: list.MinItems(1)
 		fqdn:        string
+		network:     string
 	}
 
 	datacenters: #args.datacenters
@@ -72,6 +73,7 @@ import (
 				namespace: #args.namespace
 				mantisRev: #args.mantisRev
 				role:      #role
+				network:   #args.network
 			}
 		}
 

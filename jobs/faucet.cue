@@ -13,6 +13,7 @@ import (
 		fqdn:         string
 		wallet:       string | *"mantis-1"
 		mantisOpsRev: string
+		network:      string
 	}
 
 	#name:      "\(namespace)-faucet"

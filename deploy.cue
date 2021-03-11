@@ -16,6 +16,7 @@ _Namespace: [Name=_]: {
 		let datacenter = "eu-central-1" | "us-east-2" | "eu-west-1"
 		datacenters: list.MinItems(1) | [...datacenter] | *["eu-central-1", "us-east-2"]
 		fqdn:        "mantis.ws"
+		network:     string
 	}
 	jobs: [string]: types.#stanza.job
 }
@@ -30,6 +31,7 @@ _Namespace: [Name=_]: {
 
 #namespaces: {
 	"mantis-unstable": {
+		args: network: "mordor"
 		jobs: {
 			explorer: jobDef.#Explorer & {#args: {
 				mantisOpsRev: #defaults.mantisOpsRev
@@ -38,12 +40,12 @@ _Namespace: [Name=_]: {
 				mantisOpsRev: #defaults.mantisOpsRev
 			}}
 			"miner": jobDef.#Mantis & {#args: {
-				count:     5
+				count:     3
 				role:      "miner"
 				mantisRev: #defaults.mantisRev
 			}}
 			"passive": jobDef.#Mantis & {#args: {
-				count:     2
+				count:     1
 				role:      "passive"
 				mantisRev: #defaults.mantisRev
 			}}
@@ -55,6 +57,7 @@ _Namespace: [Name=_]: {
 		}
 	}
 	"mantis-testnet": {
+		args: network: "sagano"
 		jobs: {
 			explorer: jobDef.#Explorer & {#args: {
 				mantisOpsRev: #defaults.mantisOpsRev

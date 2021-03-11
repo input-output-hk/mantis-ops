@@ -15,6 +15,7 @@ import (
 		mantisRev:   string
 		morphoRev:   string
 		fqdn:        string
+		network:     string
 	}
 
 	#name: "morpho-\(#args.index)"
@@ -93,6 +94,7 @@ import (
 				namespace: #args.namespace
 				mantisRev: #args.mantisRev
 				role:      "passive"
+				network:   #args.network
 			}
 		}
 	}

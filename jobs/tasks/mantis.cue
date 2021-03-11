@@ -11,6 +11,7 @@ import (
 		namespace: string
 		role:      "passive" | "miner" | "backup"
 		mantisRev: string
+		network:   string
 	}
 
 	#role: #taskArgs.role
@@ -68,8 +69,8 @@ import (
 
 	template: "secrets/env.txt": {
 		data: """
-			  AWS_ACCESS_KEY_ID="{{with secret "kv/data/nomad-cluster/restic"}}{{.Data.data.aws_access_key_id}}{{end}}"
-			  AWS_SECRET_ACCESS_KEY="{{with secret "kv/data/nomad-cluster/restic"}}{{.Data.data.aws_secret_access_key}}{{end}}"
+			AWS_ACCESS_KEY_ID="{{with secret "kv/data/nomad-cluster/restic"}}{{.Data.data.aws_access_key_id}}{{end}}"
+			AWS_SECRET_ACCESS_KEY="{{with secret "kv/data/nomad-cluster/restic"}}{{.Data.data.aws_secret_access_key}}{{end}}"
 			"""
 		env:         true
 		change_mode: "noop"
@@ -106,17 +107,14 @@ import (
 				"""
 		}
 
-		change_mode: "noop"
-		splay:       "15m"
-		data:        """
-		include "/conf/base.conf"
-		include "/conf/testnet-internal-nomad.conf"
+		#saganoConf: string
 
-		logging.json-output = false
-		logging.logs-file = "logs"
+		if #taskArgs.network != "sagano" {
+			#saganoConf: ""
+		}
 
-		mantis = {
-			blockchains.network = "testnet-internal-nomad"
+		if #taskArgs.network == "sagano" {
+			#saganoConf: """
 			blockchains.testnet-internal-nomad = {
 				custom-genesis-file = "/local/genesis.json"
 				allowed-miners = []
@@ -134,6 +132,20 @@ import (
 					\(#checkPointKeysString)
 				]
 			}
+			"""
+		}
+
+		change_mode: "noop"
+		splay:       "15m"
+		data:        """
+		include "/conf/base.conf"
+		include "/conf/\(#taskArgs.network).conf"
+
+		logging.json-output = false
+		logging.logs-file = "logs"
+
+		mantis = {
+			\(#saganoConf)
 
 			client-id = "mantis-\(#role)-{{env "NOMAD_ALLOC_INDEX"}}"
 			datadir = "/local/mantis"
