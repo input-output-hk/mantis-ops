@@ -73,19 +73,16 @@
 
       entryPoints = let
         publicPortMappings = lib.pipe {
-          mantis-testnet = 33000;
-          mantis-iele = 33100;
-          mantis-qa-load = 33200;
-          mantis-qa-fastsync = 33300;
-          mantis-staging = 33400;
-          mantis-unstable = 33500;
-          mantis-paliga = 33600;
+          mantis-testnet = 9000;
+          mantis-staging = 33000;
+          mantis-unstable = 34000;
+          mantis-paliga = 35000;
         } [
           (lib.mapAttrsToList (namespace: port:
             lib.genList (n: [
               {
                 name = "${namespace}-discovery-${toString n}";
-                value.address = ":${toString (port + 50 + n)}";
+                value.address = ":${toString (port + 500 + n)}";
               }
               {
                 name = "${namespace}-server-${toString n}";

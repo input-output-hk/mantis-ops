@@ -65,6 +65,8 @@ in {
 
   morpho-node = inputs.morpho-node.defaultPackage.${final.system};
 
+  morpho-node-entrypoint = final.callPackage ./pkgs/morpho-node.nix { };
+
   # Any:
   # - run of this command with a parameter different than the testnet (currently 10)
   # - change in the genesis file here

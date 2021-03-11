@@ -105,6 +105,12 @@ in {
       cidrs = global;
     };
 
+    mantis-discovery-public = {
+      from = 9500;
+      to = 9510;
+      cidrs = global;
+    };
+
     routing = {
       from = 30000;
       to = 40000;

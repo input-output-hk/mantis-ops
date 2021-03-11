@@ -27,8 +27,8 @@ import (
 	}
 
 	config: {
-		flake:   "github:input-output-hk/ECIP-Checkpointing?rev=\(#taskArgs.morphoRev)#morpho"
-		command: "/bin/morpho"
+		flake:   "github:input-output-hk/mantis-ops?rev=\(#taskArgs.morphoRev)#morpho-node-entrypoint"
+		command: "/bin/morpho-node-entrypoint"
 		args: []
 	}
 
@@ -55,11 +55,11 @@ import (
 
 	template: "secrets/morpho-private-key": {
 		data:        """
-			{{- with secret "kv/data/nomad-cluster/\(#taskArgs.namespace)/${name}/obft-secret-key" -}}
+			{{- with secret (printf "kv/data/nomad-cluster/\(#taskArgs.namespace)/obft-node-%s/obft-secret-key" (env "NOMAD_ALLOC_INDEX")) -}}
 			{{- .Data.data.value -}}
 			{{- end -}}
 			"""
-		change_mode: "restart"
+		change_mode: "noop"
 		splay:       "15m"
 	}
 

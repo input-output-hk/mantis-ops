@@ -165,8 +165,7 @@ in {
         ];
 
         securityGroupRules = {
-          inherit (securityGroupRules)
-            internet internal ssh http mantis-server-public;
+          inherit (securityGroupRules) internet internal ssh http;
         };
       };
 
@@ -180,7 +179,9 @@ in {
         modules = [ ./traefik.nix ];
 
         securityGroupRules = {
-          inherit (securityGroupRules) internet internal ssh http routing;
+          inherit (securityGroupRules)
+            internet internal ssh http routing mantis-server-public
+            mantis-discovery-public;
         };
       };
     };
