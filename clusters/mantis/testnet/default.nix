@@ -154,9 +154,10 @@ in {
         volumeSize = 1000;
         route53.domains = [
           "consul.${cluster.domain}"
+          "docker.${cluster.domain}"
+          "monitoring.${cluster.domain}"
           "nomad.${cluster.domain}"
           "vault.${cluster.domain}"
-          "monitoring.${cluster.domain}"
         ];
 
         modules = [
