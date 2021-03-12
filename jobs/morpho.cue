@@ -26,15 +26,15 @@ import (
 	type:        "service"
 
 	update: {
-		max_parallel:      1
+		max_parallel:      2
 		health_check:      "checks"
-		min_healthy_time:  "30s"
-		healthy_deadline:  "10m"
-		progress_deadline: "20m"
+		min_healthy_time:  "10s"
+		healthy_deadline:  "1m"
+		progress_deadline: "2m"
 		auto_revert:       false
 		auto_promote:      false
 		canary:            0
-		stagger:           "1m"
+		stagger:           "30s"
 	}
 
 	group: morpho: {
