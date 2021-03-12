@@ -120,7 +120,6 @@ import (
 				allowed-miners = []
 
 				bootstrap-nodes = [
-					"enode://b7424cf5f083d5b7a68fb9950458bca41415b44d10c122cf684116cb70a2db1211956be712c725650bcf13040b4e4e5bf093187cd239718a92b0c96f82f65945@10.24.154.116:24922",
 					{{ range service "\(#namespace)-mantis-miner" -}}
 						"enode://  {{- with secret (printf "kv/data/nomad-cluster/\(#namespace)/%s/enode-hash" .ServiceMeta.Name) -}}
 							{{- .Data.data.value -}}
@@ -150,6 +149,8 @@ import (
 			client-id = "mantis-\(#role)-{{env "NOMAD_ALLOC_INDEX"}}"
 			datadir = "/local/mantis"
 			ethash.ethash-dir = "/local/ethash"
+
+			sync.do-fast-sync = false
 
 			metrics.enabled = true
 			metrics.port = {{ env "NOMAD_PORT_metrics" }}
