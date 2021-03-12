@@ -3,6 +3,7 @@ package tasks
 import (
 	"github.com/input-output-hk/mantis-ops/pkg/schemas/nomad:types"
 	"list"
+	"math"
 	encjson "encoding/json"
 )
 
@@ -10,7 +11,7 @@ import (
 	#taskArgs: {
 		namespace:        string
 		nbNodes:          5
-		requiredMajority: (nbNodes / 2) + 1
+		requiredMajority: math.Floor((nbNodes / 2) + 1)
 		morphoRev:        string
 	}
 
@@ -40,7 +41,7 @@ import (
 	}
 
 	template: "local/morpho-topology.json": {
-		let range = list.Range(1, #taskArgs.nbNodes, 1)
+		let range = list.Range(0, #taskArgs.nbNodes, 1)
 		let addressFor = {
 			#n:      uint
 			addr:    "_\(#taskArgs.namespace)-morpho-node._obft-node-\(#n).service.consul."
@@ -81,7 +82,7 @@ import (
     LastKnownBlockVersion-Minor: 2
     LastKnownBlockVersion-Alt: 0
     NetworkMagic: 12345
-    NodeId: {{env "NOMAD_ALLOC_INDEX"}}
+    NodeId: {{ env "NOMAD_ALLOC_INDEX" }}
     NodePrivKeyFile: {{ env "NOMAD_SECRETS_DIR" }}/morpho-private-key
     NumCoreNodes: \(#taskArgs.nbNodes)
     PoWBlockFetchInterval: 5000000

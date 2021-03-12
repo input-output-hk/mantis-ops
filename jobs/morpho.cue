@@ -38,10 +38,13 @@ import (
 	}
 
 	group: morpho: {
-		service: "\(namespace)-morpho-node": {
-			port: "morpho"
+		count: #args.count
 
-			tags: ["morpho", namespace]
+		service: "\(namespace)-morpho-node": {
+			address_mode: "host"
+			port:         "morpho"
+
+			tags: ["morpho", namespace, "obft-node-${NOMAD_ALLOC_INDEX}"]
 			meta: {
 				NodeNumber: "${NOMAD_ALLOC_INDEX}"
 			}
@@ -54,16 +57,16 @@ import (
 		}
 
 		network: {
-			mode: "bridge"
+			mode: "host"
 			// From https://github.com/input-output-hk/bitte/blob/33cb20fa1cd7c6e4d3bc75253fc166bf048b500c/profiles/docker.nix#L16
 			dns: servers: [ "172.17.0.1"]
 			port: {
-				discovery: to:        6000
-				metrics: to:          6100
-				rpc: to:              6200
-				server: to:           6300
-				morpho: to:           6400
-				morphoPrometheus: to: 6500
+				discovery: {}
+				metrics: {}
+				rpc: {}
+				server: {}
+				morpho: {}
+				morphoPrometheus: {}
 			}
 		}
 

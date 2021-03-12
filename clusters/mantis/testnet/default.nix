@@ -63,11 +63,11 @@ in {
     autoscalingGroups = listToAttrs (forEach [
       {
         region = "eu-central-1";
-        desiredCapacity = 10;
+        desiredCapacity = 12;
       }
       {
         region = "us-east-2";
-        desiredCapacity = 10;
+        desiredCapacity = 12;
       }
     ] (args:
       let
