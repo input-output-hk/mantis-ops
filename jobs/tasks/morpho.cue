@@ -28,9 +28,15 @@ import (
 	}
 
 	config: {
-		flake:   "github:input-output-hk/mantis-ops?rev=\(#taskArgs.morphoRev)#morpho-node-entrypoint"
-		command: "/bin/morpho-node-entrypoint"
-		args: []
+		flake:   "github:input-output-hk/ECIP-Checkpointing?rev=\(#taskArgs.morphoRev)#morpho"
+		command: "/bin/morpho-checkpoint-node"
+		args: [
+			"--topology", "/local/morpho-topology.json",
+			"--database-path", "/local/db",
+			"--port", "${NOMAD_PORT_morpho}",
+			"--config", "/local/morpho-config.yaml",
+			"--socket-dir", "/local/socket",
+		]
 	}
 
 	restart_policy: {
