@@ -76,7 +76,7 @@
           TurnOnLogging: True
           ViewMode: SimpleView
           minSeverity: Debug
-          TracingVerbosity: NormalVerbosity
+          Verbosity: 5
           TraceMux: False
           TraceChainSyncProtocol: False
           TraceBlockFetchProtocol: False
@@ -84,7 +84,7 @@
           TraceTxSubmissionProtocol: False
           setupScribes:
             - scKind: StdoutSK
-              scFormat: ScText
+              scFormat: ScJson
               scName: stdout
           defaultScribes:
             - - StdoutSK
