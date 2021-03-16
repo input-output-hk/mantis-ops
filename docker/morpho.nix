@@ -1,5 +1,5 @@
 { lib, buildLayeredImage, mkEnv, morpho-node, coreutils, bashInteractive
-, writeShellScript, iana-etc, runCommandNoCC }:
+, writeShellScript, iana-etc, runCommandNoCC, dnsutils }:
 let
   run-morpho-node = writeShellScript "morpho-node" ''
     morpho-checkpoint-node \
@@ -27,6 +27,7 @@ in {
 
           bashInteractive
           coreutils
+          dnsutils
         ];
       };
     };
