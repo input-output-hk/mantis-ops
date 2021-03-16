@@ -75,13 +75,8 @@
           TurnOnLogMetrics: False
           TurnOnLogging: True
           ViewMode: SimpleView
-          minSeverity: Debug
-          Verbosity: 3
-          TraceMux: False
-          TraceChainSyncProtocol: False
-          TraceBlockFetchProtocol: False
-          TraceBlockFetchProtocolSerialised: False
-          TraceTxSubmissionProtocol: False
+          minSeverity: Info
+          Verbosity: 4
           setupScribes:
             - scKind: StdoutSK
               scFormat: ScJson
