@@ -1,6 +1,7 @@
 { mkNomadJob, domainSuffix, publicPortStart, lib, mantis, mantis-source
 , mantis-faucet, mantis-faucet-source, morpho-node, morpho-source, dockerImages
-, mantis-explorer, mantisImage, explorerImage, faucetImage, namespace, extraConfig, ... }:
+, mantis-explorer, mantisImage, explorerImage, faucetImage, namespace
+, extraConfig, ... }:
 let
   # NOTE: Copy this file and change the next line if you want to start your own cluster!
   datacenters = [ "us-east-2" "eu-west-1" "eu-central-1" ];
@@ -1330,7 +1331,10 @@ let
 
         config = {
           image = mantisImage;
-          args = [ "-Dconfig.file=running.conf" ];
+          args = [
+            "-Dconfig.file=running.conf"
+            "-Dlogback.configurationFile=/local/logback.xml"
+          ];
           ports = [ "rpc" "server" "metrics" "vm" ];
           labels = [{
             inherit namespace name;
@@ -1468,6 +1472,80 @@ let
           changeMode = "noop";
           destination = "local/mantis.conf";
           splay = "15m";
+        }
+        {
+          changeMode = "noop";
+          destination = "local/logback.xml";
+          data = ''
+            <configuration>
+                <property name="stdoutEncoderPattern" value="%d [%logger{36}] - %msg%n" />
+                <property name="fileEncoderPattern" value="%d [%thread] %-5level %logger{36} %X{akkaSource} - %msg%n" />
+
+                <!--read properties from application.conf-->
+                <newRule pattern="*/load" actionClass="io.iohk.ethereum.utils.LoadFromApplicationConfiguration"/>
+                <load key="logging.json-output" as="ASJSON"/>
+                <load key="logging.logs-dir" as="LOGSDIR"/>
+                <load key="logging.logs-file" as="LOGSFILENAME"/>
+                <load key="logging.logs-level" as="LOGSLEVEL"/>
+
+                <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+                    <encoder>
+                        <pattern>''${stdoutEncoderPattern}</pattern>
+                    </encoder>
+                </appender>
+
+                <appender name="STASH" class="ch.qos.logback.core.ConsoleAppender">
+                    <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+                        <customFields>{"hostname":"''${HOSTNAME}"}</customFields>
+                        <fieldNames>
+                            <timestamp>timestamp</timestamp>
+                            <version>[ignore]</version>
+                        </fieldNames>
+                    </encoder>
+                </appender>
+
+                <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+                    <file>''${LOGSDIR}/''${LOGSFILENAME}.log</file>
+                    <append>true</append>
+                    <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
+                        <fileNamePattern>''${LOGSDIR}/''${LOGSFILENAME}.%i.log.zip</fileNamePattern>
+                        <minIndex>1</minIndex>
+                        <maxIndex>10</maxIndex>
+                    </rollingPolicy>
+                    <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+                        <maxFileSize>10MB</maxFileSize>
+                    </triggeringPolicy>
+                    <encoder>
+                        <pattern>''${fileEncoderPattern}</pattern>
+                    </encoder>
+                </appender>
+
+                <appender name="METRICS" class="io.prometheus.client.logback.InstrumentedAppender" />
+
+                <root level="''${LOGSLEVEL}">
+                    <if condition='p("ASJSON").contains("true")'>
+                        <then>
+                            <appender-ref ref="STASH" />
+                        </then>
+                        <else>
+                            <appender-ref ref="STDOUT" />
+                        </else>
+                    </if>
+                    <appender-ref ref="FILE" />
+                    <appender-ref ref="METRICS" />
+                </root>
+
+                <logger name="io.netty" level="WARN"/>
+                <logger name="io.iohk.scalanet" level="INFO" />
+                <logger name="io.iohk.ethereum.blockchain.sync.SyncController" level="INFO" />
+                <logger name="io.iohk.ethereum.network.PeerActor" level="''${LOGSLEVEL}" />
+                <logger name="io.iohk.ethereum.network.rlpx.RLPxConnectionHandler" level="''${LOGSLEVEL}" />
+                <logger name="io.iohk.ethereum.vm.VM" level="OFF" />
+                <logger name="org.jupnp.QueueingThreadPoolExecutor" level="WARN" />
+                <logger name="org.jupnp.util.SpecificationViolationReporter" level="TRACE" />
+                <logger name="org.jupnp.protocol.RetrieveRemoteDescriptors" level="ERROR" />
+            </configuration>
+          '';
         }
         genesisJson
       ];
