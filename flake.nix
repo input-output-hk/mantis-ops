@@ -37,6 +37,7 @@
       nixosConfigurations = hashiStack.nixosConfigurations;
     in {
       inherit nixosConfigurations;
+      inherit (hashiStack) nomadJobs;
       clusters.x86_64-linux = hashiStack.clusters;
       legacyPackages.x86_64-linux = pkgs;
       devShell.x86_64-linux = pkgs.devShell;
