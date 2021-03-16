@@ -76,7 +76,7 @@
           TurnOnLogging: True
           ViewMode: SimpleView
           minSeverity: Debug
-          Verbosity: 5
+          Verbosity: 3
           TraceMux: False
           TraceChainSyncProtocol: False
           TraceBlockFetchProtocol: False
