@@ -160,27 +160,24 @@ in {
     NOMAD_ADDR = "https://nomad.${domain}";
     CONSUL_HTTP_ADDR = "https://consul.${domain}";
 
-    buildInputs = [
-      final.awscli
-      final.bitte
-      final.cfssl
-      final.consul
-      final.consul-template
-      final.crystal
-      final.direnv
-      final.fd
-      final.go
-      final.gocode
-      final.gopls
-      final.jq
-      final.nixfmt
-      final.nomad
-      final.openssl
-      final.pkgconfig
-      final.restic
-      final.terraform-with-plugins
-      final.vault-bin
-      prev.sops
+    buildInputs = with final; [
+      awscli
+      bitte
+      cfssl
+      consul
+      consul-template
+      cue
+      direnv
+      fd
+      jq
+      nixfmt
+      nomad
+      openssl
+      pkgconfig
+      restic
+      sops
+      terraform-with-plugins
+      vault-bin
     ];
   };
 
