@@ -172,13 +172,14 @@ in {
       };
 
       routing = {
-        instanceType = "t3a.large";
+        instanceType = "t3a.small";
         privateIP = "172.16.1.20";
         subnet = cluster.vpc.subnets.core-2;
         volumeSize = 100;
         route53.domains = [ "*.${cluster.domain}" ];
 
-        modules = [ ./traefik.nix ];
+        modules =
+          [ (bitte + /profiles/routing.nix) ./secrets.nix ./traefik.nix ];
 
         securityGroupRules = {
           inherit (securityGroupRules)

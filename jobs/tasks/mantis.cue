@@ -22,9 +22,18 @@ import (
 
 	driver: "exec"
 
-	resources: {
-		cpu:    7500
-		memory: 5 * 1024
+	if #role == "miner" {
+		resources: {
+			cpu:    7500
+			memory: 5 * 1024
+		}
+	}
+
+	if #role == "passive" || #role == "backup" {
+		resources: {
+			cpu:    500
+			memory: 2 * 1024
+		}
 	}
 
 	vault: {
@@ -33,9 +42,9 @@ import (
 	}
 
 	config: {
-		flake:   "github:input-output-hk/mantis?rev=\(#taskArgs.mantisRev)#mantis-entrypoint"
-		command: "/bin/mantis-entrypoint"
-		args: ["-Dconfig.file=/local/running.conf", "-XX:ActiveProcessorCount=2"]
+		flake:   "github:input-output-hk/mantis?rev=\(#taskArgs.mantisRev)#mantis"
+		command: "/bin/mantis"
+		args: ["-Dconfig.file=/local/mantis.conf", "-XX:ActiveProcessorCount=2"]
 	}
 
 	restart: {
@@ -77,7 +86,7 @@ import (
 	}
 
 	template: "local/mantis.conf": {
-		#checkpointRange: list.Range(1, #amountOfMorphoNodes, 1)
+		#checkpointRange: list.Range(0, #amountOfMorphoNodes, 1)
 		#checkpointKeys: [ for n in #checkpointRange {
 			"""
 			{{- with secret "kv/data/nomad-cluster/\(#namespace)/obft-node-\(n)/obft-public-key" -}}
@@ -134,8 +143,8 @@ import (
 			"""
 		}
 
-		change_mode: "noop"
-		splay:       "15m"
+		change_mode: "restart"
+		splay:       "1h"
 		data:        """
 		include "/conf/base.conf"
 		include "/conf/\(#taskArgs.network).conf"

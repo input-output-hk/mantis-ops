@@ -226,5 +226,7 @@ in {
 
   inherit (inputs.nixpkgs-unstable.legacyPackages.${final.system}) traefik;
 
+  oauth2_proxy = final.callPackage ./pkgs/oauth2_proxy.nix { };
+
   mkEnv = lib.mapAttrsToList (key: value: "${key}=${value}");
 }

@@ -38,5 +38,5 @@ let
   '';
 in symlinkJoin {
   paths = [ entrypoint mantis ];
-  name = "devShell";
+  name = "mantis-faucet-server";
 }

@@ -28,7 +28,7 @@ import (
 	update: {
 		max_parallel:      2
 		health_check:      "checks"
-		min_healthy_time:  "5m"
+		min_healthy_time:  "10m" // Give enough time for the DAG generation
 		healthy_deadline:  "30m"
 		progress_deadline: "1h"
 		auto_revert:       true

@@ -1,4 +1,6 @@
-{ self, lib, pkgs, config, ... }: {
+{ self, lib, pkgs, config, ... }:
+let domain = config.cluster.domain;
+in {
   imports = [
     (self.inputs.bitte + /profiles/common.nix)
     (self.inputs.bitte + /profiles/consul/client.nix)
@@ -37,43 +39,82 @@
     '';
   };
 
+  services.oauth2_proxy.extraConfig.skip-provider-button = "true";
+  services.oauth2_proxy.extraConfig.upstream = "static://202";
+
   services.traefik = {
     enable = true;
 
     dynamicConfigOptions = {
-      tls.certificates = [{
-        certFile = "/var/lib/traefik/certs/${config.cluster.domain}-full.pem";
-        keyFile = "/var/lib/traefik/certs/${config.cluster.domain}-key.pem";
-      }];
-
       http = {
-        routers = {
+        middlewares = {
+          auth-headers = {
+            headers = {
+              browserXssFilter = true;
+              contentTypeNosniff = true;
+              forceSTSHeader = true;
+              frameDeny = true;
+              sslHost = domain;
+              sslRedirect = true;
+              stsIncludeSubdomains = true;
+              stsPreload = true;
+              stsSeconds = 315360000;
+            };
+          };
+
+          oauth-auth-redirect = {
+            forwardAuth = {
+              address = "https://oauth.${domain}/";
+              authResponseHeaders =
+                [ "X-Auth-Request-Access-Token" "Authorization" ];
+              trustForwardHeader = true;
+            };
+          };
+        };
+
+        routers = lib.mkForce {
           traefik = {
-            rule = "Host(`routing.mantis.ws`)";
-            service = "api@internal";
             entrypoints = "https";
+            middlewares = [ "oauth-auth-redirect" ];
+            rule = "Host(`traefik.${domain}`) && PathPrefix(`/`)";
+            service = "api@internal";
             tls = true;
+          };
+
+          oauth2-proxy-route = {
+            entrypoints = "https";
+            middlewares = [ "auth-headers" ];
+            rule = "Host(`oauth.${domain}`) && PathPrefix(`/`)";
+            service = "oauth-backend";
+            tls = true;
+          };
+
+          services-oauth2-route = {
+            entrypoints = "https";
+            middlewares = [ "auth-headers" ];
+            rule = "Host(`traefik.${domain}`) && PathPrefix(`/oauth2/`)";
+            service = "oauth-backend";
+            tls = true;
+          };
+        };
+
+        services = {
+          oauth-backend = {
+            loadBalancer = { servers = [{ url = "http://127.0.0.1:4180"; }]; };
           };
         };
       };
     };
 
     staticConfigOptions = {
-      metrics.influxDB = {
-        address =
-          "http://${config.cluster.instances.monitoring.privateIP}:8428";
-        protocol = "http";
-        database = "traefik";
-        addEntryPointsLabels = true;
-        addServicesLabels = true;
-        pushInterval = "10s";
-      };
+      accesslog = true;
+      log.level = "info";
 
       api = { dashboard = true; };
 
       entryPoints = let
         publicPortMappings = lib.pipe {
-          mantis-testnet = 9000;
+          mantis-testnet = 9001;
           mantis-staging = 33000;
           mantis-unstable = 34000;
           mantis-paliga = 35000;
@@ -97,6 +138,7 @@
       in publicPortMappings // {
         http = {
           address = ":80";
+          forwardedHeaders.insecure = true;
           http = {
             redirections = {
               entryPoint = {
@@ -107,63 +149,10 @@
           };
         };
 
-        https = { address = ":443"; };
-      };
-
-      providers.consulCatalog = {
-        refreshInterval = "30s";
-
-        prefix = "traefik";
-
-        # Forces the read to be fully consistent.
-        requireConsistent = true;
-
-        # Use stale consistency for catalog reads.
-        stale = false;
-
-        # Use local agent caching for catalog reads.
-        cache = false;
-
-        endpoint = {
-          # Defines the address of the Consul server.
-          address = "127.0.0.1:8500";
-
-          scheme = "http";
-
-          # Defines the datacenter to use. If not provided in Traefik, Consul uses the default agent datacenter.
-          datacenter = "eu-central-1";
-
-          # Token is used to provide a per-request ACL token which overwrites the agent's default token.
-          # token = ""
-
-          # Limits the duration for which a Watch can block. If not provided, the agent default values will be used.
-          # endpointWaitTime = "1s";
+        https = {
+          address = ":443";
+          forwardedHeaders.insecure = true;
         };
-
-        # Expose Consul Catalog services by default in Traefik. If set to false, services that don't have a traefik.enable=true tag will be ignored from the resulting routing configuration.
-        exposedByDefault = false;
-
-        # The default host rule for all services.
-        # For a given service, if no routing rule was defined by a tag, it is
-        # defined by this defaultRule instead. The defaultRule must be set to a
-        # valid Go template, and can include sprig template functions. The
-        # service name can be accessed with the Name identifier, and the template
-        # has access to all the labels (i.e. tags beginning with the prefix)
-        # defined on this service.
-        # The option can be overridden on an instance basis with the
-        # traefik.http.routers.{name-of-your-choice}.rule tag.
-        # Default=Host(`{{ normalize .Name }}`)
-        # defaultRule = ''Host(`{{ .Name }}.{{ index .Labels "customLabel"}}`)'';
-        defaultRule = "Host(`{{ normalize .Name }}`)";
-
-        # The constraints option can be set to an expression that Traefik matches
-        # against the service tags to determine whether to create any route for that
-        # service. If none of the service tags match the expression, no route for that
-        # service is created. If the expression is empty, all detected services are
-        # included.
-        # The expression syntax is based on the Tag(`tag`), and TagRegex(`tag`)
-        # functions, as well as the usual boolean logic.
-        constraints = "Tag(`ingress`)";
       };
     };
   };

@@ -71,7 +71,7 @@ _Namespace: [Name=_]: {
 				mantisRev: #defaults.mantisRev
 			}}
 			"passive": jobDef.#Mantis & {#args: {
-				count:     2
+				count:     5
 				role:      "passive"
 				mantisRev: #defaults.mantisRev
 			}}
