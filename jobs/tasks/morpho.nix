@@ -57,7 +57,7 @@
           LastKnownBlockVersion-Minor: 2
           LastKnownBlockVersion-Alt: 0
           NetworkMagic: 12345
-          NodeId: ${toString nodeNumber}
+          NodeId: ${toString (nodeNumber - 1)}
           NodePrivKeyFile: {{ env "NOMAD_SECRETS_DIR" }}/morpho-private-key
           NumCoreNodes: ${toString nbNodes}
           PoWBlockFetchInterval: 5000000
@@ -114,7 +114,7 @@
               valency = 1;
             };
             data = map (n: {
-              nodeId = n;
+              nodeId = n - 1;
               producers = map addressFor (lib.remove n (lib.range 1 nodeCount));
             }) (lib.range 1 nodeCount);
           in builtins.toJSON data;
