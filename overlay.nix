@@ -29,6 +29,8 @@ in {
     submodules = true;
   };
 
+  kevm = final.callPackage ./pkgs/kevm.nix { };
+
   inherit (final.dockerTools) buildLayeredImage;
 
   mkEnv = lib.mapAttrsToList (key: value: "${key}=${value}");
