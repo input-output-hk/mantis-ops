@@ -202,11 +202,11 @@
         "utils": "utils_4"
       },
       "locked": {
-        "lastModified": 1615935326,
-        "narHash": "sha256-VGAsB8kSKABVIJUIXGbDrRtlTtL/ODrQR0FJsUUvKqY=",
+        "lastModified": 1616016861,
+        "narHash": "sha256-M3fAmI1d5wUTTps9g/IMtxXcDQ9Wuvp/F82BZIM9p2U=",
         "owner": "input-output-hk",
         "repo": "ECIP-Checkpointing",
-        "rev": "2daebf9f0ff24aaf8cdd7c1dd06916c8ada336df",
+        "rev": "f1354373effd8ec3f396f3f7625501d72503d921",
         "type": "github"
       },
       "original": {
