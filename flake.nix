@@ -43,10 +43,8 @@
       devShell.x86_64-linux = pkgs.devShell;
       hydraJobs.x86_64-linux = {
         inherit (pkgs)
-          devShellPath bitte nixFlakes sops
-          terraform-with-plugins cfssl consul nomad vault-bin cue grafana
-          haproxy grafana-loki victoriametrics
-          ;
+          devShellPath bitte nixFlakes sops terraform-with-plugins cfssl consul
+          nomad vault-bin cue grafana haproxy grafana-loki victoriametrics kevm;
       } // (pkgs.lib.mapAttrs (_: v: v.config.system.build.toplevel)
         nixosConfigurations);
     };
