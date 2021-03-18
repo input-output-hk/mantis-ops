@@ -520,17 +520,29 @@ let durationType = string & =~"^[1-9]\\d*[hms]$"
 		restart:        #stanza.restart & {#type: #type}
 		vault:          *null | #stanza.vault
 		restart_policy: *null | #stanza.restart_policy
-
-		reschedule: *null | #stanza.reschedule
+		reschedule:     #stanza.reschedule & {#type: #type}
 	}
 
 	reschedule: {
-		attempts:       *_ | uint
-		delay:          *_ | durationType
-		delay_function: *_ | "constant" | "exponential" | "fibonacci"
-		max_delay:      *_ | durationType
-		interval:       *_ | durationType
-		unlimited:      *_ | bool
+		#type: "batch" | *"service" | "system"
+
+		if #type == "batch" {
+			attempts:       uint | *1
+			delay:          durationType | *"5s"
+			delay_function: *"constant" | "exponential" | "fibonacci"
+			interval:       durationType | *"24h"
+			unlimited:      bool | *false
+		}
+
+		if #type == "service" || #type == "system" {
+			interval:       durationType | *"0m"
+			attempts:       uint | *0
+			delay:          durationType | *"30s"
+			delay_function: "constant" | *"exponential" | "fibonacci"
+			max_delay:      durationType | *"1h"
+			// if unlimited is true, interval and attempts are ignored
+			unlimited: bool | *true
+		}
 	}
 
 	network: {
@@ -588,7 +600,7 @@ let durationType = string & =~"^[1-9]\\d*[hms]$"
 		port:          string
 		address_mode:  "alloc" | "driver" | *"auto" | "host"
 		tags: [...string]
-		task: string
+		task: string | *""
 		check: [string]: #stanza.check
 		meta: [string]:  string
 	}
@@ -598,11 +610,18 @@ let durationType = string & =~"^[1-9]\\d*[hms]$"
 		type:          "http" | "tcp" | "script" | "grpc"
 		port:          string
 		interval:      durationType
-		path:          string
 		timeout:       durationType
 		check_restart: #stanza.check_restart | *null
 		header: [string]: [...string]
 		body: string | *null
+
+		if type == "http" {
+			path: string
+		}
+
+		if type != "http" {
+			path: ""
+		}
 	}
 
 	taskConfig: dockerConfig | execConfig
