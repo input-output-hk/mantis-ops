@@ -3,27 +3,18 @@ package jobs
 import (
 	"github.com/input-output-hk/mantis-ops/pkg/schemas/nomad:types"
 	"github.com/input-output-hk/mantis-ops/pkg/jobs/tasks:tasks"
-	"list"
 )
 
 #Mantis: types.#stanza.job & {
-	#args: {
-		namespace:   =~"^mantis-[a-z-]+$"
-		count:       uint
-		role:        "passive" | "miner" | "backup"
-		mantisRev:   =~"^[a-z0-9]{40}$"
-		datacenters: list.MinItems(1)
-		fqdn:        string
-		network:     string
-	}
+	#role:        "passive" | "miner" | "backup"
+	#mantisRev:   =~"^[a-z0-9]{40}$"
+	#fqdn:        string
+	#network:     string
+	#count:       uint
+	#extraConfig: string | *""
 
-	datacenters: #args.datacenters
-	namespace:   #args.namespace
-	type:        "service"
-
-	#count: #args.count
-	#role:  #args.role
-	#fqdn:  #args.fqdn
+	namespace: =~"^mantis-[a-z-]+$"
+	type:      "service"
 
 	update: {
 		max_parallel:      2
@@ -61,20 +52,18 @@ import (
 		}
 
 		task: telegraf: tasks.#Telegraf & {
-			#taskArgs: {
-				namespace:      #args.namespace
-				name:           "\(#role)-${NOMAD_ALLOC_INDEX}"
-				prometheusPort: "metrics"
-			}
+			#namespace:      namespace
+			#name:           "\(#role)-${NOMAD_ALLOC_INDEX}"
+			#prometheusPort: "metrics"
 		}
 
+		let super = {role: #role, network: #network, extraConfig: #extraConfig}
 		task: mantis: tasks.#Mantis & {
-			#taskArgs: {
-				namespace: #args.namespace
-				mantisRev: #args.mantisRev
-				role:      #role
-				network:   #args.network
-			}
+			#namespace:   namespace
+			#flake:       "github:input-output-hk/mantis?rev=\(#mantisRev)#mantis"
+			#role:        super.role
+			#network:     super.network
+			#extraConfig: super.extraConfig
 		}
 
 		task: promtail: tasks.#Promtail

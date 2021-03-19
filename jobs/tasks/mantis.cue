@@ -7,18 +7,14 @@ import (
 )
 
 #Mantis: types.#stanza.task & {
-	#taskArgs: {
-		namespace: string
-		role:      "passive" | "miner" | "backup"
-		mantisRev: string
-		network:   string
-	}
-
-	#role: #taskArgs.role
+	#namespace: string
+	#role:      "passive" | "miner" | "backup"
+	#mantisRev: string
+	#network:   string
+	#flake:     types.#flake
 	#miners: []
 	#amountOfMorphoNodes: 5
 	#requiredPeerCount:   len(#miners)
-	#namespace:           #taskArgs.namespace
 
 	driver: "exec"
 
@@ -33,7 +29,7 @@ import (
 	}
 
 	config: {
-		flake:   "github:input-output-hk/mantis?rev=\(#taskArgs.mantisRev)#mantis-entrypoint"
+		flake:   #flake
 		command: "/bin/mantis-entrypoint"
 		args: ["-Dconfig.file=/local/running.conf", "-XX:ActiveProcessorCount=2"]
 	}
@@ -87,10 +83,10 @@ import (
 		}]
 		#checkPointKeysString: strings.Join(#checkpointKeys, ",")
 
-		#extraConfig: string
+		#miningConf: string
 
 		if #role == "miner" {
-			#extraConfig: """
+			#miningConf: """
 			mantis = {
 				node-key-file = "/secrets/secret-key"
 				consensus = {
@@ -102,19 +98,19 @@ import (
 		}
 
 		if #role == "passive" {
-			#extraConfig: """
+			#miningConf: """
 				mantis.consensus.mining-enabled = false
 				"""
 		}
 
-		#saganoConf: string
+		#networkConf: string
 
-		if #taskArgs.network != "sagano" {
-			#saganoConf: ""
+		if #network != "testnet-internal-nomad" {
+			#networkConf: ""
 		}
 
-		if #taskArgs.network == "sagano" {
-			#saganoConf: """
+		if #network == "testnet-internal-nomad" {
+			#networkConf: """
 			blockchains.testnet-internal-nomad = {
 				custom-genesis-file = "/local/genesis.json"
 				allowed-miners = []
@@ -138,13 +134,13 @@ import (
 		splay:       "15m"
 		data:        """
 		include "/conf/base.conf"
-		include "/conf/\(#taskArgs.network).conf"
+		include "/conf/\(#network).conf"
 
 		logging.json-output = false
 		logging.logs-file = "logs"
 
 		mantis = {
-			\(#saganoConf)
+			\(#networkConf)
 
 			client-id = "mantis-\(#role)-{{env "NOMAD_ALLOC_INDEX"}}"
 			datadir = "/local/mantis"
@@ -166,7 +162,7 @@ import (
 			network.discovery.port = {{ env "NOMAD_PORT_discovery" }}
 		}
 
-		\(#extraConfig)
+		\(#miningConf)
 		"""
 	}
 
@@ -177,5 +173,79 @@ import (
 		{{.Data.data | toJSON }}
 		{{- end -}}
 		"""
+	}
+
+	template: "local/logback.xml": {
+		change_mode: "noop"
+		data: """
+			<configuration>
+				<property name="stdoutEncoderPattern" value="%d [%logger{36}] - %msg%n" />
+				<property name="fileEncoderPattern" value="%d [%thread] %-5level %logger{36} %X{akkaSource} - %msg%n" />
+				
+				<!--read properties from application.conf-->
+				<newRule pattern="*/load" actionClass="io.iohk.ethereum.utils.LoadFromApplicationConfiguration"/>
+				<load key="logging.json-output" as="ASJSON"/>
+				<load key="logging.logs-dir" as="LOGSDIR"/>
+				<load key="logging.logs-file" as="LOGSFILENAME"/>
+				<load key="logging.logs-level" as="LOGSLEVEL"/>
+				
+				<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+					<encoder>
+						<pattern>''${stdoutEncoderPattern}</pattern>
+					</encoder>
+				</appender>
+				
+				<appender name="STASH" class="ch.qos.logback.core.ConsoleAppender">
+					<encoder class="net.logstash.logback.encoder.LogstashEncoder">
+						<customFields>{"hostname":"''${HOSTNAME}"}</customFields>
+						<fieldNames>
+							<timestamp>timestamp</timestamp>
+							<version>[ignore]</version>
+						</fieldNames>
+					</encoder>
+				</appender>
+				
+				<appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+					<file>''${LOGSDIR}/''${LOGSFILENAME}.log</file>
+					<append>true</append>
+					<rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
+						<fileNamePattern>''${LOGSDIR}/''${LOGSFILENAME}.%i.log.zip</fileNamePattern>
+						<minIndex>1</minIndex>
+						<maxIndex>10</maxIndex>
+					</rollingPolicy>
+					<triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+						<maxFileSize>10MB</maxFileSize>
+					</triggeringPolicy>
+					<encoder>
+						<pattern>''${fileEncoderPattern}</pattern>
+					</encoder>
+				</appender>
+				
+				<appender name="METRICS" class="io.prometheus.client.logback.InstrumentedAppender" />
+				
+				<root level="''${LOGSLEVEL}">
+					<if condition='p("ASJSON").contains("true")'>
+						<then>
+							<appender-ref ref="STASH" />
+						</then>
+						<else>
+							<appender-ref ref="STDOUT" />
+						</else>
+					</if>
+					<appender-ref ref="FILE" />
+					<appender-ref ref="METRICS" />
+				</root>
+				
+				<logger name="io.netty" level="WARN"/>
+				<logger name="io.iohk.scalanet" level="INFO" />
+				<logger name="io.iohk.ethereum.blockchain.sync.SyncController" level="INFO" />
+				<logger name="io.iohk.ethereum.network.PeerActor" level="''${LOGSLEVEL}" />
+				<logger name="io.iohk.ethereum.network.rlpx.RLPxConnectionHandler" level="''${LOGSLEVEL}" />
+				<logger name="io.iohk.ethereum.vm.VM" level="OFF" />
+				<logger name="org.jupnp.QueueingThreadPoolExecutor" level="WARN" />
+				<logger name="org.jupnp.util.SpecificationViolationReporter" level="TRACE" />
+				<logger name="org.jupnp.protocol.RetrieveRemoteDescriptors" level="ERROR" />
+			</configuration>
+			"""
 	}
 }

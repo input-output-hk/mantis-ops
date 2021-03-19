@@ -5,11 +5,9 @@ import (
 )
 
 #Telegraf: types.#stanza.task & {
-	#taskArgs: {
-		namespace:      string
-		name:           string
-		prometheusPort: string
-	}
+	#namespace:      string
+	#name:           string
+	#prometheusPort: string
 
 	driver: "exec"
 
@@ -37,13 +35,13 @@ import (
 		omit_hostname = false
 
 		[global_tags]
-		client_id = "\(#taskArgs.name)"
-		namespace = "\(#taskArgs.namespace)"
+		client_id = "\(#name)"
+		namespace = "\(#namespace)"
 
 		[inputs.prometheus]
 		metric_version = 1
 
-		urls = [ "http://{{ env "NOMAD_ADDR_\(#taskArgs.prometheusPort)" }}" ]
+		urls = [ "http://{{ env "NOMAD_ADDR_\(#prometheusPort)" }}" ]
 
 		[outputs.influxdb]
 		database = "telegraf"

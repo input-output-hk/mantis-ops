@@ -7,6 +7,7 @@
     # bitte.url = "path:/home/jlotoski/work/iohk/bitte-wt/bitte";
     # bitte.url = "path:/home/manveru/github/input-output-hk/bitte";
     nixpkgs.follows = "bitte/nixpkgs";
+    nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     terranix.follows = "bitte/terranix";
     utils.follows = "bitte/utils";
     ops-lib.url = "github:input-output-hk/ops-lib/zfs-image?dir=zfs";
@@ -37,7 +38,7 @@
       nixosConfigurations = hashiStack.nixosConfigurations;
     in {
       inherit nixosConfigurations;
-      inherit (hashiStack) nomadJobs;
+      inherit (hashiStack) nomadJobs dockerImages;
       clusters.x86_64-linux = hashiStack.clusters;
       legacyPackages.x86_64-linux = pkgs;
       devShell.x86_64-linux = pkgs.devShell;

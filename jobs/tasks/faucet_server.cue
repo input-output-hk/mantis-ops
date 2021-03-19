@@ -5,11 +5,9 @@ import (
 )
 
 #FaucetServer: types.#stanza.task & {
-	#taskArgs: {
-		namespace:    string
-		wallet:       string
-		mantisOpsRev: string
-	}
+	#namespace: string
+	#wallet:    string
+	#flake:     types.#flake
 
 	driver: "exec"
 
@@ -24,14 +22,14 @@ import (
 	}
 
 	config: {
-		flake:   "github:input-output-hk/mantis-ops?rev=\(#taskArgs.mantisOpsRev)#mantis-faucet-server"
+		flake:   #flake
 		command: "/bin/mantis-faucet-entrypoint"
 		args: ["-Dconfig.file=running.conf"]
 	}
 
 	template: "secrets/account": {
 		data: """
-    {{- with secret "kv/data/nomad-cluster/\(#taskArgs.namespace)/\(#taskArgs.wallet)/account" -}}
+    {{- with secret "kv/data/nomad-cluster/\(#namespace)/\(#wallet)/account" -}}
     {{.Data.data | toJSON }}
     {{- end -}}
     """
@@ -40,14 +38,14 @@ import (
 	template: "secrets/env": {
 		env:  true
 		data: """
-    COINBASE={{- with secret "kv/data/nomad-cluster/\(#taskArgs.namespace)/\(#taskArgs.wallet)/coinbase" -}}{{ .Data.data.value }}{{- end -}}
+    COINBASE={{- with secret "kv/data/nomad-cluster/\(#namespace)/\(#wallet)/coinbase" -}}{{ .Data.data.value }}{{- end -}}
     """
 	}
 
 	template: "local/genesis.json": {
 		change_mode: "restart"
 		data:        """
-    {{- with secret "kv/nomad-cluster/\(#taskArgs.namespace)/genesis" -}}
+    {{- with secret "kv/nomad-cluster/\(#namespace)/genesis" -}}
     {{.Data.data | toJSON }}
     {{- end -}}
     """
@@ -70,8 +68,8 @@ import (
 
         bootstrap-nodes = [
           "enode://b7424cf5f083d5b7a68fb9950458bca41415b44d10c122cf684116cb70a2db1211956be712c725650bcf13040b4e4e5bf093187cd239718a92b0c96f82f65945@10.24.154.116:24922",
-          {{ range service "\(#taskArgs.namespace)-mantis-miner" -}}
-            "enode://  {{- with secret (printf "kv/data/nomad-cluster/\(#taskArgs.namespace)/%s/enode-hash" .ServiceMeta.Name) -}}
+          {{ range service "\(#namespace)-mantis-miner" -}}
+            "enode://  {{- with secret (printf "kv/data/nomad-cluster/\(#namespace)/%s/enode-hash" .ServiceMeta.Name) -}}
               {{- .Data.data.value -}}
               {{- end -}}@{{ .Address }}:{{ .Port }}",
           {{ end -}}
@@ -128,7 +126,7 @@ import (
       datadir = "/local/mantis-faucet"
 
       # Wallet address used to send transactions from
-      {{ with secret "kv/nomad-cluster/\(#taskArgs.namespace)/\(#taskArgs.wallet)/coinbase" }}
+      {{ with secret "kv/nomad-cluster/\(#namespace)/\(#wallet)/coinbase" }}
       wallet-address = "{{.Data.data.value}}"
       {{ end }}
 
@@ -149,7 +147,7 @@ import (
 
       rpc-client {
         # Address of Ethereum node used to send the transaction
-        {{ range service "\(#taskArgs.wallet).\(#taskArgs.namespace)-mantis-miner-rpc" }}
+        {{ range service "\(#wallet).\(#namespace)-mantis-miner-rpc" }}
         rpc-address = "http://{{ .Address }}:{{ .Port }}"
         {{ end }}
 

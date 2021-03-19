@@ -31,6 +31,15 @@ in {
 
   kevm = final.callPackage ./pkgs/kevm.nix { };
 
+  mantis-iele-source = builtins.fetchGit {
+    url = "https://github.com/input-output-hk/mantis";
+    rev = "e8af13b5a237560b0186b231dfeefb7990bdfd1a";
+    ref = "iele_testnet_2020";
+    submodules = true;
+  };
+
+  mantis-iele = import final.mantis-iele-source { inherit system; };
+
   inherit (final.dockerTools) buildLayeredImage;
 
   mkEnv = lib.mapAttrsToList (key: value: "${key}=${value}");
@@ -54,6 +63,9 @@ in {
 
   iele = final.callPackage ./pkgs/iele.nix { };
 
+  jre_15_headless =
+    inputs.nixpkgs-unstable.legacyPackages.${system}.jre_headless;
+
   generate-mantis-keys = final.writeBashBinChecked "generate-mantis-keys" ''
     export PATH="${
       lib.makeBinPath (with final; [
@@ -61,14 +73,13 @@ in {
         curl
         gawk
         gnused
-        gnused
         jq
         mantis
         netcat
-        vault-bin
-        which
         shellcheck
         tree
+        vault-bin
+        which
       ])
     }"
 
@@ -130,24 +141,30 @@ in {
 
   debugUtils = with final; [
     bashInteractive
+    bat
     coreutils
     curl
     dnsutils
     fd
     gawk
     gnugrep
-    iproute
+    gnused
     htop
+    iproute
     jq
+    less
     lsof
     netcat
     nettools
     procps
     ripgrep
+    shellcheck
+    strace
     tmux
     tree
     utillinux
     vim
+    which
   ];
 
   devShell = prev.mkShell {

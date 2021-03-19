@@ -3,25 +3,17 @@ package jobs
 import (
 	"github.com/input-output-hk/mantis-ops/pkg/schemas/nomad:types"
 	"github.com/input-output-hk/mantis-ops/pkg/jobs/tasks:tasks"
-	"list"
 )
 
 #Explorer: types.#stanza.job & {
-	#args: {
-		datacenters:  list.MinItems(1)
-		namespace:    string
-		fqdn:         string
-		mantisOpsRev: string
-		network:      string
-	}
+	#fqdn:             string
+	#mantisOpsRev:     types.#gitRevision
+	#mantisOpsRevPass: #mantisOpsRev
+	#network:          string
+	#name:             "\(namespace)-explorer"
 
-	#fqdn:      #args.fqdn
-	#name:      "\(namespace)-explorer"
-	#namespace: #args.namespace
-
-	datacenters: #args.datacenters
-	namespace:   #args.namespace
-	type:        "service"
+	namespace: string
+	type:      "service"
 
 	update: {
 		max_parallel:      1
@@ -66,10 +58,8 @@ import (
 		}
 
 		task: explorer: tasks.#Explorer & {
-			#taskArgs: {
-				upstreamServiceName: "\(namespace)-mantis-passive-rpc"
-				mantisOpsRev:        #args.mantisOpsRev
-			}
+			#upstreamServiceName: "\(namespace)-mantis-passive-rpc"
+			#flake:               "github:input-output-hk/mantis-ops?rev=\(#mantisOpsRev)#mantis-explorer-nginx"
 		}
 	}
 }

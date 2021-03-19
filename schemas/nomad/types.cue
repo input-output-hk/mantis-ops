@@ -259,6 +259,9 @@ import (
 
 let durationType = string & =~"^[1-9]\\d*[hms]$"
 
+#gitRevision: =~"^[a-f0-9]{40}$"
+#flake:       =~"^(github|git\\+ssh|git):[0-9a-zA-Z_-]+/[0-9a-zA-Z_-]+"
+
 #toJson: #json.Job & {
 	#job:        #stanza.job
 	#jobName:    string

@@ -7,21 +7,14 @@ import (
 )
 
 #Faucet: types.#stanza.job & {
-	#args: {
-		datacenters:  list.MinItems(1)
-		namespace:    string
-		fqdn:         string
-		wallet:       string | *"mantis-1"
-		mantisOpsRev: string
-		network:      string
-	}
+	#fqdn:         string
+	#wallet:       string | *"mantis-1"
+	#mantisOpsRev: types.#gitRevision
+	#network:      string
+	#name:         "\(namespace)-faucet"
 
-	#name:      "\(namespace)-faucet"
-	#fqdn:      #args.fqdn
-	#namespace: #args.namespace
-
-	datacenters: #args.datacenters
-	namespace:   #args.namespace
+	datacenters: list.MinItems(1)
+	namespace:   string
 	type:        "service"
 
 	update: {
@@ -87,7 +80,7 @@ import (
 			meta: {
 				Name:     #name
 				PublicIp: "${attr.unique.platform.aws.public-ipv4}"
-				Wallet:   #args.wallet
+				Wallet:   #wallet
 			}
 		}
 
@@ -99,28 +92,23 @@ import (
 		}
 
 		task: nginx: tasks.#FaucetNginx & {
-			#taskArgs: {
-				mantisOpsRev:        #args.mantisOpsRev
-				upstreamServiceName: "\(#name)-rpc"
-			}
+			#flake:               "github:input-output-hk/mantis-ops?rev=\(#mantisOpsRev)#mantis-faucet-nginx"
+			#upstreamServiceName: "\(#name)-rpc"
 		}
 
+		let walletRef = #wallet
 		task: mantis: tasks.#FaucetServer & {
-			#taskArgs: {
-				mantisOpsRev: #args.mantisOpsRev
-				namespace:    #args.namespace
-				wallet:       #args.wallet
-			}
+			#flake:     "github:input-output-hk/mantis-ops?rev=\(#mantisOpsRev)#mantis-faucet-server"
+			#namespace: namespace
+			#wallet:    walletRef
 		}
 
 		task: promtail: tasks.#Promtail
 
 		task: telegraf: tasks.#Telegraf & {
-			#taskArgs: {
-				namespace:      #args.namespace
-				name:           "faucet"
-				prometheusPort: "metrics"
-			}
+			#namespace:      namespace
+			#name:           "faucet"
+			#prometheusPort: "metrics"
 		}
 	}
 }
