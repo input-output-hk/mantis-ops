@@ -919,6 +919,8 @@ let
 
     mantis.blockchains.testnet-internal-nomad.ecip1098-block-number = 0
     mantis.blockchains.testnet-internal-nomad.ecip1097-block-number = 0
+    mantis.blockchains.testnet-internal-nomad.eip161-block-number = 0
+
     mantis.blockchains.testnet-internal-nomad.allowed-miners = []
 
     ${extraConfig}

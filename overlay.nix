@@ -61,10 +61,16 @@ in {
 
   morpho-node = inputs.morpho-node.morpho-node.${system};
 
-  iele = final.callPackage ./pkgs/iele.nix { };
+  mantis-kevm-src = builtins.fetchGit {
+    url = "https://github.com/input-output-hk/mantis";
+    ref = "develop";
+    rev = "e8af13b5a237560b0186b231dfeefb7990bdfd1a";
+    submodules = true;
+  };
 
-  jre_15_headless =
-    inputs.nixpkgs-unstable.legacyPackages.${system}.jre_headless;
+  mantis-kevm = import final.mantis-kevm-src { system = final.system; };
+
+  iele = final.callPackage ./pkgs/iele.nix { };
 
   generate-mantis-keys = final.writeBashBinChecked "generate-mantis-keys" ''
     export PATH="${

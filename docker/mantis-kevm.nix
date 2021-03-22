@@ -1,7 +1,21 @@
-{ lib, domain, mkEnv, dockerTools, writeShellScript, debugUtils, awscli }:
+{ lib, domain, mkEnv, dockerTools, writeShellScript, debugUtils, awscli
+, mantis-kevm, kevm, diffutils, gnused, gawk, coreutils, gnugrep, procps }:
 let
   entrypoint = writeShellScript "mantis" ''
     set -exuo pipefail
+
+    export PATH="${
+      lib.makeBinPath [
+        diffutils
+        coreutils
+        mantis-kevm
+        awscli
+        gnugrep
+        procps
+        gnused
+        gawk
+      ]
+    }"
 
     mkdir -p /tmp
     mkdir -p "$NOMAD_TASK_DIR/mantis"
@@ -63,24 +77,10 @@ let
     done
   '';
 
-  mantis-kevm-base = dockerTools.pullImage {
-    imageName = "inputoutput/mantis";
-    imageDigest =
-      "sha256:5d4cc1522aec793e3cb008c99720bdedde80ef004a102315ee7f3a9450abda5a";
-    sha256 = "sha256-al6HE7E6giVTMCI7nOw3mc85NPEgzc3GEohDvfJFVnA=";
-    finalImageTag = "2020-kevm";
-    finalImageName = "inputoutput/mantis";
-  };
-
-  mantis-kevm-deps = dockerTools.buildImage {
-    name = "docker.${domain}/mantis-kevm-deps";
-    fromImage = mantis-kevm-base;
-    contents = debugUtils ++ [ awscli ];
-  };
 in {
-  mantis-kevm = dockerTools.buildImage {
+  mantis-kevm = dockerTools.buildLayeredImage {
     name = "docker.${domain}/mantis-kevm";
-    fromImage = mantis-kevm-deps;
+    contents = debugUtils ++ [ mantis-kevm kevm ];
     config.Entrypoint = [ entrypoint ];
   };
 }
