@@ -86,6 +86,7 @@ in {
         tree
         vault-bin
         which
+        cue
       ])
     }"
 

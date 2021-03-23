@@ -33,6 +33,7 @@ in {
     mantis-iele.description = "IELE";
     mantis-kevm.description = "KEVM";
     mantis-radek.description = "KEVM Radek";
+    mantis-cue.description = "CUE";
   };
 
   cluster = {

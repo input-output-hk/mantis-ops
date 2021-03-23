@@ -11,20 +11,6 @@ tmpdir="$(mktemp -d)"
 
 set +e
 
-read -r -d '' genesis <<JSON
-{
-  "extraData": "0x00",
-  "nonce": "0x0000000000000042",
-  "gasLimit": "0x7A1200",
-  "difficulty": "0xF4240",
-  "ommersHash" : "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
-  "timestamp": "0x5FA34080",
-  "coinbase": "0x0000000000000000000000000000000000000000",
-  "mixHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
-  "alloc": {}
-}
-JSON
-
 read -r -d '' mantisConfigHocon <<"HOCON"
 logging = {
   json-output = false
@@ -53,6 +39,8 @@ prefix="$1"
 desired="$(($2 - 1))"
 desiredObft="$(($3 - 1))"
 mkdir -p secrets/"$prefix"
+
+genesis="$(cue export | jq --arg prefix "$prefix" '.geneses[$prefix]')"
 
 echo "generating $((desired + 1)) keys"
 
@@ -94,7 +82,6 @@ genesisPath="kv/nomad-cluster/$prefix/genesis"
 nodes="$(seq -f "mantis-%g" 0 "$desired"; seq -f "obft-node-%g" 0 "$desiredObft")"
 for node in $nodes; do
 	mantisKeyFile="secrets/$prefix/mantis-$node.key"
-	coinbaseFile="secrets/$prefix/$node.coinbase"
 	coinbasePath="kv/nomad-cluster/$prefix/$node/coinbase"
 	mantisSecretKeyPath="kv/nomad-cluster/$prefix/$node/secret-key"
 	hashKeyPath="kv/nomad-cluster/$prefix/$node/enode-hash"

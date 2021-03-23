@@ -137,6 +137,8 @@ import (
 		include "/conf/base.conf"
 		include "/conf/\(#network).conf"
 
+		\(#mantisBaseConfig)
+
 		logging.json-output = false
 		logging.logs-file = "logs"
 
@@ -183,20 +185,20 @@ import (
 			<configuration>
 				<property name="stdoutEncoderPattern" value="%d [%logger{36}] - %msg%n" />
 				<property name="fileEncoderPattern" value="%d [%thread] %-5level %logger{36} %X{akkaSource} - %msg%n" />
-				
+
 				<!--read properties from application.conf-->
 				<newRule pattern="*/load" actionClass="io.iohk.ethereum.utils.LoadFromApplicationConfiguration"/>
 				<load key="logging.json-output" as="ASJSON"/>
 				<load key="logging.logs-dir" as="LOGSDIR"/>
 				<load key="logging.logs-file" as="LOGSFILENAME"/>
 				<load key="logging.logs-level" as="LOGSLEVEL"/>
-				
+
 				<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
 					<encoder>
 						<pattern>''${stdoutEncoderPattern}</pattern>
 					</encoder>
 				</appender>
-				
+
 				<appender name="STASH" class="ch.qos.logback.core.ConsoleAppender">
 					<encoder class="net.logstash.logback.encoder.LogstashEncoder">
 						<customFields>{"hostname":"''${HOSTNAME}"}</customFields>
@@ -206,7 +208,7 @@ import (
 						</fieldNames>
 					</encoder>
 				</appender>
-				
+
 				<appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
 					<file>''${LOGSDIR}/''${LOGSFILENAME}.log</file>
 					<append>true</append>
@@ -222,9 +224,9 @@ import (
 						<pattern>''${fileEncoderPattern}</pattern>
 					</encoder>
 				</appender>
-				
+
 				<appender name="METRICS" class="io.prometheus.client.logback.InstrumentedAppender" />
-				
+
 				<root level="''${LOGSLEVEL}">
 					<if condition='p("ASJSON").contains("true")'>
 						<then>
@@ -237,7 +239,7 @@ import (
 					<appender-ref ref="FILE" />
 					<appender-ref ref="METRICS" />
 				</root>
-				
+
 				<logger name="io.netty" level="WARN"/>
 				<logger name="io.iohk.scalanet" level="INFO" />
 				<logger name="io.iohk.ethereum.blockchain.sync.SyncController" level="INFO" />

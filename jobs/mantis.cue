@@ -60,7 +60,7 @@ import (
 		let super = {role: #role, network: #network, extraConfig: #extraConfig}
 		task: mantis: tasks.#Mantis & {
 			#namespace:   namespace
-			#flake:       "github:input-output-hk/mantis?rev=\(#mantisRev)#mantis"
+			#flake:       "github:input-output-hk/mantis?rev=\(#mantisRev)#mantis-entrypoint"
 			#role:        super.role
 			#network:     super.network
 			#extraConfig: super.extraConfig
