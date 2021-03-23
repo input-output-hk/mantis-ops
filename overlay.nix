@@ -27,13 +27,6 @@ in {
     submodules = true;
   };
 
-  mantis-staging-source = builtins.fetchGit {
-    url = "https://github.com/input-output-hk/mantis";
-    rev = "559e8cd53926bcabe3f9c7ebe4870cee3c8f4843";
-    ref = "feature/ETCM-389";
-    submodules = true;
-  };
-
   mantis-faucet-source = builtins.fetchGit {
     url = "https://github.com/input-output-hk/mantis";
     rev = "07e617cdd1bfc76ad1a8472305f0e5e60e2801e1";
@@ -45,10 +38,9 @@ in {
 
   mantis = import final.mantis-source { inherit system; };
 
-  mantis-staging = import final.mantis-staging-source {
-    src = final.mantis-staging-source;
-    inherit system;
-  };
+  mantis-staging-source = self.inputs.mantis-staging;
+
+  mantis-staging = self.inputs.mantis-staging.defaultPackage.${system};
 
   mantis-faucet = import final.mantis-faucet-source { inherit system; };
 
