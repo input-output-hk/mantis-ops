@@ -15,6 +15,7 @@ import (
 	#miners: []
 	#amountOfMorphoNodes: 5
 	#requiredPeerCount:   len(#miners)
+	#extraConfig:         string | *""
 
 	driver: "exec"
 
@@ -163,6 +164,7 @@ import (
 		}
 
 		\(#miningConf)
+		\(#extraConfig)
 		"""
 	}
 

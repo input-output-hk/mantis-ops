@@ -49,74 +49,71 @@ import (
 	"mantis-evm": {
 		args: {
 			#fqdn: "-evm.\(#domain)"
+			#extraConfig: """
+				mantis.consensus {
+				  protocol = "ethash"
+				}
+				mantis.vm {
+				  mode = "internal"
+				}
+				"""
 		}
 		jobs: {
 			explorer: #explorer
 			faucet:   #faucet
-			miner:    #miner & {
-				#extraConfig: """
-					mantis.consensus {
-					  protocol = "ethash"
-					}
-					mantis.vm {
-					  mode = "internal"
-					}
-					"""
-			}
-			passive: #passive
+			miner:    #miner
+			passive:  #passive
 		}
 	}
 
 	"mantis-iele": {
 		args: {
 			#fqdn: "-iele.\(#domain)"
+			#extraConfig: """
+				mantis.vm {
+				  mode = "external"
+				  external {
+				    vm-type = "kevm"
+				    run-vm = true
+				    executable-path = "/bin/kevm-vm"
+				    host = "127.0.0.1"
+				    port = {{ env "NOMAD_PORT_vm" }}
+				  }
+				}
+				"""
 		}
 		jobs: {
 			explorer: #explorer
 			faucet:   #faucet
-			miner:    #miner & {
-				#extraConfig: """
-					mantis.vm {
-					  mode = "external"
-					  external {
-					    vm-type = "kevm"
-					    run-vm = true
-					    executable-path = "/bin/kevm-vm"
-					    host = "127.0.0.1"
-					    port = {{ env "NOMAD_PORT_vm" }}
-					  }
-					}
-					"""
-			}
-			passive: #passive
+			miner:    #miner
+			passive:  #passive
 		}
 	}
 
 	"mantis-kevm": {
 		args: {
 			#fqdn: "-kevm.\(#domain)"
+			#extraConfig: """
+				mantis.consensus {
+				  protocol = "restricted-ethash"
+				}
+				mantis.vm {
+				  mode = "external"
+				  external {
+				    vm-type = "kevm"
+				    run-vm = true
+				    executable-path = "/bin/kevm-vm"
+				    host = "127.0.0.1"
+				    port = {{ env "NOMAD_PORT_vm" }}
+				  }
+				}
+				"""
 		}
 		jobs: {
 			explorer: #explorer
 			faucet:   #faucet
-			miner:    #miner & {
-				#extraConfig: """
-					mantis.consensus {
-					  protocol = "restricted-ethash"
-					}
-					mantis.vm {
-					  mode = "external"
-					  external {
-					    vm-type = "kevm"
-					    run-vm = true
-					    executable-path = "/bin/kevm-vm"
-					    host = "127.0.0.1"
-					    port = {{ env "NOMAD_PORT_vm" }}
-					  }
-					}
-					"""
-			}
-			passive: #passive
+			miner:    #miner
+			passive:  #passive
 		}
 	}
 }
