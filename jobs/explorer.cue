@@ -6,11 +6,11 @@ import (
 )
 
 #Explorer: types.#stanza.job & {
-	#fqdn:             string
-	#mantisOpsRev:     types.#gitRevision
-	#mantisOpsRevPass: #mantisOpsRev
-	#network:          string
-	#name:             "\(namespace)-explorer"
+	#fqdn:      string
+	#id:        string
+	#mantisRev: types.#gitRevision
+	#network:   string
+	#name:      "\(namespace)-explorer"
 
 	namespace: string
 	type:      "service"
@@ -59,7 +59,7 @@ import (
 
 		task: explorer: tasks.#Explorer & {
 			#upstreamServiceName: "\(namespace)-mantis-passive-rpc"
-			#flake:               "github:input-output-hk/mantis-ops?rev=\(#mantisOpsRev)#mantis-explorer-nginx"
+			#flake:               "github:input-output-hk/mantis?rev=\(#mantisRev)#mantis-explorer-\(#id)"
 		}
 	}
 }

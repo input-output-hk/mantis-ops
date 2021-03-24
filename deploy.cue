@@ -40,19 +40,14 @@ geneses: {
 }
 
 #defaults: {
-	mantisOpsRev: "a765196f47acf6ada8156e29b6cac1c561fb4692"
-	mantisRev:    "a338dcf27226df147015997288efa5b61ce3fdc7"
+	mantisRev: "993280b1e15d6460492ad432cf1d52979bc667ef"
 }
 
 #domain: "portal.dev.cardano.org"
 
-#explorer: jobDef.#Explorer & {
-	#mantisOpsRev: #defaults.mantisOpsRev
-}
+#explorer: jobDef.#Explorer
 
-#faucet: jobDef.#Faucet & {
-	#mantisOpsRev: #defaults.mantisOpsRev
-}
+#faucet: jobDef.#Faucet
 
 #miner: jobDef.#Mantis & {
 	#count: 5
@@ -67,13 +62,14 @@ geneses: {
 #namespaces: {
 	"mantis-evm": {
 		args: {
-			#fqdn:        "-evm.\(#domain)"
+			#id:          "evm"
+			#fqdn:        "-\(#id).\(#domain)"
 			#mantisRev:   #defaults.mantisRev
 			#extraConfig: """
 				mantis.blockchains.testnet-internal-nomad.ecip1098-block-number = 0
 				mantis.blockchains.testnet-internal-nomad.ecip1097-block-number = 0
 				mantis.blockchains.testnet-internal-nomad.eip161-block-number = 0
-				mantis.blockchains.testnet-internal-nomad.chain-id = "\(geneses["mantis-evm"].nonce)"
+				mantis.blockchains.testnet-internal-nomad.chain-id = "\(geneses["mantis-"+#id].nonce)"
 				mantis.sync.broadcast-new-block-hashes = true
 
 				mantis.consensus {
@@ -99,13 +95,14 @@ geneses: {
 
 	"mantis-iele": {
 		args: {
-			#fqdn:        "-iele.\(#domain)"
+			#id:          "iele"
+			#fqdn:        "-\(#id).\(#domain)"
 			#mantisRev:   #defaults.mantisRev
 			#extraConfig: """
 				mantis.blockchains.testnet-internal-nomad.ecip1098-block-number = 0
 				mantis.blockchains.testnet-internal-nomad.ecip1097-block-number = 0
 				mantis.blockchains.testnet-internal-nomad.eip161-block-number = 0
-				mantis.blockchains.testnet-internal-nomad.chain-id = "\(geneses["mantis-iele"].nonce)"
+				mantis.blockchains.testnet-internal-nomad.chain-id = "\(geneses["mantis-"+#id].nonce)"
 				mantis.sync.broadcast-new-block-hashes = true
 
 				mantis.consensus {
@@ -134,13 +131,14 @@ geneses: {
 
 	"mantis-kevm": {
 		args: {
-			#fqdn:        "-kevm.\(#domain)"
+			#id:          "kevm"
+			#fqdn:        "-\(#id).\(#domain)"
 			#mantisRev:   #defaults.mantisRev
 			#extraConfig: """
 				mantis.blockchains.testnet-internal-nomad.ecip1098-block-number = 0
 				mantis.blockchains.testnet-internal-nomad.ecip1097-block-number = 0
 				mantis.blockchains.testnet-internal-nomad.eip161-block-number = 0
-				mantis.blockchains.testnet-internal-nomad.chain-id = "\(geneses["mantis-kevm"].nonce)"
+				mantis.blockchains.testnet-internal-nomad.chain-id = "\(geneses["mantis-"+#id].nonce)"
 				mantis.sync.broadcast-new-block-hashes = true
 
 				mantis.consensus {

@@ -7,13 +7,13 @@ import (
 )
 
 #Faucet: types.#stanza.job & {
-	#fqdn:         string
-	#wallet:       =~"mantis-\\d+" | *"mantis-0"
-	#mantisOpsRev: types.#gitRevision
-	#mantisRev:    types.#gitRevision
-	#network:      string
-	#name:         "\(namespace)-faucet"
-	#extraConfig:  string
+	#fqdn:        string
+	#id:          string
+	#wallet:      =~"mantis-\\d+" | *"mantis-0"
+	#mantisRev:   types.#gitRevision
+	#network:     string
+	#name:        "\(namespace)-faucet"
+	#extraConfig: string
 
 	datacenters: list.MinItems(1)
 	namespace:   string
@@ -96,7 +96,7 @@ import (
 		}
 
 		task: nginx: tasks.#FaucetNginx & {
-			#flake:               "github:input-output-hk/mantis-ops?rev=\(#mantisOpsRev)#mantis-faucet-nginx"
+			#flake:               "github:input-output-hk/mantis?rev=\(#mantisRev)#mantis-faucet-web-\(#id)"
 			#upstreamServiceName: "\(#name)-rpc"
 		}
 
