@@ -47,12 +47,23 @@ import (
 	config: {
 		flake:   #flake
 		command: "/bin/mantis-entrypoint"
-		args: [
-			"-Dconfig.file=/local/running.conf",
-			"-XX:ActiveProcessorCount=2",
-			"-J-Xms512m",
-			"-J-Xmx\(resources.memory)m",
-		]
+		if #role == "faucet" {
+			args: [
+				"-Dconfig.file=/local/running.conf",
+				"-XX:ActiveProcessorCount=2",
+				"-J-Xms512m",
+				"-J-Xmx\(resources.memory)m",
+				"faucet",
+			]
+		}
+		if #role != "faucet" {
+			args: [
+				"-Dconfig.file=/local/running.conf",
+				"-XX:ActiveProcessorCount=2",
+				"-J-Xms512m",
+				"-J-Xmx\(resources.memory)m",
+			]
+		}
 	}
 
 	restart: {
@@ -77,7 +88,6 @@ import (
 	template: "secrets/secret-key": {
 		#prefix:     'kv/data/nomad-cluster/\(#namespace)/mantis-%s'
 		change_mode: "noop"
-		splay:       "15m"
 		data:        """
 		{{ with secret (printf "\(#vaultPrefix)/secret-key" (env "NOMAD_ALLOC_INDEX")) }}{{.Data.data.value}}{{end}}
 		{{ with secret (printf "\(#vaultPrefix)/enode-hash" (env "NOMAD_ALLOC_INDEX")) }}{{.Data.data.value}}{{end}}
@@ -85,12 +95,32 @@ import (
 	}
 
 	template: "secrets/env.txt": {
+		env:         true
+		change_mode: "noop"
 		data: """
 			AWS_ACCESS_KEY_ID="{{with secret "kv/data/nomad-cluster/restic"}}{{.Data.data.aws_access_key_id}}{{end}}"
 			AWS_SECRET_ACCESS_KEY="{{with secret "kv/data/nomad-cluster/restic"}}{{.Data.data.aws_secret_access_key}}{{end}}"
 			"""
-		env:         true
-		change_mode: "noop"
+	}
+
+	if #role == "faucet" {
+		template: "secrets/faucet.txt": {
+			env:         true
+			change_mode: "noop"
+			data:        """
+			COINBASE={{- with secret "kv/data/nomad-cluster/\(#namespace)/\(#wallet)/coinbase" -}}{{ .Data.data.value }}{{- end -}}
+			"""
+		}
+
+		template: "secrets/account": {
+			change_mode: "noop"
+			data:        """
+			{{- with secret "kv/data/nomad-cluster/\(#namespace)/\(#wallet)/account" -}}
+			{{.Data.data | toJSON }}
+			{{- end -}}
+			"""
+		}
+
 	}
 
 	template: "local/mantis.conf": {
@@ -117,84 +147,80 @@ import (
 		if #role == "faucet" {
 			#roleConf: """
 			mantis.consensus.mining-enabled = false
-			mantis.network.rpc {
-			  http {
-			    mode = "http"
-			    enabled = true
-			    interface = "0.0.0.0"
-			    port = {{ env "NOMAD_PORT_rpc" }}
-			    certificate = null
-			    cors-allowed-origins = "*"
-			    rate-limit {
-			      enabled = true
-			      latest-timestamp-cache-size = 1024
-			      min-request-interval = 24.hours
-			    }
-			  }
-
-			  ipc {
-			    enabled = false
-			    socket-file = "/local/mantis-faucet/faucet.ipc"
-			  }
-			}
-
 			faucet {
+			  # Base directory where all the data used by the fauced is stored
 			  datadir = "/local/mantis-faucet"
-
+			
 			  # Wallet address used to send transactions from
 			  {{ with secret "kv/nomad-cluster/\(#namespace)/\(#wallet)/coinbase" }}
 			  wallet-address = "{{.Data.data.value}}"
 			  {{ end }}
-
+			
 			  # Password to unlock faucet wallet
 			  wallet-password = ""
-
+			
 			  # Path to directory where wallet key is stored
-			  keystore-dir = /secrets/keystore
-
+			  keystore-dir = "/secrets/keystore"
+			
 			  # Transaction gas price
 			  tx-gas-price = 20000000000
-
+			
 			  # Transaction gas limit
 			  tx-gas-limit = 90000
-
+			
 			  # Transaction value
 			  tx-value = 1000000000000000000
-
-			  rpc-client {
-			    # Address of Ethereum node used to send the transaction
-			    {{ range service "\(#wallet).\(#namespace)-mantis-miner-rpc" }}
-			    rpc-address = "http://{{ .Address }}:{{ .Port }}"
-			    {{ end }}
-
-			    # certificate of Ethereum node used to send the transaction when use HTTP(S)
-			    certificate = null
-
-			    # Response time-out from rpc client resolve
-			    timeout = 3.seconds
-			  }
-
+			
+			  # Address of Ethereum node used to send the transaction
+				{{ range service "\(#wallet).\(#namespace)-mantis-miner-rpc" }}
+				rpc-address = "http://{{ .Address }}:{{ .Port }}"
+				{{ end }}
+			
 			  # How often can a single IP address send a request
 			  min-request-interval = 1.minute
-
+			
 			  # Response time-out to get handler actor
 			  handler-timeout = 1.seconds
-
+			
 			  # Response time-out from actor resolve
-			  actor-communication-margin = 1.seconds
-
+			  response-timeout = 3.seconds
+			
 			  # Supervisor with BackoffSupervisor pattern
 			  supervisor {
 			    min-backoff = 3.seconds
-			    max-backoff = 30.seconds
+			    man-backoff = 30.seconds
 			    random-factor = 0.2
 			    auto-reset = 10.seconds
 			    attempts = 4
 			    delay = 0.1
 			  }
-
+			
 			  # timeout for shutting down the ActorSystem
 			  shutdown-timeout = 15.seconds
+			}
+			
+			mantis {
+			  network {
+			    rpc {
+			      http {
+			        mode = "http"
+			        enabled = false
+			        interface = "0.0.0.0"
+				      port = {{ env "NOMAD_PORT_rpc" }}
+			        certificate-keystore-path = null
+			        certificate-keystore-type = null
+			        certificate-password-file = null
+			        cors-allowed-origins = "*"
+			      }
+			
+			      ipc {
+			        enabled = false
+			        socket-file = ${faucet.datadir}"/mantis.ipc"
+			      }
+			
+			      apis = "faucet"
+			    }
+			  }
 			}
 			"""
 		}
@@ -207,23 +233,15 @@ import (
 
 		if #network == "testnet-internal-nomad" {
 			#networkConf: """
-			blockchains.testnet-internal-nomad = {
-				custom-genesis-file = "/local/genesis.json"
-				allowed-miners = []
-
-				bootstrap-nodes = [
-					{{ range service "\(#namespace)-mantis-miner" -}}
-						"enode://  {{- with secret (printf "kv/data/nomad-cluster/\(#namespace)/%s/enode-hash" .ServiceMeta.Name) -}}
-							{{- .Data.data.value -}}
-							{{- end -}}@{{ .Address }}:{{ .Port }}",
-					{{ end -}}
-				]
-			}
-			"""
+				blockchains.testnet-internal-nomad = {
+					custom-genesis-file = "/local/genesis.json"
+					allowed-miners = []
+				}
+				"""
 		}
 
 		change_mode: "noop"
-		splay:       "15m"
+		splay:       "30m"
 		data:        """
 		include "/conf/base.conf"
 		include "/conf/\(#network).conf"

@@ -79,14 +79,14 @@ import (
 						"rpc",
 						"ingress",
 						"traefik.enable=true",
-						"traefik.http.routers.\(namespace)-mantis-\(#role).rule=Host(`\(#role)\(#fqdn)`)",
+						"traefik.http.routers.\(namespace)-mantis-\(#role).rule=Host(`rpc\(#fqdn)`)",
 						"traefik.http.routers.\(namespace)-mantis-\(#role).entrypoints=https",
 						"traefik.http.routers.\(namespace)-mantis-\(#role).tls=true",
 				] + #baseTags
 			}
 		}
 
-		if #role == "server" {
+		if #role == "miner" {
 			service: "\(namespace)-mantis-\(#role)-rpc": {
 				address_mode: "host"
 				port:         "rpc"
