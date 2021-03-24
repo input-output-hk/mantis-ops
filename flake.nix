@@ -11,8 +11,8 @@
     utils.url = "github:numtide/flake-utils";
     ops-lib.url = "github:input-output-hk/ops-lib/zfs-image?dir=zfs";
     inclusive.follows = "bitte/inclusive";
-    mantis-staging.url = "github:input-output-hk/mantis/develop";
-    morpho-node.url = "github:input-output-hk/ECIP-Checkpointing/improved-tracing";
+    mantis-staging.url = "github:input-output-hk/mantis/ETCM-389";
+    morpho-node.url = "github:input-output-hk/ECIP-Checkpointing/master";
     mantis-explorer.url = "github:input-output-hk/mantis-explorer";
     mantis-faucet-web.url =
       "github:input-output-hk/mantis-faucet-web/nix-build";

@@ -101,9 +101,24 @@
         "type": "github"
       }
     },
+    "flake-utils_3": {
+      "locked": {
+        "lastModified": 1614513358,
+        "narHash": "sha256-LakhOx3S1dRjnh0b5Dg3mbZyH0ToC9I8Y2wKSkBaTzU=",
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "rev": "5466c5bbece17adaab2d82fae80b46e807611bf3",
+        "type": "github"
+      },
+      "original": {
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "type": "github"
+      }
+    },
     "haskell-nix": {
       "inputs": {
-        "nixpkgs": "nixpkgs_6",
+        "nixpkgs": "nixpkgs_7",
         "nixpkgs-2003": "nixpkgs-2003",
         "nixpkgs-2009": "nixpkgs-2009",
         "nixpkgs-unstable": "nixpkgs-unstable"
@@ -196,22 +211,43 @@
         "type": "github"
       }
     },
+    "mantis-staging": {
+      "inputs": {
+        "flake-utils": "flake-utils_3",
+        "nixpkgs": "nixpkgs_6",
+        "sbt-derivation": "sbt-derivation"
+      },
+      "locked": {
+        "lastModified": 1616518070,
+        "narHash": "sha256-5wejduXepn06wiHkis4XQ5P5txqdy6SmkTWSgJ6mKjM=",
+        "owner": "input-output-hk",
+        "repo": "mantis",
+        "rev": "559e8cd53926bcabe3f9c7ebe4870cee3c8f4843",
+        "type": "github"
+      },
+      "original": {
+        "owner": "input-output-hk",
+        "ref": "ETCM-389",
+        "repo": "mantis",
+        "type": "github"
+      }
+    },
     "morpho-node": {
       "inputs": {
         "haskell-nix": "haskell-nix",
         "utils": "utils_4"
       },
       "locked": {
-        "lastModified": 1616016861,
-        "narHash": "sha256-M3fAmI1d5wUTTps9g/IMtxXcDQ9Wuvp/F82BZIM9p2U=",
+        "lastModified": 1616436332,
+        "narHash": "sha256-k3q9QL9k0tS4TsdEUZ17nRO/lbfz2mJYK/m1W2Qyk9U=",
         "owner": "input-output-hk",
         "repo": "ECIP-Checkpointing",
-        "rev": "f1354373effd8ec3f396f3f7625501d72503d921",
+        "rev": "58953a07e60ce6ce659f1736d8b2f1f73e019766",
         "type": "github"
       },
       "original": {
         "owner": "input-output-hk",
-        "ref": "improved-tracing",
+        "ref": "master",
         "repo": "ECIP-Checkpointing",
         "type": "github"
       }
@@ -371,6 +407,22 @@
     },
     "nixpkgs_6": {
       "locked": {
+        "lastModified": 1610118011,
+        "narHash": "sha256-a17vwGBOqmAsy/Wkvf10ygDyfgjJpvlPyNnf7SAk+Ac=",
+        "owner": "nixos",
+        "repo": "nixpkgs",
+        "rev": "a98302aa9b9628915878a6ea9776c40a0bb02950",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nixos",
+        "repo": "nixpkgs",
+        "rev": "a98302aa9b9628915878a6ea9776c40a0bb02950",
+        "type": "github"
+      }
+    },
+    "nixpkgs_7": {
+      "locked": {
         "lastModified": 1608007629,
         "narHash": "sha256-lipVFC/a2pzzA5X2ULj64je+fz1JIp2XRrB5qyoizpQ=",
         "owner": "NixOS",
@@ -449,6 +501,7 @@
         ],
         "mantis-explorer": "mantis-explorer",
         "mantis-faucet-web": "mantis-faucet-web",
+        "mantis-staging": "mantis-staging",
         "morpho-node": "morpho-node",
         "nixpkgs": [
           "bitte",
@@ -460,6 +513,21 @@
           "terranix"
         ],
         "utils": "utils_5"
+      }
+    },
+    "sbt-derivation": {
+      "locked": {
+        "lastModified": 1602145051,
+        "narHash": "sha256-P71MgJhJoTYba/5fI5xYeKuh/dpQuqlXp3REArciJ58=",
+        "owner": "zaninime",
+        "repo": "sbt-derivation",
+        "rev": "9666b2b589ed68823fff1cefa4cd8a8ab54956c1",
+        "type": "github"
+      },
+      "original": {
+        "owner": "zaninime",
+        "repo": "sbt-derivation",
+        "type": "github"
       }
     },
     "stdlib": {
