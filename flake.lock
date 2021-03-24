@@ -8,17 +8,18 @@
         "nix": "nix",
         "nixpkgs": "nixpkgs_3",
         "nixpkgs-terraform": "nixpkgs-terraform",
+        "nixpkgs-unstable": "nixpkgs-unstable",
         "nomad-source": "nomad-source",
         "ops-lib": "ops-lib",
         "terranix": "terranix",
         "utils": "utils_2"
       },
       "locked": {
-        "lastModified": 1615565740,
-        "narHash": "sha256-PG3pYCPt2YsYFwlGfAG0phtnBEiIIrQv1SgL03Kn8wQ=",
+        "lastModified": 1616592378,
+        "narHash": "sha256-LpjifoqP1ETbJOSJBHn3LfSGNrJXVp3vBpidnViQRHQ=",
         "owner": "input-output-hk",
         "repo": "bitte",
-        "rev": "04079a789c8aac8baab3814ea4adca9aef2bc9f8",
+        "rev": "78715b8a0e3e53ef9a92f5db76d11227f3a8f455",
         "type": "github"
       },
       "original": {
@@ -34,16 +35,15 @@
         "utils": "utils"
       },
       "locked": {
-        "lastModified": 1615450146,
-        "narHash": "sha256-+G6OAsOgNoc4peDwenA6my72ZHVVFvk+X3BZAQrzG5o=",
+        "lastModified": 1616148874,
+        "narHash": "sha256-hMFh/KNvlawaepqTRHJQDRGQntJAlQgmMSUOQPRV/u8=",
         "owner": "input-output-hk",
         "repo": "bitte-cli",
-        "rev": "c24c33a8e885211e363ebf780e56f6c33a983bd7",
+        "rev": "1d07591e0f859f7573a52093748fe160719c9f09",
         "type": "github"
       },
       "original": {
         "owner": "input-output-hk",
-        "ref": "nur-rost",
         "repo": "bitte-cli",
         "type": "github"
       }
@@ -98,7 +98,7 @@
         "nixpkgs": "nixpkgs_7",
         "nixpkgs-2003": "nixpkgs-2003",
         "nixpkgs-2009": "nixpkgs-2009",
-        "nixpkgs-unstable": "nixpkgs-unstable"
+        "nixpkgs-unstable": "nixpkgs-unstable_2"
       },
       "locked": {
         "lastModified": 1614647811,
@@ -312,6 +312,22 @@
     },
     "nixpkgs-unstable": {
       "locked": {
+        "lastModified": 1616259034,
+        "narHash": "sha256-WlMIiGIXJm7J+jemzd+ksoun6znWmabCZNz76szV158=",
+        "owner": "nixos",
+        "repo": "nixpkgs",
+        "rev": "4e0d3868c679da20108db402785f924daa1a7fb5",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nixos",
+        "ref": "nixpkgs-unstable",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "nixpkgs-unstable_2": {
+      "locked": {
         "lastModified": 1612284693,
         "narHash": "sha256-efzJNF1jvjK3BMl0gZ0ZaUWcFMv0nLb9AHN/++5+u0U=",
         "owner": "NixOS",
@@ -326,7 +342,7 @@
         "type": "github"
       }
     },
-    "nixpkgs-unstable_2": {
+    "nixpkgs-unstable_3": {
       "locked": {
         "lastModified": 1614792312,
         "narHash": "sha256-LSUtjvYOxcSP1ewymGYp4AawiWDISKZHuCTxsaXir4k=",
@@ -498,7 +514,7 @@
           "bitte",
           "nixpkgs"
         ],
-        "nixpkgs-unstable": "nixpkgs-unstable_2",
+        "nixpkgs-unstable": "nixpkgs-unstable_3",
         "ops-lib": "ops-lib_2",
         "terranix": [
           "bitte",
