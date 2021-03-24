@@ -431,7 +431,7 @@ package tasks
 
 	      # Custom genesis JSON file path
 	      # null value indicates using default genesis definition that matches the main network
-	      custom-genesis-file = "chains/testnet-internal-nomad-genesis.json"
+	      custom-genesis-file = "/local/genesis.json"
 
 	      # Monetary policy parameters
 	      # Doc: https://github.com/ethereumproject/ECIPs/blob/master/ECIPs/ECIP-1017.md

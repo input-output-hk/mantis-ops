@@ -8,10 +8,12 @@ import (
 
 #Faucet: types.#stanza.job & {
 	#fqdn:         string
-	#wallet:       string | *"mantis-1"
+	#wallet:       =~"mantis-\\d+" | *"mantis-0"
 	#mantisOpsRev: types.#gitRevision
+	#mantisRev:    types.#gitRevision
 	#network:      string
 	#name:         "\(namespace)-faucet"
+	#extraConfig:  string
 
 	datacenters: list.MinItems(1)
 	namespace:   string
@@ -33,10 +35,12 @@ import (
 		network: {
 			mode: "host"
 			port: {
+				discovery: {}
 				metrics: {}
-				rpc: {}
 				nginx: {}
+				rpc: {}
 				server: {}
+				vm: {}
 			}
 		}
 
@@ -47,7 +51,7 @@ import (
 
 			tags: ["ingress", "faucet", namespace, #name,
 				"traefik.enable=true",
-				"traefik.http.routers.\(namespace)-faucet-rpc.rule=Host(`\(#name).\(#fqdn)`)",
+				"traefik.http.routers.\(namespace)-faucet-rpc.rule=Host(`faucet\(#fqdn)`)",
 				"traefik.http.routers.\(namespace)-faucet-rpc.entrypoints=https",
 				"traefik.http.routers.\(namespace)-faucet-rpc.tls=true",
 			]
@@ -72,7 +76,7 @@ import (
 
 			tags: ["ingress", "faucet", namespace, #name,
 				"traefik.enable=true",
-				"traefik.http.routers.\(namespace)-faucet-nginx.rule=Host(`\(#name)-web.\(#fqdn)`)",
+				"traefik.http.routers.\(namespace)-faucet-nginx.rule=Host(`faucet-web\(#fqdn)`)",
 				"traefik.http.routers.\(namespace)-faucet-nginx.entrypoints=https",
 				"traefik.http.routers.\(namespace)-faucet-nginx.tls=true",
 			]
@@ -96,11 +100,14 @@ import (
 			#upstreamServiceName: "\(#name)-rpc"
 		}
 
-		let walletRef = #wallet
-		task: mantis: tasks.#FaucetServer & {
-			#flake:     "github:input-output-hk/mantis-ops?rev=\(#mantisOpsRev)#mantis-faucet-server"
-			#namespace: namespace
-			#wallet:    walletRef
+		let ref = {wallet: #wallet, network: #network, extraConfig: #extraConfig}
+		task: mantis: tasks.#Mantis & {
+			#flake:       "github:input-output-hk/mantis?rev=\(#mantisRev)#mantis-entrypoint"
+			#namespace:   namespace
+			#network:     ref.network
+			#role:        "faucet"
+			#wallet:      ref.wallet
+			#extraConfig: ref.extraConfig
 		}
 
 		task: promtail: tasks.#Promtail

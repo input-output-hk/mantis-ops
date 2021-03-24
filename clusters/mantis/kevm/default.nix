@@ -10,7 +10,7 @@ let
   bitte = self.inputs.bitte;
 
 in {
-  imports = [ ./iam.nix ];
+  imports = [ ./iam.nix ./nix.nix ];
 
   services.consul.policies.developer.servicePrefix."mantis-" = {
     policy = "write";
@@ -83,8 +83,7 @@ in {
           ];
 
           securityGroupRules = {
-            inherit (securityGroupRules)
-              internet internal ssh mantis-rpc mantis-server;
+            inherit (securityGroupRules) internet internal ssh;
           };
         } // args);
         asgName = "client-${attrs.region}-${
@@ -139,7 +138,13 @@ in {
         privateIP = "172.16.0.20";
         subnet = cluster.vpc.subnets.core-1;
         volumeSize = 600;
-        route53.domains = [ "*.${cluster.domain}" ];
+        route53.domains = [
+          "consul.${cluster.domain}"
+          "docker.${cluster.domain}"
+          "monitoring.${cluster.domain}"
+          "nomad.${cluster.domain}"
+          "vault.${cluster.domain}"
+        ];
 
         modules = [
           (bitte + /profiles/monitoring.nix)
@@ -148,8 +153,21 @@ in {
         ];
 
         securityGroupRules = {
-          inherit (securityGroupRules)
-            internet internal ssh http mantis-server-public;
+          inherit (securityGroupRules) internet internal ssh http;
+        };
+      };
+
+      routing = {
+        instanceType = "t3a.small";
+        privateIP = "172.16.1.20";
+        subnet = cluster.vpc.subnets.core-2;
+        volumeSize = 100;
+        route53.domains = [ "*.${cluster.domain}" ];
+
+        modules = [ ./routing.nix ];
+
+        securityGroupRules = {
+          inherit (securityGroupRules) internet internal ssh http routing;
         };
       };
     };

@@ -89,19 +89,9 @@ in {
       cidrs = internal;
     };
 
-    mantis-rpc = {
-      port = 8546;
-      cidrs = internal;
-    };
-
-    mantis-server = {
-      port = 9076;
-      cidrs = global;
-    };
-
-    mantis-server-public = {
-      from = 9000;
-      to = 9010;
+    routing = {
+      from = 30000;
+      to = 40000;
       cidrs = global;
     };
   };

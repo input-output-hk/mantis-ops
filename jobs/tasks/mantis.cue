@@ -2,26 +2,32 @@ package tasks
 
 import (
 	"github.com/input-output-hk/mantis-ops/pkg/schemas/nomad:types"
-	"list"
-	"strings"
 )
 
 #Mantis: types.#stanza.task & {
 	#namespace: string
-	#role:      "passive" | "miner" | "backup"
+	#role:      "passive" | "miner" | "backup" | "faucet"
 	#mantisRev: string
 	#network:   string
 	#flake:     types.#flake
 	#miners: []
-	#amountOfMorphoNodes: 5
-	#requiredPeerCount:   len(#miners)
-	#extraConfig:         string | *""
+	#wallet:      =~"mantis-\\d+"
+	#extraConfig: string | *""
 
 	driver: "exec"
 
-	resources: {
-		cpu:    7500
-		memory: 5 * 1024
+	if #role == "miner" {
+		resources: {
+			cpu:    7500
+			memory: 4 * 1024
+		}
+	}
+
+	if #role != "miner" {
+		resources: {
+			cpu:    1000
+			memory: 3 * 1024
+		}
 	}
 
 	vault: {
@@ -74,20 +80,10 @@ import (
 	}
 
 	template: "local/mantis.conf": {
-		#checkpointRange: list.Range(1, #amountOfMorphoNodes, 1)
-		#checkpointKeys: [ for n in #checkpointRange {
-			"""
-			{{- with secret "kv/data/nomad-cluster/\(#namespace)/obft-node-\(n)/obft-public-key" -}}
-			"{{- .Data.data.value -}}"
-			{{ end -}}
-			"""
-		}]
-		#checkPointKeysString: strings.Join(#checkpointKeys, ",")
-
-		#miningConf: string
+		#roleConf: string
 
 		if #role == "miner" {
-			#miningConf: """
+			#roleConf: """
 			mantis = {
 				node-key-file = "/secrets/secret-key"
 				consensus = {
@@ -99,9 +95,95 @@ import (
 		}
 
 		if #role == "passive" {
-			#miningConf: """
+			#roleConf: """
 				mantis.consensus.mining-enabled = false
 				"""
+		}
+
+		if #role == "faucet" {
+			#roleConf: """
+mantis.consensus.mining-enabled = false
+mantis.network.rpc {
+  http {
+    mode = "http"
+    enabled = true
+    interface = "0.0.0.0"
+    port = {{ env "NOMAD_PORT_rpc" }}
+    certificate = null
+    cors-allowed-origins = "*"
+    rate-limit {
+      enabled = true
+      latest-timestamp-cache-size = 1024
+      min-request-interval = 24.hours
+    }
+  }
+
+  ipc {
+    enabled = false
+    socket-file = "/local/mantis-faucet/faucet.ipc"
+  }
+  apis = "faucet"
+}
+
+faucet {
+  datadir = "/local/mantis-faucet"
+
+  # Wallet address used to send transactions from
+  {{ with secret "kv/nomad-cluster/\(#namespace)/\(#wallet)/coinbase" }}
+  wallet-address = "{{.Data.data.value}}"
+  {{ end }}
+
+  # Password to unlock faucet wallet
+  wallet-password = ""
+
+  # Path to directory where wallet key is stored
+  keystore-dir = /secrets/keystore
+
+  # Transaction gas price
+  tx-gas-price = 20000000000
+
+  # Transaction gas limit
+  tx-gas-limit = 90000
+
+  # Transaction value
+  tx-value = 1000000000000000000
+
+  rpc-client {
+    # Address of Ethereum node used to send the transaction
+    {{ range service "\(#wallet).\(#namespace)-mantis-miner-rpc" }}
+    rpc-address = "http://{{ .Address }}:{{ .Port }}"
+    {{ end }}
+
+    # certificate of Ethereum node used to send the transaction when use HTTP(S)
+    certificate = null
+
+    # Response time-out from rpc client resolve
+    timeout = 3.seconds
+  }
+
+  # How often can a single IP address send a request
+  min-request-interval = 1.minute
+
+  # Response time-out to get handler actor
+  handler-timeout = 1.seconds
+
+  # Response time-out from actor resolve
+  actor-communication-margin = 1.seconds
+
+  # Supervisor with BackoffSupervisor pattern
+  supervisor {
+    min-backoff = 3.seconds
+    max-backoff = 30.seconds
+    random-factor = 0.2
+    auto-reset = 10.seconds
+    attempts = 4
+    delay = 0.1
+  }
+
+  # timeout for shutting down the ActorSystem
+  shutdown-timeout = 15.seconds
+}
+"""
 		}
 
 		#networkConf: string
@@ -122,10 +204,6 @@ import (
 							{{- .Data.data.value -}}
 							{{- end -}}@{{ .Address }}:{{ .Port }}",
 					{{ end -}}
-				]
-
-				checkpoint-public-keys = [
-					\(#checkPointKeysString)
 				]
 			}
 			"""
@@ -165,7 +243,7 @@ import (
 			network.discovery.port = {{ env "NOMAD_PORT_discovery" }}
 		}
 
-		\(#miningConf)
+		\(#roleConf)
 		\(#extraConfig)
 		"""
 	}
@@ -177,79 +255,5 @@ import (
 		{{.Data.data | toJSON }}
 		{{- end -}}
 		"""
-	}
-
-	template: "local/logback.xml": {
-		change_mode: "noop"
-		data: """
-			<configuration>
-				<property name="stdoutEncoderPattern" value="%d [%logger{36}] - %msg%n" />
-				<property name="fileEncoderPattern" value="%d [%thread] %-5level %logger{36} %X{akkaSource} - %msg%n" />
-
-				<!--read properties from application.conf-->
-				<newRule pattern="*/load" actionClass="io.iohk.ethereum.utils.LoadFromApplicationConfiguration"/>
-				<load key="logging.json-output" as="ASJSON"/>
-				<load key="logging.logs-dir" as="LOGSDIR"/>
-				<load key="logging.logs-file" as="LOGSFILENAME"/>
-				<load key="logging.logs-level" as="LOGSLEVEL"/>
-
-				<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-					<encoder>
-						<pattern>''${stdoutEncoderPattern}</pattern>
-					</encoder>
-				</appender>
-
-				<appender name="STASH" class="ch.qos.logback.core.ConsoleAppender">
-					<encoder class="net.logstash.logback.encoder.LogstashEncoder">
-						<customFields>{"hostname":"''${HOSTNAME}"}</customFields>
-						<fieldNames>
-							<timestamp>timestamp</timestamp>
-							<version>[ignore]</version>
-						</fieldNames>
-					</encoder>
-				</appender>
-
-				<appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-					<file>''${LOGSDIR}/''${LOGSFILENAME}.log</file>
-					<append>true</append>
-					<rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
-						<fileNamePattern>''${LOGSDIR}/''${LOGSFILENAME}.%i.log.zip</fileNamePattern>
-						<minIndex>1</minIndex>
-						<maxIndex>10</maxIndex>
-					</rollingPolicy>
-					<triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
-						<maxFileSize>10MB</maxFileSize>
-					</triggeringPolicy>
-					<encoder>
-						<pattern>''${fileEncoderPattern}</pattern>
-					</encoder>
-				</appender>
-
-				<appender name="METRICS" class="io.prometheus.client.logback.InstrumentedAppender" />
-
-				<root level="''${LOGSLEVEL}">
-					<if condition='p("ASJSON").contains("true")'>
-						<then>
-							<appender-ref ref="STASH" />
-						</then>
-						<else>
-							<appender-ref ref="STDOUT" />
-						</else>
-					</if>
-					<appender-ref ref="FILE" />
-					<appender-ref ref="METRICS" />
-				</root>
-
-				<logger name="io.netty" level="WARN"/>
-				<logger name="io.iohk.scalanet" level="INFO" />
-				<logger name="io.iohk.ethereum.blockchain.sync.SyncController" level="INFO" />
-				<logger name="io.iohk.ethereum.network.PeerActor" level="''${LOGSLEVEL}" />
-				<logger name="io.iohk.ethereum.network.rlpx.RLPxConnectionHandler" level="''${LOGSLEVEL}" />
-				<logger name="io.iohk.ethereum.vm.VM" level="OFF" />
-				<logger name="org.jupnp.QueueingThreadPoolExecutor" level="WARN" />
-				<logger name="org.jupnp.util.SpecificationViolationReporter" level="TRACE" />
-				<logger name="org.jupnp.protocol.RetrieveRemoteDescriptors" level="ERROR" />
-			</configuration>
-			"""
 	}
 }

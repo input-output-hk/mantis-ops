@@ -37,6 +37,7 @@ import (
 				metrics: {}
 				rpc: {}
 				server: {}
+				vm: {}
 			}
 		}
 
@@ -53,7 +54,7 @@ import (
 
 		task: telegraf: tasks.#Telegraf & {
 			#namespace:      namespace
-			#name:           "\(#role)-${NOMAD_ALLOC_INDEX}"
+			#name:           "\(#role)-{{env \"NOMAD_ALLOC_INDEX\" }}"
 			#prometheusPort: "metrics"
 		}
 
@@ -78,7 +79,7 @@ import (
 						"rpc",
 						"ingress",
 						"traefik.enable=true",
-						"traefik.http.routers.\(namespace)-mantis-\(#role).rule=Host(`\(namespace)-\(#role).\(#fqdn)`)",
+						"traefik.http.routers.\(namespace)-mantis-\(#role).rule=Host(`\(#role)\(#fqdn)`)",
 						"traefik.http.routers.\(namespace)-mantis-\(#role).entrypoints=https",
 						"traefik.http.routers.\(namespace)-mantis-\(#role).tls=true",
 				] + #baseTags

@@ -1,5 +1,5 @@
-{ mkEnv, domain, writeShellScript, dockerTools, restic-backup
-, debugUtils, awscli, cacert, restic }:
+{ mkEnv, domain, writeShellScript, dockerTools, restic-backup, debugUtils
+, awscli, cacert, restic }:
 let
   entrypoint = writeShellScript "restic-backup" ''
     mkdir -p /tmp

@@ -34,7 +34,7 @@ import (
 
 			tags: [namespace, #name, "ingress", "explorer",
 				"traefik.enable=true",
-				"traefik.http.routers.\(namespace)-explorer.rule=Host(`\(namespace)-explorer.\(#fqdn)`)",
+				"traefik.http.routers.\(namespace)-explorer.rule=Host(`explorer\(#fqdn)`)",
 				"traefik.http.routers.\(namespace)-explorer.entrypoints=https",
 				"traefik.http.routers.\(namespace)-explorer.tls=true",
 			]

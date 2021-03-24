@@ -34,14 +34,14 @@ import (
 // => {"evm"=>"0x000000000065766d", "kevm"=>"0x000000006b65766d", "iele"=>"0x0000000069656c65"}
 
 geneses: {
-	"mantis-kevm": #genesis & {nonce: "0x0000000000000d00"}
-	"mantis-evm":  #genesis & {nonce: "0x0000000000000d01"}
-	"mantis-iele": #genesis & {nonce: "0x0000000000000d02"}
+	"mantis-kevm": #genesis & {nonce: "0x0000000000000066"}
+	"mantis-evm":  #genesis & {nonce: "0x0000000000000067"}
+	"mantis-iele": #genesis & {nonce: "0x0000000000000068"}
 }
 
 #defaults: {
 	mantisOpsRev: "a765196f47acf6ada8156e29b6cac1c561fb4692"
-	mantisRev:    "2e75b523b00a9708c0bdc78e4d73e96ec91ae4a3"
+	mantisRev:    "a338dcf27226df147015997288efa5b61ce3fdc7"
 }
 
 #domain: "portal.dev.cardano.org"
@@ -67,12 +67,23 @@ geneses: {
 #namespaces: {
 	"mantis-evm": {
 		args: {
-			#fqdn:      "-evm.\(#domain)"
-			#mantisRev: #defaults.mantisRev
+			#fqdn:        "-evm.\(#domain)"
+			#mantisRev:   #defaults.mantisRev
 			#extraConfig: """
+				mantis.blockchains.testnet-internal-nomad.ecip1098-block-number = 0
+				mantis.blockchains.testnet-internal-nomad.ecip1097-block-number = 0
+				mantis.blockchains.testnet-internal-nomad.eip161-block-number = 0
+				mantis.blockchains.testnet-internal-nomad.chain-id = "\(geneses["mantis-evm"].nonce)"
+				mantis.sync.broadcast-new-block-hashes = true
+
 				mantis.consensus {
 				  protocol = "ethash"
 				}
+
+				mantis.consensus {
+				  protocol = "ethash"
+				}
+
 				mantis.vm {
 				  mode = "internal"
 				}
@@ -88,15 +99,25 @@ geneses: {
 
 	"mantis-iele": {
 		args: {
-			#fqdn:      "-iele.\(#domain)"
-			#mantisRev: #defaults.mantisRev
+			#fqdn:        "-iele.\(#domain)"
+			#mantisRev:   #defaults.mantisRev
 			#extraConfig: """
+				mantis.blockchains.testnet-internal-nomad.ecip1098-block-number = 0
+				mantis.blockchains.testnet-internal-nomad.ecip1097-block-number = 0
+				mantis.blockchains.testnet-internal-nomad.eip161-block-number = 0
+				mantis.blockchains.testnet-internal-nomad.chain-id = "\(geneses["mantis-iele"].nonce)"
+				mantis.sync.broadcast-new-block-hashes = true
+
+				mantis.consensus {
+				  protocol = "ethash"
+				}
+
 				mantis.vm {
 				  mode = "external"
 				  external {
-				    vm-type = "kevm"
+				    vm-type = "iele"
 				    run-vm = true
-				    executable-path = "/bin/kevm-vm"
+				    executable-path = "iele-vm"
 				    host = "127.0.0.1"
 				    port = {{ env "NOMAD_PORT_vm" }}
 				  }
@@ -113,46 +134,25 @@ geneses: {
 
 	"mantis-kevm": {
 		args: {
-			#fqdn:      "-kevm.\(#domain)"
-			#mantisRev: #defaults.mantisRev
+			#fqdn:        "-kevm.\(#domain)"
+			#mantisRev:   #defaults.mantisRev
 			#extraConfig: """
-				mantis.consensus {
-				  protocol = "restricted-ethash"
-				}
-				mantis.vm {
-				  mode = "external"
-				  external {
-				    vm-type = "kevm"
-				    run-vm = true
-				    executable-path = "/bin/kevm-vm"
-				    host = "127.0.0.1"
-				    port = {{ env "NOMAD_PORT_vm" }}
-				  }
-				}
-				"""
-		}
-		jobs: {
-			explorer: #explorer
-			faucet:   #faucet
-			miner:    #miner
-			passive:  #passive
-		}
-	}
+				mantis.blockchains.testnet-internal-nomad.ecip1098-block-number = 0
+				mantis.blockchains.testnet-internal-nomad.ecip1097-block-number = 0
+				mantis.blockchains.testnet-internal-nomad.eip161-block-number = 0
+				mantis.blockchains.testnet-internal-nomad.chain-id = "\(geneses["mantis-kevm"].nonce)"
+				mantis.sync.broadcast-new-block-hashes = true
 
-	"mantis-cue": {
-		args: {
-			#fqdn:      "-cue.\(#domain)"
-			#mantisRev: "dcddff81d49362e4b5b4f689fd7cbcf540f40cd6"
-			#extraConfig: """
 				mantis.consensus {
-				  protocol = "restricted-ethash"
+				  protocol = "ethash"
 				}
+
 				mantis.vm {
 				  mode = "external"
 				  external {
 				    vm-type = "kevm"
 				    run-vm = true
-				    executable-path = "/bin/kevm-vm"
+				    executable-path = "kevm-vm"
 				    host = "127.0.0.1"
 				    port = {{ env "NOMAD_PORT_vm" }}
 				  }
@@ -169,7 +169,8 @@ geneses: {
 }
 
 for nsName, nsValue in #namespaces {
-	checks: "\(nsName)": {
+	// output is alphabetical, so better errors show at the end.
+	zchecks: "\(nsName)": {
 		for jName, jValue in nsValue.jobs {
 			"\(jName)": jValue & nsValue.args
 		}

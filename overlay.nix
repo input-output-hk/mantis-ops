@@ -29,8 +29,6 @@ in {
     submodules = true;
   };
 
-  kevm = final.callPackage ./pkgs/kevm.nix { };
-
   mantis-iele-source = builtins.fetchGit {
     url = "https://github.com/input-output-hk/mantis";
     rev = "e8af13b5a237560b0186b231dfeefb7990bdfd1a";
@@ -60,15 +58,6 @@ in {
   morpho-source = inputs.morpho-node;
 
   morpho-node = inputs.morpho-node.morpho-node.${system};
-
-  mantis-kevm-src = builtins.fetchGit {
-    url = "https://github.com/input-output-hk/mantis";
-    ref = "develop";
-    rev = "e8af13b5a237560b0186b231dfeefb7990bdfd1a";
-    submodules = true;
-  };
-
-  mantis-kevm = import final.mantis-kevm-src { system = final.system; };
 
   iele = final.callPackage ./pkgs/iele.nix { };
 
@@ -216,4 +205,6 @@ in {
 
   mantis-explorer = inputs.mantis-explorer.defaultPackage.${system};
   mantis-faucet-web = inputs.mantis-faucet-web.defaultPackage.${system};
+
+  inherit (inputs.nixpkgs-unstable.legacyPackages.${final.system}) traefik;
 }

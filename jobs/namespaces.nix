@@ -69,4 +69,4 @@ let
       '';
     });
   };
-in builtins.foldl' (s: v: s // v) {} (builtins.attrValues namespaces)
+in builtins.foldl' (s: v: s // v) { } (builtins.attrValues namespaces)
