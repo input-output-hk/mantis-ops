@@ -38,28 +38,13 @@ in {
 
   mantis-iele = import final.mantis-iele-source { inherit system; };
 
-  inherit (final.dockerTools) buildLayeredImage;
-
-  mkEnv = lib.mapAttrsToList (key: value: "${key}=${value}");
-
-  mantis-faucet-source = builtins.fetchGit {
-    url = "https://github.com/input-output-hk/mantis";
-    rev = "07e617cdd1bfc76ad1a8472305f0e5e60e2801e1";
-    ref = "develop";
-    submodules = true;
-  };
-
   restic-backup = final.callPackage ./pkgs/backup { };
 
   mantis = import final.mantis-source { inherit system; };
 
-  mantis-faucet = import final.mantis-faucet-source { inherit system; };
-
   morpho-source = inputs.morpho-node;
 
   morpho-node = inputs.morpho-node.morpho-node.${system};
-
-  iele = final.callPackage ./pkgs/iele.nix { };
 
   generate-mantis-keys = final.writeBashBinChecked "generate-mantis-keys" ''
     export PATH="${

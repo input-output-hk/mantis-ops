@@ -30,17 +30,14 @@ import (
 	alloc: {}
 }
 
-// irb(main):020:0> %w[evm kevm iele].map{|n| [n, "0x%016x" % n.unpack('H*')[0].to_i(16)] }.to_h
-// => {"evm"=>"0x000000000065766d", "kevm"=>"0x000000006b65766d", "iele"=>"0x0000000069656c65"}
-
 geneses: {
-	"mantis-kevm": #genesis & {nonce: "0x0000000000000066"}
-	"mantis-evm":  #genesis & {nonce: "0x0000000000000067"}
-	"mantis-iele": #genesis & {nonce: "0x0000000000000068"}
+	"mantis-kevm": #genesis & {nonce: "0x0000000000000066", #networkId: 102}
+	"mantis-evm":  #genesis & {nonce: "0x0000000000000067", #networkId: 103}
+	"mantis-iele": #genesis & {nonce: "0x0000000000000068", #networkId: 104}
 }
 
 #defaults: {
-	mantisRev: "993280b1e15d6460492ad432cf1d52979bc667ef"
+	mantisRev: "9e95b1fce9f18efeea2d47191f7d2c21a18e1559"
 }
 
 #domain: "portal.dev.cardano.org"
@@ -66,22 +63,19 @@ geneses: {
 			#fqdn:        "-\(#id).\(#domain)"
 			#mantisRev:   #defaults.mantisRev
 			#extraConfig: """
-				mantis.blockchains.testnet-internal-nomad.ecip1098-block-number = 0
-				mantis.blockchains.testnet-internal-nomad.ecip1097-block-number = 0
-				mantis.blockchains.testnet-internal-nomad.eip161-block-number = 0
-				mantis.blockchains.testnet-internal-nomad.chain-id = "\(geneses["mantis-"+#id].nonce)"
-				mantis.sync.broadcast-new-block-hashes = true
-
-				mantis.consensus {
-				  protocol = "ethash"
-				}
-
-				mantis.consensus {
-				  protocol = "ethash"
-				}
-
-				mantis.vm {
-				  mode = "internal"
+				mantis {
+				  blockchains {
+				    testnet-internal-nomad {
+				      ecip1098-block-number = 0
+				      ecip1097-block-number = 0
+				      eip161-block-number = 0
+				      chain-id = "\(geneses["mantis-evm"].nonce)"
+				      network-id = \(geneses["mantis-evm"].#networkId)
+				    }
+				  }
+				  sync.broadcast-new-block-hashes = true
+				  consensus.protocol = "ethash"
+				  vm.mode = "internal"
 				}
 				"""
 		}
@@ -99,27 +93,30 @@ geneses: {
 			#fqdn:        "-\(#id).\(#domain)"
 			#mantisRev:   #defaults.mantisRev
 			#extraConfig: """
-				mantis.blockchains.testnet-internal-nomad.ecip1098-block-number = 0
-				mantis.blockchains.testnet-internal-nomad.ecip1097-block-number = 0
-				mantis.blockchains.testnet-internal-nomad.eip161-block-number = 0
-				mantis.blockchains.testnet-internal-nomad.chain-id = "\(geneses["mantis-"+#id].nonce)"
-				mantis.sync.broadcast-new-block-hashes = true
-
-				mantis.consensus {
-				  protocol = "ethash"
-				}
-
-				mantis.vm {
-				  mode = "external"
-				  external {
-				    vm-type = "iele"
-				    run-vm = true
-				    executable-path = "iele-vm"
-				    host = "127.0.0.1"
-				    port = {{ env "NOMAD_PORT_vm" }}
+				mantis {
+				  blockchains {
+				    testnet-internal-nomad {
+				      ecip1098-block-number = 0
+				      ecip1097-block-number = 0
+				      eip161-block-number = 0
+				      chain-id = "\(geneses["mantis-iele"].nonce)"
+				      network-id = \(geneses["mantis-iele"].#networkId)
+				    }
+				  }
+				  sync.broadcast-new-block-hashes = true
+				  consensus.protocol = "ethash"
+				  vm {
+				    mode = "external"
+				    external {
+				      vm-type = "iele"
+				      run-vm = true
+				      executable-path = "iele-vm"
+				      host = "127.0.0.1"
+				      port = {{ env "NOMAD_PORT_vm" }}
+				    }
 				  }
 				}
-				"""
+			"""
 		}
 		jobs: {
 			explorer: #explorer
@@ -135,27 +132,30 @@ geneses: {
 			#fqdn:        "-\(#id).\(#domain)"
 			#mantisRev:   #defaults.mantisRev
 			#extraConfig: """
-				mantis.blockchains.testnet-internal-nomad.ecip1098-block-number = 0
-				mantis.blockchains.testnet-internal-nomad.ecip1097-block-number = 0
-				mantis.blockchains.testnet-internal-nomad.eip161-block-number = 0
-				mantis.blockchains.testnet-internal-nomad.chain-id = "\(geneses["mantis-"+#id].nonce)"
-				mantis.sync.broadcast-new-block-hashes = true
-
-				mantis.consensus {
-				  protocol = "ethash"
-				}
-
-				mantis.vm {
-				  mode = "external"
-				  external {
-				    vm-type = "kevm"
-				    run-vm = true
-				    executable-path = "kevm-vm"
-				    host = "127.0.0.1"
-				    port = {{ env "NOMAD_PORT_vm" }}
+				mantis {
+				  blockchains {
+				    testnet-internal-nomad {
+				      ecip1098-block-number = 0
+				      ecip1097-block-number = 0
+				      eip161-block-number = 0
+				      chain-id = "\(geneses["mantis-kevm"].nonce)"
+				      network-id = \(geneses["mantis-kevm"].#networkId)
+				    }
+				  }
+				  sync.broadcast-new-block-hashes = true
+				  consensus.protocol = "ethash"
+				  vm {
+				    mode = "external"
+				    external {
+				      vm-type = "kevm"
+				      run-vm = true
+				      executable-path = "kevm-vm"
+				      host = "127.0.0.1"
+				      port = {{ env "NOMAD_PORT_vm" }}
+				    }
 				  }
 				}
-				"""
+			"""
 		}
 		jobs: {
 			explorer: #explorer

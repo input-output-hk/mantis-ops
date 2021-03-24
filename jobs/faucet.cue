@@ -54,6 +54,12 @@ import (
 				"traefik.http.routers.\(namespace)-faucet-rpc.rule=Host(`faucet\(#fqdn)`)",
 				"traefik.http.routers.\(namespace)-faucet-rpc.entrypoints=https",
 				"traefik.http.routers.\(namespace)-faucet-rpc.tls=true",
+				"traefik.http.routers.\(namespace)-faucet-rpc.middlewares=corsheader@consulcatalog",
+				"traefik.http.middlewares.corsheader.headers.accesscontrolallowmethods=GET,OPTIONS,POST",
+				"traefik.http.middlewares.corsheader.headers.accesscontrolalloworigin=*",
+				"traefik.http.middlewares.corsheader.headers.accesscontrolmaxage=100",
+				"traefik.http.middlewares.corsheader.headers.addvaryheader=true",
+				"traefik.http.middlewares.corsheader.headers.accesscontrolallowheaders=Content-Type",
 			]
 
 			check: nginx: {
@@ -79,6 +85,12 @@ import (
 				"traefik.http.routers.\(namespace)-faucet-nginx.rule=Host(`faucet-web\(#fqdn)`)",
 				"traefik.http.routers.\(namespace)-faucet-nginx.entrypoints=https",
 				"traefik.http.routers.\(namespace)-faucet-nginx.tls=true",
+				"traefik.http.routers.\(namespace)-faucet-nginx.middlewares=corsheader@consulcatalog",
+				"traefik.http.middlewares.corsheader.headers.accesscontrolallowmethods=GET,OPTIONS,POST",
+				"traefik.http.middlewares.corsheader.headers.accesscontrolalloworigin=*",
+				"traefik.http.middlewares.corsheader.headers.accesscontrolmaxage=100",
+				"traefik.http.middlewares.corsheader.headers.addvaryheader=true",
+				"traefik.http.middlewares.corsheader.headers.accesscontrolallowheaders=Content-Type",
 			]
 
 			meta: {

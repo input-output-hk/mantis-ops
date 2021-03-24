@@ -16,6 +16,8 @@ import (
 
 	driver: "exec"
 
+	resources: {cpu: uint, memory: uint}
+
 	if #role == "miner" {
 		resources: {
 			cpu:    7500
@@ -23,10 +25,17 @@ import (
 		}
 	}
 
-	if #role != "miner" {
+	if #role == "passive" {
 		resources: {
 			cpu:    1000
-			memory: 3 * 1024
+			memory: 4 * 1024
+		}
+	}
+
+	if #role == "faucet" {
+		resources: {
+			cpu:    1000
+			memory: 5 * 1024
 		}
 	}
 
@@ -38,7 +47,12 @@ import (
 	config: {
 		flake:   #flake
 		command: "/bin/mantis-entrypoint"
-		args: ["-Dconfig.file=/local/running.conf", "-XX:ActiveProcessorCount=2"]
+		args: [
+			"-Dconfig.file=/local/running.conf",
+			"-XX:ActiveProcessorCount=2",
+			"-J-Xms512m",
+			"-J-Xmx\(resources.memory)m",
+		]
 	}
 
 	restart: {
@@ -102,88 +116,87 @@ import (
 
 		if #role == "faucet" {
 			#roleConf: """
-mantis.consensus.mining-enabled = false
-mantis.network.rpc {
-  http {
-    mode = "http"
-    enabled = true
-    interface = "0.0.0.0"
-    port = {{ env "NOMAD_PORT_rpc" }}
-    certificate = null
-    cors-allowed-origins = "*"
-    rate-limit {
-      enabled = true
-      latest-timestamp-cache-size = 1024
-      min-request-interval = 24.hours
-    }
-  }
+			mantis.consensus.mining-enabled = false
+			mantis.network.rpc {
+			  http {
+			    mode = "http"
+			    enabled = true
+			    interface = "0.0.0.0"
+			    port = {{ env "NOMAD_PORT_rpc" }}
+			    certificate = null
+			    cors-allowed-origins = "*"
+			    rate-limit {
+			      enabled = true
+			      latest-timestamp-cache-size = 1024
+			      min-request-interval = 24.hours
+			    }
+			  }
 
-  ipc {
-    enabled = false
-    socket-file = "/local/mantis-faucet/faucet.ipc"
-  }
-  apis = "faucet"
-}
+			  ipc {
+			    enabled = false
+			    socket-file = "/local/mantis-faucet/faucet.ipc"
+			  }
+			}
 
-faucet {
-  datadir = "/local/mantis-faucet"
+			faucet {
+			  datadir = "/local/mantis-faucet"
 
-  # Wallet address used to send transactions from
-  {{ with secret "kv/nomad-cluster/\(#namespace)/\(#wallet)/coinbase" }}
-  wallet-address = "{{.Data.data.value}}"
-  {{ end }}
+			  # Wallet address used to send transactions from
+			  {{ with secret "kv/nomad-cluster/\(#namespace)/\(#wallet)/coinbase" }}
+			  wallet-address = "{{.Data.data.value}}"
+			  {{ end }}
 
-  # Password to unlock faucet wallet
-  wallet-password = ""
+			  # Password to unlock faucet wallet
+			  wallet-password = ""
 
-  # Path to directory where wallet key is stored
-  keystore-dir = /secrets/keystore
+			  # Path to directory where wallet key is stored
+			  keystore-dir = /secrets/keystore
 
-  # Transaction gas price
-  tx-gas-price = 20000000000
+			  # Transaction gas price
+			  tx-gas-price = 20000000000
 
-  # Transaction gas limit
-  tx-gas-limit = 90000
+			  # Transaction gas limit
+			  tx-gas-limit = 90000
 
-  # Transaction value
-  tx-value = 1000000000000000000
+			  # Transaction value
+			  tx-value = 1000000000000000000
 
-  rpc-client {
-    # Address of Ethereum node used to send the transaction
-    {{ range service "\(#wallet).\(#namespace)-mantis-miner-rpc" }}
-    rpc-address = "http://{{ .Address }}:{{ .Port }}"
-    {{ end }}
+			  rpc-client {
+			    # Address of Ethereum node used to send the transaction
+			    {{ range service "\(#wallet).\(#namespace)-mantis-miner-rpc" }}
+			    rpc-address = "http://{{ .Address }}:{{ .Port }}"
+			    {{ end }}
 
-    # certificate of Ethereum node used to send the transaction when use HTTP(S)
-    certificate = null
+			    # certificate of Ethereum node used to send the transaction when use HTTP(S)
+			    certificate = null
 
-    # Response time-out from rpc client resolve
-    timeout = 3.seconds
-  }
+			    # Response time-out from rpc client resolve
+			    timeout = 3.seconds
+			  }
 
-  # How often can a single IP address send a request
-  min-request-interval = 1.minute
+			  # How often can a single IP address send a request
+			  min-request-interval = 1.minute
 
-  # Response time-out to get handler actor
-  handler-timeout = 1.seconds
+			  # Response time-out to get handler actor
+			  handler-timeout = 1.seconds
 
-  # Response time-out from actor resolve
-  actor-communication-margin = 1.seconds
+			  # Response time-out from actor resolve
+			  actor-communication-margin = 1.seconds
 
-  # Supervisor with BackoffSupervisor pattern
-  supervisor {
-    min-backoff = 3.seconds
-    max-backoff = 30.seconds
-    random-factor = 0.2
-    auto-reset = 10.seconds
-    attempts = 4
-    delay = 0.1
-  }
+			  # Supervisor with BackoffSupervisor pattern
+			  supervisor {
+			    min-backoff = 3.seconds
+			    max-backoff = 30.seconds
+			    random-factor = 0.2
+			    auto-reset = 10.seconds
+			    attempts = 4
+			    delay = 0.1
+			  }
 
-  # timeout for shutting down the ActorSystem
-  shutdown-timeout = 15.seconds
-}
-"""
+			  # timeout for shutting down the ActorSystem
+			  shutdown-timeout = 15.seconds
+			}
+			"""
 		}
 
 		#networkConf: string
