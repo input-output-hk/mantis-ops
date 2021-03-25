@@ -14,7 +14,7 @@ import (
 	}
 
 	config: {
-		flake:   "github:NixOS/nixpkgs/nixpkgs-unstable#grafana-loki"
+		flake:   "github:input-output-hk/mantis-ops/kevm#grafana-loki"
 		command: "/bin/promtail"
 		args: ["-config.file", "local/config.yaml"]
 	}

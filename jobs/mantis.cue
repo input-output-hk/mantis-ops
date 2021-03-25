@@ -43,8 +43,8 @@ import (
 
 		ephemeral_disk: {
 			size:    10 * 1000
-			migrate: true
-			sticky:  true
+			migrate: false
+			sticky:  false
 		}
 
 		reschedule: {

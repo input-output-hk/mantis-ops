@@ -22,7 +22,7 @@ import (
 	}
 
 	config: {
-		flake:   "github:NixOS/nixpkgs/nixos-20.09#telegraf"
+		flake:   "github:input-output-hk/mantis-ops/kevm#telegraf"
 		command: "/bin/telegraf"
 		args: ["-config", "/local/telegraf.config"]
 	}
