@@ -240,7 +240,7 @@ import (
 				"""
 		}
 
-		change_mode: "noop"
+		change_mode: "restart"
 		splay:       "30m"
 		data:        """
 		include "/conf/base.conf"

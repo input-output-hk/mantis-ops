@@ -92,6 +92,7 @@ in {
     routing = {
       from = 30000;
       to = 40000;
+      protocols = [ "tcp" "udp" ];
       cidrs = global;
     };
   };
