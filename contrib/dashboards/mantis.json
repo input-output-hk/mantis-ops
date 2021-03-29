@@ -15,8 +15,7 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": null,
-  "iteration": 1608333340896,
+  "iteration": 1617041717968,
   "links": [],
   "panels": [
     {
@@ -68,11 +67,7 @@
         "message": "mantis-kevm: The average cluster block rate per minute is under 1 for a 10 minute period",
         "name": "[Mantis] Cluster Block Alert",
         "noDataState": "alerting",
-        "notifications": [
-          {
-            "uid": "LYnzSR0Gk"
-          }
-        ]
+        "notifications": []
       },
       "aliasColors": {},
       "bars": false,
@@ -82,13 +77,7 @@
       "fieldConfig": {
         "defaults": {
           "custom": {},
-          "links": [
-            {
-              "targetBlank": true,
-              "title": "Logs",
-              "url": "https://monitoring.mantis.ws/d/AD0cPtTMz/mantis-log?orgId=1&${__url_time_range}&var-namespace=${namespace}&var-node=${node}"
-            }
-          ]
+          "links": []
         },
         "overrides": []
       },
@@ -203,20 +192,21 @@
       "fieldConfig": {
         "defaults": {
           "custom": {},
-          "links": []
+          "links": [
+          ]
         },
         "overrides": []
       },
       "fill": 0,
       "fillGradient": 0,
       "gridPos": {
-        "h": 7,
+        "h": 14,
         "w": 12,
         "x": 12,
         "y": 1
       },
       "hiddenSeries": false,
-      "id": 50,
+      "id": 127,
       "legend": {
         "avg": false,
         "current": false,
@@ -243,17 +233,25 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "app_sync_block_checkpoint_number_gauge_gauge",
+          "expr": "abs(max(app_sync_block_number_gauge_gauge{namespace=\"$namespace\"}) - ignoring(host, db, url, client_id, namespace) group_right(client_id) app_sync_block_number_gauge_gauge{namespace=\"$namespace\"})",
+          "hide": false,
           "interval": "",
           "legendFormat": "{{client_id}}",
           "refId": "A"
+        },
+        {
+          "expr": "abs(max(app_sync_block_number_gauge_gauge{namespace=~\"mantis-.*\"}) - ignoring(host, db, url, client_id, namespace) group_right(client_id) app_sync_block_number_gauge_gauge{namespace=~\"mantis-.*\"})",
+          "hide": true,
+          "interval": "",
+          "legendFormat": "{{client_id}}",
+          "refId": "B"
         }
       ],
       "thresholds": [],
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "Checkpoint block number / Time",
+      "title": "Block Divergence / Time",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -269,7 +267,7 @@
       },
       "yaxes": [
         {
-          "$$hashKey": "object:230",
+          "$$hashKey": "object:76",
           "decimals": 0,
           "format": "none",
           "label": "Block number",
@@ -279,109 +277,7 @@
           "show": true
         },
         {
-          "$$hashKey": "object:231",
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": false
-        }
-      ],
-      "yaxis": {
-        "align": false,
-        "alignLevel": null
-      }
-    },
-    {
-      "aliasColors": {},
-      "bars": false,
-      "cacheTimeout": null,
-      "dashLength": 10,
-      "dashes": false,
-      "datasource": "VictoriaMetrics",
-      "description": "",
-      "fieldConfig": {
-        "defaults": {
-          "custom": {},
-          "links": []
-        },
-        "overrides": []
-      },
-      "fill": 0,
-      "fillGradient": 0,
-      "gridPos": {
-        "h": 7,
-        "w": 12,
-        "x": 12,
-        "y": 8
-      },
-      "hiddenSeries": false,
-      "id": 66,
-      "legend": {
-        "avg": false,
-        "current": false,
-        "max": false,
-        "min": false,
-        "show": true,
-        "total": false,
-        "values": false
-      },
-      "lines": true,
-      "linewidth": 1,
-      "links": [],
-      "nullPointMode": "null",
-      "options": {
-        "alertThreshold": true
-      },
-      "percentage": false,
-      "pluginVersion": "7.3.5",
-      "pointradius": 2,
-      "points": false,
-      "renderer": "flot",
-      "seriesOverrides": [],
-      "spaceLength": 10,
-      "stack": false,
-      "steppedLine": false,
-      "targets": [
-        {
-          "expr": "app_transactions_pool_size_gauge_gauge{namespace=\"$namespace\"}",
-          "interval": "",
-          "legendFormat": "{{client_id}}",
-          "refId": "A"
-        }
-      ],
-      "thresholds": [],
-      "timeFrom": null,
-      "timeRegions": [],
-      "timeShift": null,
-      "title": "Transactions in pool / Time",
-      "tooltip": {
-        "shared": true,
-        "sort": 0,
-        "value_type": "individual"
-      },
-      "type": "graph",
-      "xaxis": {
-        "buckets": null,
-        "mode": "time",
-        "name": null,
-        "show": true,
-        "values": []
-      },
-      "yaxes": [
-        {
-          "$$hashKey": "object:298",
-          "decimals": null,
-          "format": "none",
-          "label": "# of transactions",
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        },
-        {
-          "$$hashKey": "object:299",
+          "$$hashKey": "object:77",
           "format": "short",
           "label": null,
           "logBase": 1,
@@ -430,11 +326,7 @@
         "message": "mantis-kevm: The average block time between blocks for a node in the cluster is above 100 seconds for a 5 minute period",
         "name": "[Mantis] Block Alert",
         "noDataState": "alerting",
-        "notifications": [
-          {
-            "uid": "LYnzSR0Gk"
-          }
-        ]
+        "notifications": []
       },
       "aliasColors": {},
       "bars": false,
@@ -446,11 +338,6 @@
         "defaults": {
           "custom": {},
           "links": [
-            {
-              "targetBlank": true,
-              "title": "Logs",
-              "url": "https://monitoring.mantis.ws/d/AD0cPtTMz/mantis-log?orgId=1&${__url_time_range}&var-namespace=${namespace}&var-node=${node}"
-            }
           ]
         },
         "overrides": []
@@ -558,81 +445,15 @@
       }
     },
     {
-      "alert": {
-        "alertRuleTags": {},
-        "conditions": [
-          {
-            "evaluator": {
-              "params": [
-                5
-              ],
-              "type": "gt"
-            },
-            "operator": {
-              "type": "and"
-            },
-            "query": {
-              "params": [
-                "B",
-                "5m",
-                "now"
-              ]
-            },
-            "reducer": {
-              "params": [],
-              "type": "avg"
-            },
-            "type": "query"
-          },
-          {
-            "evaluator": {
-              "params": [
-                10
-              ],
-              "type": "gt"
-            },
-            "operator": {
-              "type": "or"
-            },
-            "query": {
-              "params": [
-                "C",
-                "5m",
-                "now"
-              ]
-            },
-            "reducer": {
-              "params": [],
-              "type": "avg"
-            },
-            "type": "query"
-          }
-        ],
-        "executionErrorState": "alerting",
-        "for": "5m",
-        "frequency": "1m",
-        "handler": 1,
-        "message": "mantis-ops: There have been more than 5 single node or 10 cluster wide data absences in the past hour on mantis-kevm.",
-        "name": "[Mantis] Data Gaps in 1 hr alert",
-        "noDataState": "alerting",
-        "notifications": []
-      },
       "aliasColors": {},
       "bars": false,
       "dashLength": 10,
       "dashes": false,
       "datasource": "VictoriaMetrics",
-      "description": "Shows the number of absences in the block number metric that occur over a 1 hour period",
       "fieldConfig": {
         "defaults": {
           "custom": {},
-          "links": [
-            {
-              "targetBlank": true,
-              "title": "Logs",
-              "url": "https://monitoring.mantis.ws/d/AD0cPtTMz/mantis-log?orgId=1&${__url_time_range}&var-namespace=${namespace}&var-node=${node}"
-            }
-          ]
+          "links": []
         },
         "overrides": []
       },
@@ -645,8 +466,7 @@
         "y": 15
       },
       "hiddenSeries": false,
-      "id": 122,
-      "interval": "",
+      "id": 50,
       "legend": {
         "avg": false,
         "current": false,
@@ -658,7 +478,6 @@
       },
       "lines": true,
       "linewidth": 1,
-      "maxDataPoints": 10000,
       "nullPointMode": "null",
       "options": {
         "alertThreshold": true
@@ -674,41 +493,17 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "increase((absent(app_sync_block_number_gauge_gauge{namespace=\"$namespace\"}) default 0)[1h]) default 0",
-          "hide": false,
+          "expr": "app_sync_block_checkpoint_number_gauge_gauge",
           "interval": "",
           "legendFormat": "{{client_id}}",
           "refId": "A"
-        },
-        {
-          "expr": "increase((absent(app_sync_block_number_gauge_gauge{namespace=\"mantis-kevm\"}) default 0)[1h:10s]) default 0",
-          "hide": true,
-          "interval": "",
-          "legendFormat": "{{client_id}}",
-          "refId": "B"
-        },
-        {
-          "expr": "sum(increase((absent(app_sync_block_number_gauge_gauge{namespace=\"mantis-kevm\"}) default 0)[1h:10s])) default 0",
-          "hide": true,
-          "instant": false,
-          "interval": "",
-          "legendFormat": "{{client_id}}",
-          "refId": "C"
         }
       ],
-      "thresholds": [
-        {
-          "colorMode": "critical",
-          "fill": true,
-          "line": true,
-          "op": "gt",
-          "value": 5
-        }
-      ],
+      "thresholds": [],
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "Data Absences in 1 hr",
+      "title": "Checkpoint block number / Time",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -724,17 +519,17 @@
       },
       "yaxes": [
         {
-          "$$hashKey": "object:76",
+          "$$hashKey": "object:230",
           "decimals": 0,
           "format": "none",
-          "label": "",
+          "label": "Block number",
           "logBase": 1,
           "max": null,
           "min": null,
           "show": true
         },
         {
-          "$$hashKey": "object:77",
+          "$$hashKey": "object:231",
           "format": "short",
           "label": null,
           "logBase": 1,
@@ -903,6 +698,490 @@
       }
     },
     {
+      "aliasColors": {},
+      "bars": false,
+      "cacheTimeout": null,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "VictoriaMetrics",
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {},
+          "links": []
+        },
+        "overrides": []
+      },
+      "fill": 0,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 12,
+        "y": 22
+      },
+      "hiddenSeries": false,
+      "id": 66,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "7.3.5",
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "app_transactions_pool_size_gauge_gauge{namespace=\"$namespace\"}",
+          "interval": "",
+          "legendFormat": "{{client_id}}",
+          "refId": "A"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "Transactions in pool / Time",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "$$hashKey": "object:298",
+          "decimals": null,
+          "format": "none",
+          "label": "# of transactions",
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "$$hashKey": "object:299",
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": false
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "VictoriaMetrics",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {},
+          "links": []
+        },
+        "overrides": []
+      },
+      "fill": 0,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 0,
+        "y": 29
+      },
+      "hiddenSeries": false,
+      "id": 117,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "nullPointMode": "null",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "7.3.5",
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "app_sync_block_uncles_gauge_gauge{namespace=\"$namespace\"}",
+          "interval": "",
+          "legendFormat": "{{client_id}}",
+          "refId": "A"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "Ommers in block / Time",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "$$hashKey": "object:432",
+          "format": "none",
+          "label": "",
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "$$hashKey": "object:433",
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "alert": {
+        "alertRuleTags": {},
+        "conditions": [
+          {
+            "evaluator": {
+              "params": [
+                5
+              ],
+              "type": "gt"
+            },
+            "operator": {
+              "type": "and"
+            },
+            "query": {
+              "params": [
+                "B",
+                "5m",
+                "now"
+              ]
+            },
+            "reducer": {
+              "params": [],
+              "type": "avg"
+            },
+            "type": "query"
+          },
+          {
+            "evaluator": {
+              "params": [
+                10
+              ],
+              "type": "gt"
+            },
+            "operator": {
+              "type": "or"
+            },
+            "query": {
+              "params": [
+                "C",
+                "5m",
+                "now"
+              ]
+            },
+            "reducer": {
+              "params": [],
+              "type": "avg"
+            },
+            "type": "query"
+          }
+        ],
+        "executionErrorState": "alerting",
+        "for": "5m",
+        "frequency": "1m",
+        "handler": 1,
+        "message": "mantis-ops: There have been more than 5 single node or 10 cluster wide data absences in the past hour on mantis-kevm.",
+        "name": "[Mantis] Data Gaps in 1 hr alert",
+        "noDataState": "alerting",
+        "notifications": []
+      },
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "VictoriaMetrics",
+      "description": "Shows the number of absences in the block number metric that occur over a 1 hour period",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {},
+          "links": [
+          ]
+        },
+        "overrides": []
+      },
+      "fill": 0,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 12,
+        "y": 29
+      },
+      "hiddenSeries": false,
+      "id": 122,
+      "interval": "",
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "maxDataPoints": 10000,
+      "nullPointMode": "null",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "7.3.5",
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "increase((absent(app_sync_block_number_gauge_gauge{namespace=\"$namespace\"}) default 0)[1h]) default 0",
+          "hide": false,
+          "interval": "",
+          "legendFormat": "{{client_id}}",
+          "refId": "A"
+        },
+        {
+          "expr": "increase((absent(app_sync_block_number_gauge_gauge{namespace=\"mantis-kevm\"}) default 0)[1h:10s]) default 0",
+          "hide": true,
+          "interval": "",
+          "legendFormat": "{{client_id}}",
+          "refId": "B"
+        },
+        {
+          "expr": "sum(increase((absent(app_sync_block_number_gauge_gauge{namespace=\"mantis-kevm\"}) default 0)[1h:10s])) default 0",
+          "hide": true,
+          "instant": false,
+          "interval": "",
+          "legendFormat": "{{client_id}}",
+          "refId": "C"
+        }
+      ],
+      "thresholds": [
+        {
+          "colorMode": "critical",
+          "fill": true,
+          "line": true,
+          "op": "gt",
+          "value": 5
+        }
+      ],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "Data Absences in 1 hr",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "$$hashKey": "object:76",
+          "decimals": 0,
+          "format": "none",
+          "label": "",
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "$$hashKey": "object:77",
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": false
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "VictoriaMetrics",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {},
+          "links": []
+        },
+        "overrides": []
+      },
+      "fill": 0,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 0,
+        "y": 36
+      },
+      "hiddenSeries": false,
+      "id": 56,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "nullPointMode": "null",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "7.3.5",
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "app_sync_block_gasUsed_gauge_gauge{namespace=\"$namespace\"}",
+          "interval": "",
+          "legendFormat": "{{client_id}}",
+          "refId": "A"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "Gas used / Time",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "$$hashKey": "object:710",
+          "format": "none",
+          "label": "gas used",
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "$$hashKey": "object:711",
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
       "alert": {
         "alertRuleTags": {},
         "conditions": [
@@ -959,7 +1238,7 @@
         "h": 7,
         "w": 12,
         "x": 12,
-        "y": 22
+        "y": 36
       },
       "hiddenSeries": false,
       "id": 126,
@@ -1074,106 +1353,8 @@
       "gridPos": {
         "h": 7,
         "w": 12,
-        "x": 0,
-        "y": 29
-      },
-      "hiddenSeries": false,
-      "id": 117,
-      "legend": {
-        "avg": false,
-        "current": false,
-        "max": false,
-        "min": false,
-        "show": true,
-        "total": false,
-        "values": false
-      },
-      "lines": true,
-      "linewidth": 1,
-      "nullPointMode": "null",
-      "options": {
-        "alertThreshold": true
-      },
-      "percentage": false,
-      "pluginVersion": "7.3.5",
-      "pointradius": 2,
-      "points": false,
-      "renderer": "flot",
-      "seriesOverrides": [],
-      "spaceLength": 10,
-      "stack": false,
-      "steppedLine": false,
-      "targets": [
-        {
-          "expr": "app_sync_block_uncles_gauge_gauge{namespace=\"$namespace\"}",
-          "interval": "",
-          "legendFormat": "{{client_id}}",
-          "refId": "A"
-        }
-      ],
-      "thresholds": [],
-      "timeFrom": null,
-      "timeRegions": [],
-      "timeShift": null,
-      "title": "Ommers in block / Time",
-      "tooltip": {
-        "shared": true,
-        "sort": 0,
-        "value_type": "individual"
-      },
-      "type": "graph",
-      "xaxis": {
-        "buckets": null,
-        "mode": "time",
-        "name": null,
-        "show": true,
-        "values": []
-      },
-      "yaxes": [
-        {
-          "$$hashKey": "object:432",
-          "format": "none",
-          "label": "",
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        },
-        {
-          "$$hashKey": "object:433",
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        }
-      ],
-      "yaxis": {
-        "align": false,
-        "alignLevel": null
-      }
-    },
-    {
-      "aliasColors": {},
-      "bars": false,
-      "dashLength": 10,
-      "dashes": false,
-      "datasource": "VictoriaMetrics",
-      "fieldConfig": {
-        "defaults": {
-          "custom": {},
-          "links": []
-        },
-        "overrides": []
-      },
-      "fill": 0,
-      "fillGradient": 0,
-      "gridPos": {
-        "h": 7,
-        "w": 12,
         "x": 12,
-        "y": 29
+        "y": 43
       },
       "hiddenSeries": false,
       "id": 58,
@@ -1255,104 +1436,6 @@
     {
       "aliasColors": {},
       "bars": false,
-      "dashLength": 10,
-      "dashes": false,
-      "datasource": "VictoriaMetrics",
-      "fieldConfig": {
-        "defaults": {
-          "custom": {},
-          "links": []
-        },
-        "overrides": []
-      },
-      "fill": 0,
-      "fillGradient": 0,
-      "gridPos": {
-        "h": 7,
-        "w": 12,
-        "x": 0,
-        "y": 36
-      },
-      "hiddenSeries": false,
-      "id": 56,
-      "legend": {
-        "avg": false,
-        "current": false,
-        "max": false,
-        "min": false,
-        "show": true,
-        "total": false,
-        "values": false
-      },
-      "lines": true,
-      "linewidth": 1,
-      "nullPointMode": "null",
-      "options": {
-        "alertThreshold": true
-      },
-      "percentage": false,
-      "pluginVersion": "7.3.5",
-      "pointradius": 2,
-      "points": false,
-      "renderer": "flot",
-      "seriesOverrides": [],
-      "spaceLength": 10,
-      "stack": false,
-      "steppedLine": false,
-      "targets": [
-        {
-          "expr": "app_sync_block_gasUsed_gauge_gauge{namespace=\"$namespace\"}",
-          "interval": "",
-          "legendFormat": "{{client_id}}",
-          "refId": "A"
-        }
-      ],
-      "thresholds": [],
-      "timeFrom": null,
-      "timeRegions": [],
-      "timeShift": null,
-      "title": "Gas used / Time",
-      "tooltip": {
-        "shared": true,
-        "sort": 0,
-        "value_type": "individual"
-      },
-      "type": "graph",
-      "xaxis": {
-        "buckets": null,
-        "mode": "time",
-        "name": null,
-        "show": true,
-        "values": []
-      },
-      "yaxes": [
-        {
-          "$$hashKey": "object:710",
-          "format": "none",
-          "label": "gas used",
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        },
-        {
-          "$$hashKey": "object:711",
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        }
-      ],
-      "yaxis": {
-        "align": false,
-        "alignLevel": null
-      }
-    },
-    {
-      "aliasColors": {},
-      "bars": false,
       "cacheTimeout": null,
       "dashLength": 10,
       "dashes": false,
@@ -1370,7 +1453,7 @@
         "h": 7,
         "w": 12,
         "x": 12,
-        "y": 36
+        "y": 50
       },
       "hiddenSeries": false,
       "id": 52,
@@ -1473,7 +1556,7 @@
         "h": 7,
         "w": 12,
         "x": 12,
-        "y": 43
+        "y": 57
       },
       "hiddenSeries": false,
       "id": 54,
@@ -1559,7 +1642,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 50
+        "y": 64
       },
       "id": 99,
       "panels": [
@@ -2098,7 +2181,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 51
+        "y": 65
       },
       "id": 77,
       "panels": [],
@@ -2124,7 +2207,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 52
+        "y": 66
       },
       "hiddenSeries": false,
       "id": 83,
@@ -2224,7 +2307,7 @@
         "h": 10,
         "w": 8,
         "x": 0,
-        "y": 60
+        "y": 74
       },
       "hiddenSeries": false,
       "id": 87,
@@ -2320,7 +2403,7 @@
         "h": 10,
         "w": 8,
         "x": 8,
-        "y": 60
+        "y": 74
       },
       "hiddenSeries": false,
       "id": 89,
@@ -2418,7 +2501,7 @@
         "h": 10,
         "w": 8,
         "x": 16,
-        "y": 60
+        "y": 74
       },
       "hiddenSeries": false,
       "id": 116,
@@ -2515,7 +2598,7 @@
         "h": 11,
         "w": 8,
         "x": 0,
-        "y": 70
+        "y": 84
       },
       "hiddenSeries": false,
       "id": 91,
@@ -2611,7 +2694,7 @@
         "h": 11,
         "w": 8,
         "x": 8,
-        "y": 70
+        "y": 84
       },
       "hiddenSeries": false,
       "id": 93,
@@ -2709,7 +2792,7 @@
         "h": 11,
         "w": 8,
         "x": 16,
-        "y": 70
+        "y": 84
       },
       "hiddenSeries": false,
       "id": 115,
@@ -2808,7 +2891,7 @@
         "h": 9,
         "w": 24,
         "x": 0,
-        "y": 81
+        "y": 95
       },
       "hiddenSeries": false,
       "id": 79,
@@ -2910,7 +2993,7 @@
         "h": 9,
         "w": 24,
         "x": 0,
-        "y": 90
+        "y": 104
       },
       "hiddenSeries": false,
       "id": 81,
@@ -3001,7 +3084,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 99
+        "y": 113
       },
       "id": 72,
       "panels": [
@@ -3476,7 +3559,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 100
+        "y": 114
       },
       "id": 34,
       "panels": [],
@@ -3516,7 +3599,7 @@
         "h": 4,
         "w": 6,
         "x": 0,
-        "y": 101
+        "y": 115
       },
       "height": "",
       "id": 18,
@@ -3610,7 +3693,7 @@
         "h": 4,
         "w": 5,
         "x": 6,
-        "y": 101
+        "y": 115
       },
       "height": "",
       "id": 32,
@@ -3704,7 +3787,7 @@
         "h": 2,
         "w": 5,
         "x": 11,
-        "y": 101
+        "y": 115
       },
       "id": 44,
       "interval": null,
@@ -3797,7 +3880,7 @@
         "h": 4,
         "w": 4,
         "x": 16,
-        "y": 101
+        "y": 115
       },
       "id": 60,
       "interval": null,
@@ -3889,7 +3972,7 @@
         "h": 4,
         "w": 4,
         "x": 20,
-        "y": 101
+        "y": 115
       },
       "id": 62,
       "interval": null,
@@ -3980,7 +4063,7 @@
         "h": 2,
         "w": 5,
         "x": 11,
-        "y": 103
+        "y": 117
       },
       "id": 46,
       "interval": null,
@@ -4079,7 +4162,7 @@
         "h": 5,
         "w": 16,
         "x": 0,
-        "y": 105
+        "y": 119
       },
       "height": "",
       "hiddenSeries": false,
@@ -4210,7 +4293,7 @@
         "h": 5,
         "w": 4,
         "x": 16,
-        "y": 105
+        "y": 119
       },
       "id": 30,
       "interval": null,
@@ -4304,7 +4387,7 @@
         "h": 2,
         "w": 4,
         "x": 20,
-        "y": 105
+        "y": 119
       },
       "id": 38,
       "interval": null,
@@ -4398,7 +4481,7 @@
         "h": 3,
         "w": 4,
         "x": 20,
-        "y": 107
+        "y": 121
       },
       "id": 36,
       "interval": null,
@@ -4468,7 +4551,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 110
+        "y": 124
       },
       "id": 8,
       "panels": [],
@@ -4494,7 +4577,7 @@
         "h": 7,
         "w": 12,
         "x": 0,
-        "y": 111
+        "y": 125
       },
       "hiddenSeries": false,
       "id": 20,
@@ -4599,7 +4682,7 @@
         "h": 7,
         "w": 12,
         "x": 12,
-        "y": 111
+        "y": 125
       },
       "hiddenSeries": false,
       "id": 26,
@@ -4698,7 +4781,7 @@
         "h": 7,
         "w": 8,
         "x": 0,
-        "y": 118
+        "y": 132
       },
       "hiddenSeries": false,
       "id": 12,
@@ -4801,7 +4884,7 @@
         "h": 7,
         "w": 8,
         "x": 8,
-        "y": 118
+        "y": 132
       },
       "hiddenSeries": false,
       "id": 6,
@@ -4898,7 +4981,7 @@
         "h": 7,
         "w": 8,
         "x": 16,
-        "y": 118
+        "y": 132
       },
       "hiddenSeries": false,
       "id": 22,
@@ -4996,7 +5079,7 @@
         "h": 7,
         "w": 8,
         "x": 0,
-        "y": 125
+        "y": 139
       },
       "hiddenSeries": false,
       "id": 16,
@@ -5093,7 +5176,7 @@
         "h": 7,
         "w": 8,
         "x": 8,
-        "y": 125
+        "y": 139
       },
       "hiddenSeries": false,
       "id": 14,
@@ -5203,7 +5286,7 @@
         "h": 7,
         "w": 8,
         "x": 16,
-        "y": 125
+        "y": 139
       },
       "hiddenSeries": false,
       "id": 28,
@@ -5306,8 +5389,8 @@
         "allValue": null,
         "current": {
           "selected": false,
-          "text": "mantis-1",
-          "value": "mantis-1"
+          "text": "miner-0",
+          "value": "miner-0"
         },
         "datasource": "VictoriaMetrics",
         "definition": "label_values(client_id)",
