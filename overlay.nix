@@ -24,8 +24,8 @@ in {
   # The branch was `chore/update-sbt-add-nix`, for future reference.
   mantis-source = builtins.fetchGit {
     url = "https://github.com/input-output-hk/mantis";
-    rev = "4fc1d4ab5396f206319387e0283d597ea390f6b8";
-    ref = "develop";
+    rev = "e503a7ff3b316da1fd1a2a2f0db9131e4550b161";
+    ref = "3.1.0-flake-redux";
     submodules = true;
   };
 
@@ -40,7 +40,7 @@ in {
 
   restic-backup = final.callPackage ./pkgs/backup { };
 
-  mantis = import final.mantis-source { inherit system; };
+  mantis = import final.mantis-source;
 
   morpho-source = inputs.morpho-node;
 

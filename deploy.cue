@@ -147,7 +147,7 @@ geneses: {
 		args: {
 			#id:          "kevm"
 			#fqdn:        "-\(#id).\(#domain)"
-			#mantisRev:   #defaults.mantisRev
+			#mantisRev:   "432c1655a00928d4c1b1694501b7b7712ad5f30a"
 			#genesis:     geneses["mantis-\(#id)"]
 			#extraConfig: """
 				mantis {
