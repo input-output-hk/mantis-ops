@@ -69,7 +69,7 @@
           SystemStart: "2020-11-17T00:00:00Z"
           TurnOnLogging: True
           Logging:
-            minSeverity: Debug
+            minSeverity: Info
             setupScribes:
               - scKind: StdoutSK
                 scFormat: ScText
