@@ -37,7 +37,7 @@ geneses: {
 }
 
 #defaults: {
-	mantisRev: "24febcacd63a4ba374f4ea554a269b6bc65d14cf"
+	mantisRev: "432c1655a00928d4c1b1694501b7b7712ad5f30a"
 }
 
 #domain: "portal.dev.cardano.org"
@@ -147,7 +147,7 @@ geneses: {
 		args: {
 			#id:          "kevm"
 			#fqdn:        "-\(#id).\(#domain)"
-			#mantisRev:   "432c1655a00928d4c1b1694501b7b7712ad5f30a"
+			#mantisRev:   #defaults.mantisRev
 			#genesis:     geneses["mantis-\(#id)"]
 			#extraConfig: """
 				mantis {
