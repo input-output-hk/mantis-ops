@@ -43,8 +43,6 @@
     templates = [
       {
         data = ''
-          ApplicationName: morpho-checkpoint
-          ApplicationVersion: 1
           CheckpointInterval: 4
           FedPubKeys: [
           {{ range secrets "kv/metadata/nomad-cluster/${namespace}/" -}}
@@ -53,11 +51,11 @@
             {{ end }}
           {{- end -}}
           ]
-          LastKnownBlockVersion-Major: 0
-          LastKnownBlockVersion-Minor: 2
-          LastKnownBlockVersion-Alt: 0
           NetworkMagic: 12345
           NodeId: ${toString nodeNumber}
+          NodePort: {{ env "NOMAD_PORT_morpho" }}
+          DatabaseDirectory: /local/db
+          TopologyFile: {{ env "NOMAD_TASK_DIR" }}/morpho-topology.json
           NodePrivKeyFile: {{ env "NOMAD_SECRETS_DIR" }}/morpho-private-key
           NumCoreNodes: ${toString nbNodes}
           PoWBlockFetchInterval: 5000000
@@ -65,31 +63,26 @@
           PrometheusPort: {{ env "NOMAD_PORT_morphoPrometheus" }}
           Protocol: MockedBFT
           RequiredMajority: ${toString ((nbNodes / 2) + 1)}
-          RequiresNetworkMagic: RequiresMagic
           SecurityParam: 2200
           StableLedgerDepth: 6
           SlotDuration: 5
-          SnapshotsOnDisk: 60
-          SnapshotInterval: 60
           SystemStart: "2020-11-17T00:00:00Z"
-          TurnOnLogMetrics: True
           TurnOnLogging: True
-          ViewMode: SimpleView
-          minSeverity: Debug
-          TracingVerbosity: NormalVerbosity
-          setupScribes:
-            - scKind: StdoutSK
-              scFormat: ScText
-              scName: stdout
-          defaultScribes:
-            - - StdoutSK
-              - stdout
-          setupBackends:
-            - KatipBK
-          defaultBackends:
-            - KatipBK
-          options:
-            mapBackends:
+          Logging:
+            minSeverity: Debug
+            setupScribes:
+              - scKind: StdoutSK
+                scFormat: ScText
+                scName: stdout
+            defaultScribes:
+              - - StdoutSK
+                - stdout
+            setupBackends:
+              - KatipBK
+            defaultBackends:
+              - KatipBK
+            options:
+              mapBackends:
         '';
         destination = "local/morpho-config.yaml";
         changeMode = "noop";
