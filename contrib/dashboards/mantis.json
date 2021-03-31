@@ -15,7 +15,7 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "iteration": 1617044386153,
+  "iteration": 1617126696629,
   "links": [],
   "panels": [
     {
@@ -177,7 +177,7 @@
           "max": null,
           "min": null,
           "show": false
-        }
+       }
       ],
       "yaxis": {
         "align": false,
@@ -185,6 +185,42 @@
       }
     },
     {
+      "alert": {
+        "alertRuleTags": {},
+        "conditions": [
+          {
+            "evaluator": {
+              "params": [
+                20
+              ],
+              "type": "gt"
+            },
+            "operator": {
+              "type": "and"
+            },
+            "query": {
+              "params": [
+                "A",
+                "5m",
+                "now"
+              ]
+            },
+            "reducer": {
+              "params": [],
+              "type": "avg"
+            },
+            "type": "query"
+          }
+        ],
+        "executionErrorState": "alerting",
+        "for": "5m",
+        "frequency": "1m",
+        "handler": 1,
+        "message": "Miner node is diverging from maximum block height.\n\nGeneral solution is to restart the allocation and have it re-sync.",
+        "name": "Block Divergence / Time alert",
+        "noDataState": "no_data",
+        "notifications": []
+      },
       "aliasColors": {},
       "bars": false,
       "dashLength": 10,
@@ -247,7 +283,16 @@
           "refId": "B"
         }
       ],
-      "thresholds": [],
+      "thresholds": [
+        {
+          "colorMode": "critical",
+          "fill": true,
+          "line": true,
+          "op": "gt",
+          "value": 20,
+          "visible": true
+        }
+      ],
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
@@ -1290,7 +1335,8 @@
           "fill": true,
           "line": true,
           "op": "gt",
-          "value": 0
+          "value": 0,
+          "visible": true
         }
       ],
       "timeFrom": null,
@@ -5451,8 +5497,8 @@
     ]
   },
   "time": {
-    "from": "2021-03-29T16:09:57.608Z",
-    "to": "2021-03-29T18:59:46.343Z"
+    "from": "now-1h",
+    "to": "now"
   },
   "timepicker": {
     "refresh_intervals": [
