@@ -15,11 +15,11 @@
         "utils": "utils_2"
       },
       "locked": {
-        "lastModified": 1616592378,
-        "narHash": "sha256-LpjifoqP1ETbJOSJBHn3LfSGNrJXVp3vBpidnViQRHQ=",
+        "lastModified": 1617272315,
+        "narHash": "sha256-Dq5sNbSjvvpLeVTB6GzyNT8xJ3BAzVwcyRHG2bhD1dk=",
         "owner": "input-output-hk",
         "repo": "bitte",
-        "rev": "78715b8a0e3e53ef9a92f5db76d11227f3a8f455",
+        "rev": "132c7272c2dab638885611fa7e59baf8b14212f9",
         "type": "github"
       },
       "original": {
@@ -35,11 +35,11 @@
         "utils": "utils"
       },
       "locked": {
-        "lastModified": 1616148874,
-        "narHash": "sha256-hMFh/KNvlawaepqTRHJQDRGQntJAlQgmMSUOQPRV/u8=",
+        "lastModified": 1617023321,
+        "narHash": "sha256-TMIs2HWyed3oNmVCl1SsjNWLail+zcOf3CH5sRakceA=",
         "owner": "input-output-hk",
         "repo": "bitte-cli",
-        "rev": "1d07591e0f859f7573a52093748fe160719c9f09",
+        "rev": "7457a0bae0bd3cb0b809b78af8d8d71b69521d29",
         "type": "github"
       },
       "original": {
@@ -156,17 +156,17 @@
         "sbt-derivation": "sbt-derivation"
       },
       "locked": {
-        "lastModified": 1615507751,
-        "narHash": "sha256-OdNQSpwGp0R3ATuZOFp3JmMEbvuXmt6w5bc4KapFiEo=",
+        "lastModified": 1617221091,
+        "narHash": "sha256-F/8OLkn9bsMoNrj5OZoFCiTAqQAgAnc62roO3cH0NAo=",
         "owner": "input-output-hk",
         "repo": "mantis",
-        "rev": "7284a93c88168a2cfd3e1aa3988ff85542952e91",
+        "rev": "fdeb1c33f6e0fc24680e256fe1b8d920b04950a8",
         "type": "github"
       },
       "original": {
         "owner": "input-output-hk",
         "repo": "mantis",
-        "rev": "7284a93c88168a2cfd3e1aa3988ff85542952e91",
+        "rev": "fdeb1c33f6e0fc24680e256fe1b8d920b04950a8",
         "type": "github"
       }
     },
