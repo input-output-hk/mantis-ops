@@ -5,15 +5,18 @@ import (
 )
 
 #Explorer: types.#stanza.task & {
-	#taskArgs: {
-		upstreamServiceName: string
-		mantisOpsRev:        string
-	}
+	#upstreamServiceName: string
+	#flake:               types.#flake
 
 	driver: "exec"
 
+	resources: {
+		cpu:    100
+		memory: 32
+	}
+
 	config: {
-		flake: "github:input-output-hk/mantis-ops?rev=\(#taskArgs.mantisOpsRev)#mantis-explorer-nginx"
+		flake: #flake
 		args: ["/local/nginx.conf"]
 		command: "/bin/entrypoint"
 	}
@@ -32,7 +35,7 @@ import (
 
       upstream backend {
         least_conn;
-        {{ range service "\(#taskArgs.upstreamServiceName)" }}
+        {{ range service "\(#upstreamServiceName)" }}
           server {{ .Address }}:{{ .Port }};
         {{ end }}
       }

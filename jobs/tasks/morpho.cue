@@ -8,12 +8,10 @@ import (
 )
 
 #Morpho: types.#stanza.task & {
-	#taskArgs: {
-		namespace:        string
-		nbNodes:          5
-		requiredMajority: math.Floor((nbNodes / 2) + 1)
-		morphoRev:        string
-	}
+	#namespace:        string
+	#nbNodes:          5
+	#requiredMajority: math.Floor((#nbNodes / 2) + 1)
+	#morphoRev:        types.#gitRevision
 
 	driver: "exec"
 
@@ -28,7 +26,7 @@ import (
 	}
 
 	config: {
-		flake:   "github:input-output-hk/ECIP-Checkpointing?rev=\(#taskArgs.morphoRev)#morpho"
+		flake:   "github:input-output-hk/ECIP-Checkpointing?rev=\(#morphoRev)#morpho"
 		command: "/bin/morpho-checkpoint-node"
 		args: [
 			"--topology", "/local/morpho-topology.json",
@@ -47,10 +45,10 @@ import (
 	}
 
 	template: "local/morpho-topology.json": {
-		let range = list.Range(0, #taskArgs.nbNodes, 1)
+		let range = list.Range(0, #nbNodes, 1)
 		let addressFor = {
 			#n:      uint
-			addr:    "_\(#taskArgs.namespace)-morpho-node._obft-node-\(#n).service.consul."
+			addr:    "_\(#namespace)-morpho-node._obft-node-\(#n).service.consul."
 			valency: 1
 		}
 		let map = [ for n in range {
@@ -62,7 +60,7 @@ import (
 
 	template: "secrets/morpho-private-key": {
 		data:        """
-			{{- with secret (printf "kv/data/nomad-cluster/\(#taskArgs.namespace)/obft-node-%s/obft-secret-key" (env "NOMAD_ALLOC_INDEX")) -}}
+			{{- with secret (printf "kv/data/nomad-cluster/\(#namespace)/obft-node-%s/obft-secret-key" (env "NOMAD_ALLOC_INDEX")) -}}
 			{{- .Data.data.value -}}
 			{{- end -}}
 			"""
@@ -78,9 +76,9 @@ import (
     ApplicationVersion: 1
     CheckpointInterval: 4
     FedPubKeys: [
-    {{ range secrets "kv/metadata/nomad-cluster/\(#taskArgs.namespace)/" -}}
+    {{ range secrets "kv/metadata/nomad-cluster/\(#namespace)/" -}}
       {{- if . | contains "obft" -}}
-          "{{- with secret (printf "kv/data/nomad-cluster/\(#taskArgs.namespace)/%s/obft-public-key" . ) -}}{{ .Data.data.value }}{{end}}",
+          "{{- with secret (printf "kv/data/nomad-cluster/\(#namespace)/%s/obft-public-key" . ) -}}{{ .Data.data.value }}{{end}}",
       {{ end }}
     {{- end -}}
     ]
@@ -90,12 +88,12 @@ import (
     NetworkMagic: 12345
     NodeId: {{ env "NOMAD_ALLOC_INDEX" }}
     NodePrivKeyFile: {{ env "NOMAD_SECRETS_DIR" }}/morpho-private-key
-    NumCoreNodes: \(#taskArgs.nbNodes)
+    NumCoreNodes: \(#nbNodes)
     PoWBlockFetchInterval: 5000000
     PoWNodeRpcUrl: http://127.0.0.1:{{ env "NOMAD_PORT_rpc" }}
     PrometheusPort: {{ env "NOMAD_PORT_morphoPrometheus" }}
     Protocol: MockedBFT
-    RequiredMajority: \(#taskArgs.requiredMajority)
+    RequiredMajority: \(#requiredMajority)
     RequiresNetworkMagic: RequiresMagic
     SecurityParam: 2200
     StableLedgerDepth: 6

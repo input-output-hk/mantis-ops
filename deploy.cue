@@ -10,13 +10,13 @@ import (
 }
 
 _Namespace: [Name=_]: {
-	args: {
+	vars: {
 		namespace: =~"^mantis-[a-z-]+$"
 		namespace: Name
 		let datacenter = "eu-central-1" | "us-east-2" | "eu-west-1"
 		datacenters: list.MinItems(1) | [...datacenter] | *["eu-central-1", "us-east-2"]
-		fqdn:        "mantis.ws"
-		network:     string
+		#fqdn:       "mantis.ws"
+		#network:    string
 	}
 	jobs: [string]: types.#stanza.job
 }
@@ -24,62 +24,56 @@ _Namespace: [Name=_]: {
 #namespaces: _Namespace
 
 #defaults: {
-	mantisOpsRev: "a765196f47acf6ada8156e29b6cac1c561fb4692"
-	mantisRev:    "2e75b523b00a9708c0bdc78e4d73e96ec91ae4a3"
+	mantisOpsRev: "97dfa8601097e8e0cf52d2f62d2f57b5ddb8cd81"
+	mantisRev:    "fdeb1c33f6e0fc24680e256fe1b8d920b04950a8"
 	morphoRev:    "b4335fb4e764d5441445179d0e8d9e3e596e7d94"
+}
+
+#faucet: jobDef.#Faucet & {
+	#mantisOpsRev: #defaults.mantisOpsRev
+}
+
+#explorer: jobDef.#Explorer & {
+	#mantisOpsRev: #defaults.mantisOpsRev
+}
+
+#miner: jobDef.#Mantis & {
+	#count:     uint | *1
+	#role:      "miner"
+	#mantisRev: #defaults.mantisRev
+}
+
+#passive: jobDef.#Mantis & {
+	#count:     uint | *1
+	#role:      "passive"
+	#mantisRev: #defaults.mantisRev
+}
+
+#morpho: jobDef.#Morpho & {
+	#count:     uint | *5
+	#morphoRev: #defaults.morphoRev
+	#mantisRev: #defaults.mantisRev
 }
 
 #namespaces: {
 	"mantis-unstable": {
-		args: network: "sagano"
+		vars: #network: "sagano"
 		jobs: {
-			explorer: jobDef.#Explorer & {#args: {
-				mantisOpsRev: #defaults.mantisOpsRev
-			}}
-			faucet: jobDef.#Faucet & {#args: {
-				mantisOpsRev: #defaults.mantisOpsRev
-			}}
-			"miner": jobDef.#Mantis & {#args: {
-				count:     3
-				role:      "miner"
-				mantisRev: #defaults.mantisRev
-			}}
-			"passive": jobDef.#Mantis & {#args: {
-				count:     1
-				role:      "passive"
-				mantisRev: #defaults.mantisRev
-			}}
-			"morpho": jobDef.#Morpho & {#args: {
-				count:     5
-				morphoRev: #defaults.morphoRev
-				mantisRev: #defaults.mantisRev
-			}}
+			explorer: #explorer
+			faucet:   #faucet
+			miner:    #miner
+			passive:  #passive
+			morpho:   #morpho
 		}
 	}
 	"mantis-testnet": {
-		args: network: "sagano"
+		vars: #network: "sagano"
 		jobs: {
-			explorer: jobDef.#Explorer & {#args: {
-				mantisOpsRev: #defaults.mantisOpsRev
-			}}
-			faucet: jobDef.#Faucet & {#args: {
-				mantisOpsRev: #defaults.mantisOpsRev
-			}}
-			"miner": jobDef.#Mantis & {#args: {
-				count:     5
-				role:      "miner"
-				mantisRev: #defaults.mantisRev
-			}}
-			"passive": jobDef.#Mantis & {#args: {
-				count:     5
-				role:      "passive"
-				mantisRev: #defaults.mantisRev
-			}}
-			"morpho": jobDef.#Morpho & {#args: {
-				count:     5
-				morphoRev: #defaults.morphoRev
-				mantisRev: #defaults.mantisRev
-			}}
+			explorer: #explorer
+			faucet:   #faucet
+			miner:    #miner & {#count:   5}
+			passive:  #passive & {#count: 5}
+			morpho:   #morpho
 		}
 	}
 	// "mantis-iele": jobs:        #defaultJobs
@@ -93,8 +87,17 @@ for nsName, nsValue in #namespaces {
 		for jName, jValue in nsValue.jobs {
 			"\(jName)": Job: types.#toJson & {
 				#jobName: jName
-				#job:     jValue & {#args: jValue.#args & nsValue.args}
+				#job:     jValue & nsValue.vars
 			}
+		}
+	}
+}
+
+for nsName, nsValue in #namespaces {
+	// output is alphabetical, so better errors show at the end.
+	zchecks: "\(nsName)": {
+		for jName, jValue in nsValue.jobs {
+			"\(jName)": jValue & nsValue.vars
 		}
 	}
 }

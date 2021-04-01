@@ -3,26 +3,19 @@ package jobs
 import (
 	"github.com/input-output-hk/mantis-ops/pkg/schemas/nomad:types"
 	"github.com/input-output-hk/mantis-ops/pkg/jobs/tasks:tasks"
-	"list"
 )
 
 #Faucet: types.#stanza.job & {
-	#args: {
-		datacenters:  list.MinItems(1)
-		namespace:    string
-		fqdn:         string
-		wallet:       string | *"mantis-1"
-		mantisOpsRev: string
-		network:      string
-	}
+	#fqdn:         string
+	#wallet:       string | *"mantis-1"
+	#mantisOpsRev: types.#gitRevision
+	#network:      string
+	#name:         "\(namespace)-faucet"
 
-	#name:      "\(namespace)-faucet"
-	#fqdn:      #args.fqdn
-	#namespace: #args.namespace
+	let ref = {wallet: #wallet, mantisOpsRev: #mantisOpsRev}
 
-	datacenters: #args.datacenters
-	namespace:   #args.namespace
-	type:        "service"
+	namespace: string
+	type:      "service"
 
 	update: {
 		max_parallel:      1
@@ -57,6 +50,12 @@ import (
 				"traefik.http.routers.\(namespace)-faucet-rpc.rule=Host(`\(#name).\(#fqdn)`)",
 				"traefik.http.routers.\(namespace)-faucet-rpc.entrypoints=https",
 				"traefik.http.routers.\(namespace)-faucet-rpc.tls=true",
+				"traefik.http.routers.\(namespace)-faucet-rpc.middlewares=corsheader@consulcatalog",
+				"traefik.http.middlewares.corsheader.headers.accesscontrolallowmethods=GET,OPTIONS,POST",
+				"traefik.http.middlewares.corsheader.headers.accesscontrolalloworigin=*",
+				"traefik.http.middlewares.corsheader.headers.accesscontrolmaxage=100",
+				"traefik.http.middlewares.corsheader.headers.addvaryheader=true",
+				"traefik.http.middlewares.corsheader.headers.accesscontrolallowheaders=Content-Type",
 			]
 
 			check: nginx: {
@@ -82,12 +81,19 @@ import (
 				"traefik.http.routers.\(namespace)-faucet-nginx.rule=Host(`\(#name)-web.\(#fqdn)`)",
 				"traefik.http.routers.\(namespace)-faucet-nginx.entrypoints=https",
 				"traefik.http.routers.\(namespace)-faucet-nginx.tls=true",
+				"traefik.http.routers.\(namespace)-faucet-nginx.middlewares=corsheader@consulcatalog",
+				"traefik.http.middlewares.corsheader.headers.accesscontrolallowmethods=GET,OPTIONS,POST",
+				"traefik.http.middlewares.corsheader.headers.accesscontrolalloworigin=*",
+				"traefik.http.middlewares.corsheader.headers.accesscontrolmaxage=100",
+				"traefik.http.middlewares.corsheader.headers.addvaryheader=true",
+				"traefik.http.middlewares.corsheader.headers.accesscontrolallowheaders=Content-Type",
+
 			]
 
 			meta: {
 				Name:     #name
 				PublicIp: "${attr.unique.platform.aws.public-ipv4}"
-				Wallet:   #args.wallet
+				Wallet:   #wallet
 			}
 		}
 
@@ -99,28 +105,22 @@ import (
 		}
 
 		task: nginx: tasks.#FaucetNginx & {
-			#taskArgs: {
-				mantisOpsRev:        #args.mantisOpsRev
-				upstreamServiceName: "\(#name)-rpc"
-			}
+			#mantisOpsRev:        ref.mantisOpsRev
+			#upstreamServiceName: "\(#name)-rpc"
 		}
 
 		task: mantis: tasks.#FaucetServer & {
-			#taskArgs: {
-				mantisOpsRev: #args.mantisOpsRev
-				namespace:    #args.namespace
-				wallet:       #args.wallet
-			}
+			#mantisOpsRev: ref.mantisOpsRev
+			#namespace:    namespace
+			#wallet:       ref.wallet
 		}
 
 		task: promtail: tasks.#Promtail
 
 		task: telegraf: tasks.#Telegraf & {
-			#taskArgs: {
-				namespace:      #args.namespace
-				name:           "faucet"
-				prometheusPort: "metrics"
-			}
+			#namespace:      namespace
+			#name:           "faucet"
+			#prometheusPort: "metrics"
 		}
 	}
 }

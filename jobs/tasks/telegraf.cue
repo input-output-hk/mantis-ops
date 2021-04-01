@@ -5,11 +5,8 @@ import (
 )
 
 #Telegraf: types.#stanza.task & {
-	#taskArgs: {
-		namespace:      string
-		name:           string
-		prometheusPort: string
-	}
+	#prometheusPort: string
+	#clientId:       string | *"{{ env \"NOMAD_JOB_NAME\" }}-{{ env \"NOMAD_ALLOC_INDEX\" }}"
 
 	driver: "exec"
 
@@ -24,7 +21,7 @@ import (
 	}
 
 	config: {
-		flake:   "github:NixOS/nixpkgs/nixos-20.09#telegraf"
+		flake:   "github:input-output-hk/vit-ops#telegraf"
 		command: "/bin/telegraf"
 		args: ["-config", "/local/telegraf.config"]
 	}
@@ -37,13 +34,13 @@ import (
 		omit_hostname = false
 
 		[global_tags]
-		client_id = "\(#taskArgs.name)"
-		namespace = "\(#taskArgs.namespace)"
+		client_id = "\(#clientId)"
+		namespace = "{{ env "NOMAD_NAMESPACE" }}"
 
 		[inputs.prometheus]
 		metric_version = 1
 
-		urls = [ "http://{{ env "NOMAD_ADDR_\(#taskArgs.prometheusPort)" }}" ]
+		urls = [ "http://{{ env "NOMAD_ADDR_\(#prometheusPort)" }}" ]
 
 		[outputs.influxdb]
 		database = "telegraf"

@@ -8,8 +8,13 @@ import (
 #Promtail: types.#stanza.task & {
 	driver: "exec"
 
+	resources: {
+		cpu:    100
+		memory: 64
+	}
+
 	config: {
-		flake:   "github:NixOS/nixpkgs/nixpkgs-unstable#grafana-loki"
+		flake:   "github:input-output-hk/mantis-ops/cue#grafana-loki"
 		command: "/bin/promtail"
 		args: ["-config.file", "local/config.yaml"]
 	}

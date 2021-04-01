@@ -3,27 +3,19 @@ package jobs
 import (
 	"github.com/input-output-hk/mantis-ops/pkg/schemas/nomad:types"
 	"github.com/input-output-hk/mantis-ops/pkg/jobs/tasks:tasks"
-	"list"
 )
 
 #Mantis: types.#stanza.job & {
-	#args: {
-		namespace:   string
-		count:       uint
-		role:        "passive" | "miner" | "backup"
-		mantisRev:   string
-		datacenters: list.MinItems(1)
-		fqdn:        string
-		network:     string
-	}
+	#count:     uint
+	#role:      "passive" | "miner" | "backup"
+	#mantisRev: string
+	#fqdn:      string
+	#network:   string
 
-	datacenters: #args.datacenters
-	namespace:   #args.namespace
-	type:        "service"
+	let ref = {network: #network, mantisRev: #mantisRev, role: #role}
 
-	#count: #args.count
-	#role:  #args.role
-	#fqdn:  #args.fqdn
+	namespace: string
+	type:      "service"
 
 	update: {
 		max_parallel:      2
@@ -31,7 +23,7 @@ import (
 		min_healthy_time:  "10m" // Give enough time for the DAG generation
 		healthy_deadline:  "30m"
 		progress_deadline: "1h"
-		auto_revert:       true
+		auto_revert:       false
 		auto_promote:      true
 		canary:            1
 		stagger:           "1m"
@@ -61,20 +53,16 @@ import (
 		}
 
 		task: telegraf: tasks.#Telegraf & {
-			#taskArgs: {
-				namespace:      #args.namespace
-				name:           "\(#role)-${NOMAD_ALLOC_INDEX}"
-				prometheusPort: "metrics"
-			}
+			#namespace:      namespace
+			#name:           "\(#role)-${NOMAD_ALLOC_INDEX}"
+			#prometheusPort: "metrics"
 		}
 
 		task: mantis: tasks.#Mantis & {
-			#taskArgs: {
-				namespace: #args.namespace
-				mantisRev: #args.mantisRev
-				role:      #role
-				network:   #args.network
-			}
+			#namespace: namespace
+			#mantisRev: ref.mantisRev
+			#role:      ref.role
+			#network:   ref.network
 		}
 
 		task: promtail: tasks.#Promtail
@@ -96,7 +84,7 @@ import (
 			}
 		}
 
-		if #role == "server" {
+		if #role == "miner" {
 			service: "\(namespace)-mantis-\(#role)-rpc": {
 				address_mode: "host"
 				port:         "rpc"

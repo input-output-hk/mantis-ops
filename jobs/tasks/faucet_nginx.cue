@@ -5,10 +5,8 @@ import (
 )
 
 #FaucetNginx: types.#stanza.task & {
-	#taskArgs: {
-		upstreamServiceName: string
-		mantisOpsRev:        string
-	}
+	#upstreamServiceName: string
+	#mantisOpsRev:        types.#gitRevision
 
 	vault: {
 		policies: ["nomad-cluster"]
@@ -17,8 +15,13 @@ import (
 
 	driver: "exec"
 
+	resources: {
+		cpu:    100
+		memory: 32
+	}
+
 	config: {
-		flake: "github:input-output-hk/mantis-ops?rev=\(#taskArgs.mantisOpsRev)#mantis-faucet-nginx"
+		flake: "github:input-output-hk/mantis-ops?rev=\(#mantisOpsRev)#mantis-faucet-nginx"
 		args: ["/local/nginx.conf"]
 		command: "/bin/entrypoint"
 	}
@@ -42,7 +45,7 @@ import (
 
       upstream backend {
         least_conn;
-        {{ range service "\(#taskArgs.upstreamServiceName)" }}
+        {{ range service "\(#upstreamServiceName)" }}
           server {{ .Address }}:{{ .Port }};
         {{ end }}
       }

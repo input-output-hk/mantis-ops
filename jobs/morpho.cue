@@ -3,27 +3,23 @@ package jobs
 import (
 	"github.com/input-output-hk/mantis-ops/pkg/schemas/nomad:types"
 	"github.com/input-output-hk/mantis-ops/pkg/jobs/tasks:tasks"
-	"list"
 )
 
 #Morpho: types.#stanza.job & {
-	#args: {
-		datacenters: list.MinItems(1)
-		namespace:   string
-		index:       uint
-		count:       uint
-		mantisRev:   string
-		morphoRev:   string
-		fqdn:        string
-		network:     string
-	}
+	#index:     uint
+	#count:     uint
+	#mantisRev: string
+	#morphoRev: string
+	#fqdn:      string
+	#network:   string
 
-	#name: "morpho-\(#args.index)"
+	#name: "morpho-\(#index)"
 	#id:   "\(namespace)-\(#name)"
 
-	datacenters: #args.datacenters
-	namespace:   #args.namespace
-	type:        "service"
+	let ref = {morphoRev: #morphoRev, network: #network, mantisRev: #mantisRev}
+
+	namespace: string
+	type:      "service"
 
 	update: {
 		max_parallel:      2
@@ -38,7 +34,7 @@ import (
 	}
 
 	group: morpho: {
-		count: #args.count
+		count: #count
 
 		service: "\(namespace)-morpho-node": {
 			address_mode: "host"
@@ -71,34 +67,26 @@ import (
 		}
 
 		task: morpho: tasks.#Morpho & {
-			#taskArgs: {
-				namespace: #args.namespace
-				morphoRev: #args.morphoRev
-			}
+			#namespace: namespace
+			#morphoRev: ref.morphoRev
 		}
 
 		task: "telegraf-morpho": tasks.#Telegraf & {
-			#taskArgs: {
-				namespace:      #args.namespace
-				name:           "morpho-${NOMAD_ALLOC_INDEX}"
-				prometheusPort: "morphoPrometheus"
-			}
+			#namespace:      namespace
+			#name:           "morpho-${NOMAD_ALLOC_INDEX}"
+			#prometheusPort: "morphoPrometheus"
 		}
 
 		task: promtail: tasks.#Promtail & {
-			#taskArgs: {
-				namespace: #args.namespace
-				name:      "morpho-${NOMAD_ALLOC_INDEX}"
-			}
+			#namespace: namespace
+			#name:      "morpho-${NOMAD_ALLOC_INDEX}"
 		}
 
 		task: mantis: tasks.#Mantis & {
-			#taskArgs: {
-				namespace: #args.namespace
-				mantisRev: #args.mantisRev
-				role:      "passive"
-				network:   #args.network
-			}
+			#namespace: namespace
+			#mantisRev: ref.mantisRev
+			#role:      "passive"
+			#network:   ref.network
 		}
 	}
 }
