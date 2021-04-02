@@ -53,7 +53,7 @@ in {
       "shay.bergmann"
     ];
     developerGithubNames = [ ];
-    developerGithubTeamNames = [ "mantis-devs" ];
+    developerGithubTeamNames = [ "mantis-devs" "mantis-ext-devs" ];
     domain = "mantis.ws";
     kms =
       "arn:aws:kms:eu-central-1:166923377823:key/745684e5-272e-49af-aad8-8b073b8d996a";
