@@ -9,13 +9,18 @@ let
 
   bitte = self.inputs.bitte;
 
-  amis = {
-    us-east-2 = "ami-0492aa69cf46f79c3";
-    eu-central-1 = "ami-0839f2c610f876d2d";
-  };
-
 in {
-  imports = [ ./iam.nix ];
+  imports = [ ./iam.nix ./nix.nix ];
+
+  services.nomad.namespaces = {
+    mantis-testnet.description = "Mantis testnet";
+    mantis-iele.description = "Mantis IELE";
+    mantis-qa-load.description = "Mantis QA Load";
+    mantis-qa-fastsync.description = "Mantis QA FastSync";
+    mantis-staging.description = "Mantis Staging";
+    mantis-unstable.description = "Mantis Unstable";
+    mantis-paliga.description = "Mantis Paliga";
+  };
 
   services.consul.policies.developer.servicePrefix."mantis-" = {
     policy = "write";
@@ -31,14 +36,6 @@ in {
       node.policy = "read";
       hostVolume."*".policy = "read";
     };
-  };
-
-  services.nomad.namespaces = {
-    mantis-testnet.description = "Mantis testnet";
-    mantis-iele.description = "Mantis IELE";
-    mantis-qa-load.description = "Mantis QA Load";
-    mantis-qa-fastsync.description = "Mantis QA FastSync";
-    mantis-staging.description = "Mantis Staging";
   };
 
   cluster = {
@@ -66,26 +63,14 @@ in {
     autoscalingGroups = listToAttrs (forEach [
       {
         region = "eu-central-1";
-        desiredCapacity = 8;
+        desiredCapacity = 12;
       }
       {
         region = "us-east-2";
-        desiredCapacity = 8;
+        desiredCapacity = 12;
       }
     ] (args:
       let
-        extraConfig = pkgs.writeText "extra-config.nix" ''
-          { lib, ... }:
-
-          {
-            disabledModules = [ "virtualisation/amazon-image.nix" ];
-            networking = {
-              hostId = "9474d585";
-            };
-            boot.initrd.postDeviceCommands = "echo FINDME; lsblk";
-            boot.loader.grub.device = lib.mkForce "/dev/nvme0n1";
-          }
-        '';
         attrs = ({
           desiredCapacity = 1;
           maxSize = 40;
@@ -100,32 +85,17 @@ in {
             self.inputs.ops-lib.nixosModules.zfs-runtime
             "${self.inputs.nixpkgs}/nixos/modules/profiles/headless.nix"
             "${self.inputs.nixpkgs}/nixos/modules/virtualisation/ec2-data.nix"
-            "${extraConfig}"
             ./secrets.nix
             ./docker-auth.nix
+            ./nix.nix
+            ./reserve.nix
+            ./host-volumes.nix
           ];
 
           securityGroupRules = {
             inherit (securityGroupRules)
               internet internal ssh mantis-rpc mantis-server;
           };
-          ami = amis.${args.region};
-          userData = ''
-            # amazon-shell-init
-            set -exuo pipefail
-
-            ${pkgs.zfs}/bin/zpool online -e tank nvme0n1p3
-
-            export CACHES="https://hydra.iohk.io https://cache.nixos.org ${cluster.s3Cache}"
-            export CACHE_KEYS="hydra.iohk.io:f/Ea+s+dFdN+3Y/G+FDgSq+a5NEWhJGzdjvKNGv0/EQ= cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= ${cluster.s3CachePubKey}"
-            pushd /run/keys
-            aws s3 cp "s3://${cluster.s3Bucket}/infra/secrets/${cluster.name}/${cluster.kms}/source/source.tar.xz" source.tar.xz
-            mkdir -p source
-            tar xvf source.tar.xz -C source
-            nix build ./source#nixosConfigurations.${cluster.name}-${asgName}.config.system.build.toplevel --option substituters "$CACHES" --option trusted-public-keys "$CACHE_KEYS"
-            /run/current-system/sw/bin/nixos-rebuild --flake ./source#${cluster.name}-${asgName} boot --option substituters "$CACHES" --option trusted-public-keys "$CACHE_KEYS"
-            /run/current-system/sw/bin/shutdown -r now
-          '';
         } // args);
         asgName = "client-${attrs.region}-${
             replaceStrings [ "." ] [ "-" ] attrs.instanceType
@@ -182,30 +152,39 @@ in {
         privateIP = "172.16.0.20";
         subnet = cluster.vpc.subnets.core-1;
         volumeSize = 1000;
-        route53.domains = [ "*.${cluster.domain}" ];
+        route53.domains = [
+          "consul.${cluster.domain}"
+          "docker.${cluster.domain}"
+          "monitoring.${cluster.domain}"
+          "nomad.${cluster.domain}"
+          "vault.${cluster.domain}"
+        ];
 
-        modules = let
-          extraConfig = pkgs.writeText "extra-config.nix" ''
-            { ... }: {
-              services.vault-agent-core.vaultAddress =
-                "https://${cluster.instances.core-1.privateIP}:8200";
-              services.ingress.enable = true;
-              services.ingress-config.enable = true;
-            }
-          '';
-        in [
+        modules = [
           (bitte + /profiles/monitoring.nix)
           ./monitoring-server.nix
           ./secrets.nix
-          ./ingress.nix
-          "${extraConfig}"
-          ./docker-registry.nix
-          ./minio.nix
         ];
 
         securityGroupRules = {
+          inherit (securityGroupRules) internet internal ssh http;
+        };
+      };
+
+      routing = {
+        instanceType = "t3a.small";
+        privateIP = "172.16.1.20";
+        subnet = cluster.vpc.subnets.core-2;
+        volumeSize = 100;
+        route53.domains = [ "*.${cluster.domain}" ];
+
+        modules =
+          [ (bitte + /profiles/routing.nix) ./secrets.nix ./traefik.nix ];
+
+        securityGroupRules = {
           inherit (securityGroupRules)
-            internet internal ssh http mantis-server-public;
+            internet internal ssh http routing mantis-server-public
+            mantis-discovery-public;
         };
       };
     };

@@ -121,7 +121,7 @@ mkdir -p /var/tmp
       nix.extraOptions = ''
         experimental-features = nix-command flakes ca-references
       '';
-
+      nix.package = pkgs.nixUnstable;
     ```
 
 
@@ -416,3 +416,10 @@ mkdir -p /var/tmp
     # Run a local mantis node against the testnet bootstrap cluster
     $ consul-template -template templates/mantis.tmpl:mantis-local.conf -exec './mantis-node/bin/mantis -Dconfig.file=./mantis-local.conf'
     ```
+
+
+
+## CUE
+
+    nix build .#dockerImagesCue
+    cue import -p bitte json: - < result > docker_images.cue

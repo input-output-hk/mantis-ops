@@ -1,5 +1,4 @@
-{ system, self }:
-final: prev:
+inputs: final: prev:
 let
   lib = final.lib;
   # Little convenience function helping us to containing the bash
@@ -7,7 +6,7 @@ let
   writeBashChecked = final.writers.makeScriptWriter {
     interpreter = "${final.bash}/bin/bash";
     check = final.writers.writeBash "shellcheck-check" ''
-      ${final.shellcheck}/bin/shellcheck "$1"
+      ${final.shellcheck}/bin/shellcheck -x "$1"
     '';
   };
   writeBashBinChecked = name: writeBashChecked "/bin/${name}";
@@ -19,13 +18,6 @@ in {
   # And here we cannot specify simply a branch since that's not reproducible,
   # so we use the commit instead.
   # The branch was `chore/update-sbt-add-nix`, for future reference.
-
-  mantis-source = builtins.fetchGit {
-    url = "https://github.com/input-output-hk/mantis";
-    rev = "4fc1d4ab5396f206319387e0283d597ea390f6b8";
-    ref = "develop";
-    submodules = true;
-  };
 
   mantis-staging-source = builtins.fetchGit {
     url = "https://github.com/input-output-hk/mantis";
@@ -41,218 +33,63 @@ in {
     submodules = true;
   };
 
-  restic-backup = final.callPackage ./pkgs/backup { };
-
-  mantis = import final.mantis-source { inherit system; };
+  mantis = inputs.mantis.defaultPackage.${final.system};
 
   mantis-staging = import final.mantis-staging-source {
     src = final.mantis-staging-source;
-    inherit system;
+    inherit (final) system;
   };
 
-  mantis-faucet = import final.mantis-faucet-source { inherit system; };
+  mantis-faucet-web =
+    inputs.mantis-faucet-web.defaultPackage.${final.system}.overrideAttrs
+    (old: {
+      FAUCET_NODE_URL = "https://mantis-testnet-faucet.mantis.ws";
+      MANTIS_VM = "Mantis Testnet";
+    });
 
-  mantis-explorer-server = prev.callPackage ./pkgs/mantis-explorer-server.nix {
-    inherit (self.inputs.inclusive.lib) inclusive;
+  mantis-faucet-nginx = final.callPackage ./pkgs/nginx.nix {
+    package = final.mantis-faucet-web;
+    target = "/mantis-faucet";
   };
-  morpho-source = self.inputs.morpho-node;
 
-  morpho-node = self.inputs.morpho-node.defaultPackage.${system};
+  mantis-faucet-server = final.callPackage ./pkgs/mantis-faucet-server.nix { };
+
+  mantis-explorer = inputs.mantis-explorer.defaultPackage.${final.system};
+
+  mantis-explorer-nginx = prev.callPackage ./pkgs/nginx.nix {
+    package = final.mantis-explorer;
+    target = "/mantis-explorer";
+  };
+
+  morpho-source = inputs.morpho-node;
+
+  morpho-node = inputs.morpho-node.defaultPackage.${final.system};
+
+  morpho-node-entrypoint = final.callPackage ./pkgs/morpho-node.nix { };
 
   # Any:
   # - run of this command with a parameter different than the testnet (currently 10)
   # - change in the genesis file here
   # Requires an update on the mantis repository and viceversa
-  generate-mantis-keys = let
-    mantisConfigJson = {
-      mantis = {
-        consensus.mining-enabled = false;
-        blockchains.network = "testnet-internal-nomad";
-
-        network.rpc = {
-          http = {
-            mode = "http";
-            interface = "0.0.0.0";
-            port = 8546;
-            cors-allowed-origins = "*";
-          };
-        };
-      };
-    };
-
-    mantisConfigHocon =
-      prev.runCommand "mantis.conf" { buildInputs = [ prev.jq ]; } ''
-        cat <<EOF > $out
-        include "${final.mantis}/conf/testnet-internal-nomad.conf"
-        EOF
-
-        jq . < ${
-          prev.writeText "mantis.json" (builtins.toJSON mantisConfigJson)
-        } \
-        | head -c -2 \
-        | tail -c +2 \
-        | sed 's/^  //' \
-        >> $out
-      '';
-  in writeBashBinChecked "generate-mantis-keys" ''
-    set -xeuo pipefail
-
+  generate-mantis-keys = final.writeBashBinChecked "generate-mantis-keys" ''
     export PATH="${
       lib.makeBinPath (with final; [
-        final.coreutils
-        final.mantis
-        final.gawk
-        final.vault-bin
-        final.gnused
-        final.curl
-        final.jq
-        final.netcat
-        final.gnused
+        coreutils
+        curl
+        gawk
+        gnused
+        gnused
+        jq
+        mantis
+        netcat
+        vault-bin
+        which
+        shellcheck
+        tree
       ])
     }"
 
-    [ $# -eq 3 ] || { echo "Three arguments are required. Pass the prefix, the number of mantis keys to generate and the number of OBFT keys to generate."; exit 1; }
-
-    prefix="$1"
-    desired="$2"
-    desiredObft="$3"
-    mkdir -p secrets/"$prefix"
-
-    echo "generating $desired keys"
-
-    tmpdir="$(mktemp -d)"
-
-    mantis "-Duser.home=$tmpdir" "-Dconfig.file=${mantisConfigHocon}" > /dev/null &
-    pid="$!"
-    on_exit() {
-      kill "$pid"
-      while kill -0 "$pid"; do
-        sleep 0.1
-      done
-      rm -rf "$tmpdir"
-    }
-    trap on_exit EXIT
-
-    while ! nc -z 127.0.0.1 8546; do
-      sleep 0.1 # wait for 1/10 of the second before check again
-    done
-
-    generateCoinbase() {
-      curl -s http://127.0.0.1:8546 -H 'Content-Type: application/json' -d @<(cat <<EOF
-        {
-          "jsonrpc": "2.0",
-          "method": "personal_importRawKey",
-          "params": ["$1", ""],
-          "id": 1
-        }
-    EOF
-      ) | jq -e -r .result | sed 's/^0x//'
-    }
-
-    nodes="$(seq -f "mantis-%g" "$desired"; seq -f "obft-node-%g" "$desiredObft")"
-    for node in $nodes; do
-      mantisKeyFile="secrets/$prefix/mantis-$node.key"
-      coinbaseFile="secrets/$prefix/$node.coinbase"
-      coinbasePath="kv/nomad-cluster/$prefix/$node/coinbase"
-      mantisSecretKeyPath="kv/nomad-cluster/$prefix/$node/secret-key"
-      hashKeyPath="kv/nomad-cluster/$prefix/$node/enode-hash"
-      accountPath="kv/nomad-cluster/$prefix/$node/account"
-      genesisPath="kv/nomad-cluster/$prefix/genesis"
-
-      obftKeyFile="secrets/$prefix/obft-$node.key"
-      obftSecretKeyPath="kv/nomad-cluster/$prefix/$node/obft-secret-key"
-      obftPublicKeyPath="kv/nomad-cluster/$prefix/$node/obft-public-key"
-
-      hashKey="$(vault kv get -field value "$hashKeyPath" || true)"
-
-      if [ -z "$hashKey" ]; then
-        if ! [ -s "$mantisKeyFile" ]; then
-          echo "Generating key in $mantisKeyFile"
-          until [ -s "$mantisKeyFile" ]; do
-            echo "generating key..."
-            eckeygen 1 | sed -r '/^\s*$/d' > "$mantisKeyFile"
-          done
-        fi
-
-        echo "Uploading existing key from $mantisKeyFile to Vault"
-
-        hashKey="$(tail -1 "$mantisKeyFile")"
-        vault kv put "$hashKeyPath" "value=$hashKey"
-
-        secretKey="$(head -1 "$mantisKeyFile")"
-        vault kv put "$mantisSecretKeyPath" "value=$secretKey"
-
-        coinbase="$(generateCoinbase "$secretKey")"
-        vault kv put "$coinbasePath" "value=$coinbase"
-
-        vault kv put "$accountPath" - < "$tmpdir"/.mantis/testnet-internal-nomad/keystore/*"$coinbase"
-      else
-        echo "Downloading key for $mantisKeyFile from Vault"
-        secretKey="$(vault kv get -field value "$mantisSecretKeyPath")"
-        echo "$secretKey" > "$mantisKeyFile"
-        echo "$hashKey" >> "$mantisKeyFile"
-
-        coinbase="$(vault kv get -field value "$coinbasePath")"
-        echo "$coinbase" > "$coinbaseFile"
-      fi
-
-      # OBFT-related keys for obft nodes
-      # Note: a OBFT node needs *both* the mantis and OBFT keys to
-      # work.
-      if [[ "$node" =~ ^obft-node-[0-9]+$ ]]; then
-        obftPublicKey="$(vault kv get -field value "$obftPublicKeyPath" || true)"
-        if [ -z "$obftPublicKey" ]; then
-          if ! [ -s "$obftKeyFile" ]; then
-            echo "generating OBFT key..."
-            until [ -s "$obftKeyFile" ]; do
-                echo "generating key..."
-                eckeygen 1 | sed -r '/^\s*$/d' > "$obftKeyFile"
-            done
-          fi
-
-          echo "Uploading OBFT keys"
-          obftPubKey="$(tail -1 "$obftKeyFile")"
-          vault kv put "$obftPublicKeyPath" "value=$obftPubKey"
-          obftSecretKey="$(head -1 "$obftKeyFile")"
-          vault kv put "$obftSecretKeyPath" "value=$obftSecretKey"
-        else
-          echo "Downloading OBFT keys"
-          obftSecretKey="$(vault kv get -field value "obftSecretKeyPath")"
-          echo "$obftSecretKey" > "$obftKeyFile"
-          echo "$obftPublicKey" >> "$obftKeyFile"
-        fi
-      fi
-
-    done
-
-    read -r genesis <<EOF
-      ${
-        builtins.toJSON {
-          extraData = "0x00";
-          nonce = "0x0000000000000042";
-          gasLimit = "0x7A1200";
-          difficulty = "0xF4240";
-          ommersHash =
-            "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347";
-          timestamp = "0x5FA34080";
-          coinbase = "0x0000000000000000000000000000000000000000";
-          mixHash =
-            "0x0000000000000000000000000000000000000000000000000000000000000000";
-          alloc = { };
-        }
-      }
-    EOF
-
-    for count in $(seq "$desired"); do
-      updatedGenesis="$(
-        echo "$genesis" \
-        | jq --arg address "$(< "secrets/$prefix/mantis-$count.coinbase")" \
-          '.alloc[$address] = {"balance": "1606938044258990275541962092341162602522202993782792835301376"}'
-      )"
-      genesis="$updatedGenesis"
-    done
-
-    echo "$genesis" | vault kv put "$genesisPath" -
+    . ${./pkgs/generate-mantis-keys.sh}
   '';
 
   generate-mantis-qa-genesis =
@@ -308,6 +145,18 @@ in {
     . ${./pkgs/check_fmt.sh}
   '';
 
+  dockerImagesCue = let
+    images = lib.mapAttrs (n: v: {
+      name = builtins.unsafeDiscardStringContext v.image.imageName;
+      tag = builtins.unsafeDiscardStringContext v.image.imageTag;
+      url = builtins.unsafeDiscardStringContext v.id;
+    }) final.dockerImages;
+    imagesJson = final.writeText "images.json"
+      (builtins.toJSON { dockerImages = images; });
+  in final.runCommand "docker_images.cue" { buildInputs = [ final.cue ]; } ''
+    cue import -p bitte json: - < ${imagesJson} > $out
+  '';
+
   devShell = let
     cluster = "mantis-testnet";
     domain = final.clusters.${cluster}.proto.config.cluster.domain;
@@ -318,28 +167,29 @@ in {
     BITTE_CLUSTER = cluster;
     AWS_PROFILE = "mantis";
     AWS_DEFAULT_REGION = final.clusters.${cluster}.proto.config.cluster.region;
+    NOMAD_NAMESPACE = "mantis-unstable";
 
     VAULT_ADDR = "https://vault.${domain}";
     NOMAD_ADDR = "https://nomad.${domain}";
     CONSUL_HTTP_ADDR = "https://consul.${domain}";
 
-    buildInputs = [
-      final.bitte
-      self.inputs.bitte.legacyPackages.${system}.scaler-guard
-      final.terraform-with-plugins
-      prev.sops
-      final.vault-bin
-      final.openssl
-      final.cfssl
-      final.nixfmt
-      final.awscli
-      final.nomad
-      final.consul
-      final.consul-template
-      final.direnv
-      final.nixFlakes
-      final.jq
-      final.fd
+    buildInputs = with final; [
+      bitte
+      scaler-guard
+      terraform-with-plugins
+      sops
+      vault-bin
+      openssl
+      cfssl
+      nixfmt
+      awscli
+      nomad
+      consul
+      consul-template
+      direnv
+      jq
+      fd
+      cue
       # final.crystal
       # final.pkgconfig
       # final.openssl
@@ -348,12 +198,7 @@ in {
 
   # Used for caching
   devShellPath = prev.symlinkJoin {
-    paths = final.devShell.buildInputs ++ [
-      final.grafana-loki
-      final.mantis
-      final.mantis-faucet
-      final.nixFlakes
-    ];
+    paths = final.devShell.buildInputs;
     name = "devShell";
   };
 
@@ -374,101 +219,8 @@ in {
     tree
   ];
 
-  mantis-explorer = self.inputs.mantis-explorer.defaultPackage.${system};
-
-  mantis-faucet-web = self.inputs.mantis-faucet-web.defaultPackage.${system};
-
-  nixosConfigurations =
-    self.inputs.bitte.legacyPackages.${system}.mkNixosConfigurations
-    final.clusters;
-
-  clusters = self.inputs.bitte.legacyPackages.${system}.mkClusters {
-    root = ./clusters;
-    inherit self system;
-  };
-
-  inherit (self.inputs.bitte.legacyPackages.${system})
-    bitte vault-bin mkNomadJob terraform-with-plugins systemdSandbox nixFlakes
-    nomad consul consul-template grafana-loki;
-
-  nomadJobs = let
-    jobsDir = ./jobs;
-    contents = builtins.readDir jobsDir;
-    toImport = name: type: type == "regular" && lib.hasSuffix ".nix" name;
-    fileNames = builtins.attrNames (lib.filterAttrs toImport contents);
-    imported = lib.forEach fileNames
-      (fileName: final.callPackage (jobsDir + "/${fileName}") { });
-  in lib.foldl' lib.recursiveUpdate { } imported;
-
-  dockerImages = let
-    imageDir = ./docker;
-    contents = builtins.readDir imageDir;
-    toImport = name: type: type == "regular" && lib.hasSuffix ".nix" name;
-    fileNames = builtins.attrNames (lib.filterAttrs toImport contents);
-    imported = lib.forEach fileNames
-      (fileName: final.callPackages (imageDir + "/${fileName}") { });
-    merged = lib.foldl' lib.recursiveUpdate { } imported;
-  in lib.flip lib.mapAttrs merged (key: image:
-    let id = "${image.imageName}:${image.imageTag}";
-    in {
-      inherit id image;
-
-      # Turning this attribute set into a string will return the outPath instead.
-      outPath = id;
-
-      push = let
-        parts = builtins.split "/" image.imageName;
-        registry = builtins.elemAt parts 0;
-        repo = builtins.elemAt parts 2;
-      in final.writeShellScriptBin "push" ''
-        set -euo pipefail
-
-        export dockerLoginDone="''${dockerLoginDone:-}"
-        export dockerPassword="''${dockerPassword:-}"
-
-        if [ -z "$dockerPassword" ]; then
-          dockerPassword="$(vault kv get -field value kv/nomad-cluster/docker-developer-password)"
-        fi
-
-        if [ -z "$dockerLoginDone" ]; then
-          echo "$dockerPassword" | docker login docker.mantis.ws -u developer --password-stdin
-          dockerLoginDone=1
-        fi
-
-        echo -n "Pushing ${image.imageName}:${image.imageTag} ... "
-
-        if curl -s "https://developer:$dockerPassword@${registry}/v2/${repo}/tags/list" | grep "${image.imageTag}" &> /dev/null; then
-          echo "Image already exists in registry"
-        else
-          docker load -i ${image}
-          docker push ${image.imageName}:${image.imageTag}
-        fi
-      '';
-
-      load = builtins.trace key (final.writeShellScriptBin "load" ''
-        set -euo pipefail
-        echo "Loading ${image} (${image.imageName}:${image.imageTag}) ..."
-        docker load -i ${image}
-      '');
-    });
-
-  push-docker-images = final.writeShellScriptBin "push-docker-images" ''
-    set -euo pipefail
-
-    ${lib.concatStringsSep "\n"
-    (lib.mapAttrsToList (key: value: "source ${value.push}/bin/push")
-      final.dockerImages)}
-  '';
-
-  load-docker-images = final.writeShellScriptBin "load-docker-images" ''
-    set -euo pipefail
-    ${lib.concatStringsSep "\n"
-    (lib.mapAttrsToList (key: value: "${value.load}/bin/load")
-      final.dockerImages)}
-  '';
-
-  inherit ((self.inputs.nixpkgs.legacyPackages.${system}).dockerTools)
+  inherit ((inputs.nixpkgs.legacyPackages.${final.system}).dockerTools)
     buildImage buildLayeredImage shadowSetup;
 
-  mkEnv = lib.mapAttrsToList (key: value: "${key}=${value}");
+  restic-backup = final.callPackage ./pkgs/backup { };
 }

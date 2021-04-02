@@ -2,84 +2,61 @@
   description = "Bitte for Mantis";
 
   inputs = {
-    bitte-cli.follows = "bitte/bitte-cli";
     bitte.url = "github:input-output-hk/bitte";
-    # bitte.url = "path:/home/manveru/github/input-output-hk/bitte";
-    # bitte.url = "path:/home/jlotoski/work/iohk/bitte-wt/bitte";
     nixpkgs.follows = "bitte/nixpkgs";
+    nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     terranix.follows = "bitte/terranix";
-    utils.url = "github:numtide/flake-utils";
+    utils.follows = "bitte/utils";
     ops-lib.url = "github:input-output-hk/ops-lib/zfs-image?dir=zfs";
     inclusive.follows = "bitte/inclusive";
     morpho-node.url = "github:input-output-hk/ECIP-Checkpointing";
+    mantis.url =
+      "github:input-output-hk/mantis?rev=fdeb1c33f6e0fc24680e256fe1b8d920b04950a8";
     mantis-explorer.url = "github:input-output-hk/mantis-explorer";
-    mantis-faucet-web.url =
-      "github:input-output-hk/mantis-faucet-web/nix-build";
+    mantis-faucet-web.url = "github:input-output-hk/mantis-faucet-web";
   };
 
-  outputs = { self, nixpkgs, utils, ops-lib, bitte, ... }:
-    (utils.lib.eachSystem [ "x86_64-linux" "x86_64-darwin" ] (system: rec {
-      overlay = import ./overlay.nix { inherit system self; };
-
-      legacyPackages = import nixpkgs {
-        inherit system;
-        config.allowUnfreePredicate = pkg:
-          let name = nixpkgs.lib.getName pkg;
-          in (builtins.elem name [ "ssm-session-manager-plugin" ])
-          || throw "unfree not allowed: ${name}";
-        overlays = [ overlay ];
+  outputs = { self, nixpkgs, utils, ops-lib, bitte, ... }@inputs:
+    let
+      hashiStack = bitte.mkHashiStack {
+        flake = self;
+        rootDir = ./.;
+        inherit pkgs;
+        domain = "mantis.ws";
       };
 
-      inherit (legacyPackages) devShell;
-
-      packages = {
-        inherit (legacyPackages)
-          bitte nixFlakes sops generate-mantis-keys terraform-with-plugins cfssl
-          consul;
-      };
-
-      hydraJobs = packages // {
-        prebuilt-devshell =
-          devShell.overrideAttrs (_: { nobuildPhase = "touch $out"; });
-      };
-
-      apps.bitte = utils.lib.mkApp { drv = legacyPackages.bitte; };
-    })) // (let
       pkgs = import nixpkgs {
-        overlays = [ self.overlay.x86_64-linux ];
         system = "x86_64-linux";
+        overlays = [
+          (final: prev: { inherit (hashiStack) clusters dockerImages; })
+          bitte.overlay.x86_64-linux
+          (import ./overlay.nix inputs)
+        ];
       };
+
+      nixosConfigurations = hashiStack.nixosConfigurations;
     in {
-      inherit (pkgs) clusters nomadJobs dockerImages;
-      nixosConfigurations = pkgs.nixosConfigurations // {
-        # attrs of interest:
-        # * config.system.build.zfsImage
-        # * config.system.build.uploadAmi
-        zfs-ami = import "${nixpkgs}/nixos" {
-          configuration = { pkgs, lib, ... }: {
-            imports = [
-              ops-lib.nixosModules.make-zfs-image
-              ops-lib.nixosModules.zfs-runtime
-              "${nixpkgs}/nixos/modules/profiles/headless.nix"
-              "${nixpkgs}/nixos/modules/virtualisation/ec2-data.nix"
-            ];
-            nix.package = self.packages.x86_64-linux.nixFlakes;
-            nix.extraOptions = ''
-              experimental-features = nix-command flakes
-            '';
-            systemd.services.amazon-shell-init.path = [ pkgs.sops ];
-            nixpkgs.config.allowUnfreePredicate = x:
-              builtins.elem (lib.getName x) [ "ec2-ami-tools" "ec2-api-tools" ];
-            zfs.regions = [
-              "eu-west-1"
-              "ap-northeast-1"
-              "ap-northeast-2"
-              "eu-central-1"
-              "us-east-2"
-            ];
-          };
-          system = "x86_64-linux";
-        };
-      };
-    });
+      inherit nixosConfigurations;
+      clusters.x86_64-linux = hashiStack.clusters;
+      legacyPackages.x86_64-linux = pkgs;
+      devShell.x86_64-linux = pkgs.devShell;
+      hydraJobs.x86_64-linux = {
+        inherit (pkgs)
+          bitte cfssl consul cue devShellPath grafana grafana-loki haproxy
+          nixFlakes nomad sops terraform-with-plugins vault-bin victoriametrics
+
+          generate-mantis-keys
+
+          mantis mantis-staging
+
+          mantis-faucet-web mantis-faucet-nginx mantis-faucet-server
+
+          mantis-explorer mantis-explorer-nginx
+
+          morpho-node morpho-node-entrypoint
+
+        ;
+      } // (pkgs.lib.mapAttrs (_: v: v.config.system.build.toplevel)
+        nixosConfigurations);
+    };
 }
