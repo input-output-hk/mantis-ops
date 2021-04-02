@@ -20,13 +20,13 @@ import (
 	update: {
 		max_parallel:      1
 		health_check:      "checks"
-		min_healthy_time:  "20m" // Give enough time for the DAG generation
-		healthy_deadline:  "45m"
-		progress_deadline: "1h"
+		min_healthy_time:  "1m" // Give enough time for the DAG generation
+		healthy_deadline:  "15m"
+		progress_deadline: "30m"
 		auto_revert:       false
 		auto_promote:      false
 		canary:            0
-		stagger:           "5m"
+		stagger:           "20m"
 	}
 
 	group: mantis: {
