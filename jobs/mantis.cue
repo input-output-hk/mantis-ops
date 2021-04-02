@@ -18,15 +18,15 @@ import (
 	type:      "service"
 
 	update: {
-		max_parallel:      2
+		max_parallel:      1
 		health_check:      "checks"
-		min_healthy_time:  "10m" // Give enough time for the DAG generation
-		healthy_deadline:  "30m"
+		min_healthy_time:  "20m" // Give enough time for the DAG generation
+		healthy_deadline:  "45m"
 		progress_deadline: "1h"
 		auto_revert:       false
-		auto_promote:      true
-		canary:            1
-		stagger:           "1m"
+		auto_promote:      false
+		canary:            0
+		stagger:           "5m"
 	}
 
 	group: mantis: {
