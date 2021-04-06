@@ -10,9 +10,9 @@ import (
 	#role:      "passive" | "miner" | "backup"
 	#mantisRev: string
 	#fqdn:      string
-	#network:   string
+	#networkConfig:   string
 
-	let ref = {network: #network, mantisRev: #mantisRev, role: #role}
+	let ref = {networkConfig: #networkConfig, mantisRev: #mantisRev, role: #role}
 
 	namespace: string
 	type:      "service"
@@ -62,7 +62,7 @@ import (
 			#namespace: namespace
 			#mantisRev: ref.mantisRev
 			#role:      ref.role
-			#network:   ref.network
+			#networkConfig:   ref.networkConfig
 		}
 
 		task: promtail: tasks.#Promtail
