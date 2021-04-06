@@ -202,16 +202,16 @@
         "utils": "utils_4"
       },
       "locked": {
-        "lastModified": 1617121871,
-        "narHash": "sha256-ksIL4kN2yOeKerwFDTmMjUpIc6r7btwmiVSU0uS6tJ8=",
+        "lastModified": 1617631092,
+        "narHash": "sha256-QvNCnfxEu6FnHKaLdN8lk4crKC63AwTKJBeKB/X6E0M=",
         "owner": "input-output-hk",
         "repo": "ECIP-Checkpointing",
-        "rev": "75c57109314f0e14d8fc0975f4ff149280e76db9",
+        "rev": "ad9068c42aa5856fc5ecfadb7d45ea5f48f23da9",
         "type": "github"
       },
       "original": {
         "owner": "input-output-hk",
-        "ref": "improved-errors",
+        "ref": "derived-json-conversions",
         "repo": "ECIP-Checkpointing",
         "type": "github"
       }

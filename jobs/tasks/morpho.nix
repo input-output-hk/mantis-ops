@@ -72,7 +72,7 @@
             minSeverity: Info
             setupScribes:
               - scKind: StdoutSK
-                scFormat: ScText
+                scFormat: ScJson
                 scName: stdout
             defaultScribes:
               - - StdoutSK
