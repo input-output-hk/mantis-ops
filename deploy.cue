@@ -76,10 +76,19 @@ _Namespace: [Name=_]: {
 			morpho:   #morpho
 		}
 	}
+	"mantis-staging": {
+		vars: #network: "testnet-internal-nomad"
+		jobs: {
+			explorer: #explorer
+			faucet:   #faucet
+			miner:    #miner & {#count:   5}
+			passive:  #passive & {#count: 5}
+			morpho:   #morpho
+		}
+	}
 	// "mantis-iele": jobs:        #defaultJobs
 	// "mantis-qa-load": jobs:     #defaultJobs
 	// "mantis-qa-fastsync": jobs: #defaultJobs
-	// "mantis-staging": jobs:     #defaultJobs
 }
 
 for nsName, nsValue in #namespaces {
