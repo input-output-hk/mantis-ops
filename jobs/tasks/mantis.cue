@@ -117,6 +117,9 @@ import (
 		logging.json-output = false
 		logging.logs-file = "logs"
 
+		include "/conf/base.conf"
+		include "/conf/testnet-internal-nomad.conf"
+
 		mantis = {
 			blockchains.testnet-internal-nomad = {
 			  custom-genesis-file = "/local/genesis.json"
