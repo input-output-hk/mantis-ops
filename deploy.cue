@@ -97,11 +97,11 @@ _Namespace: [Name=_]: {
 		vars: {
 			#networkConfig: """
 				mantis.blockchains.testnet-internal-nomad.bootstrap-nodes = [
-				  "enode://cbd80c7f72a889101b7f23d51be2de7e3f1f46ad3b25c438e959e24e08f03bd9fe833460e84b60174d4eb120af3b127389c4606f81c842943c4922cab384a234@mantis-staging-0.mantis.ws:33000?discport=33500",
-				  "enode://0e63642be49c5a092569aa01663fcda1505362cd0ac41e24ff9296ab80c97af135fb6fb247273631a3a11257774f39ed882d72a20fd45131e53e9015adf6b9e5@mantis-staging-1.mantis.ws:33001?discport=33501",
-				  "enode://3ee3641a25cfc611ba54a898260af7768ecf0643f06aefedf853864ed433d5ad6265eeb24abcc4d6f6ee90a1eac6c1fbf157fc05fd8e28e194dfc864cb56058e@mantis-staging-2.mantis.ws:33002?discport=33502",
-				  "enode://907842e336fc757bbfde70368aef329714aa627e72e5da687f31b097fa71a59f36404aebbc83885c9b515270042e025a6788b700c314ee8bc68099dcff32afcd@mantis-staging-3.mantis.ws:33003?discport=33503",
-				  "enode://92958d370442cfbf3efc46b37a0a1608298d8118013bf86868aaa49305a58991e006857552a88ac3349c5da43b00df44e685b39982f61c2fdeb3582daecac476@mantis-staging-4.mantis.ws:33004?discport=33504",
+				  "enode://39b925ba0beffdb80859a0ab34895c98bb61bd20d686ccd27f8c5a04dddc82b712081fd11bfd43f3bc08b00423a5ff8fee70b8a22dcc95e85537b2084dc6816a@mantis-staging-0.mantis.ws:33000?discport=33500",
+				  "enode://cbd80c7f72a889101b7f23d51be2de7e3f1f46ad3b25c438e959e24e08f03bd9fe833460e84b60174d4eb120af3b127389c4606f81c842943c4922cab384a234@mantis-staging-1.mantis.ws:33001?discport=33501",
+				  "enode://0e63642be49c5a092569aa01663fcda1505362cd0ac41e24ff9296ab80c97af135fb6fb247273631a3a11257774f39ed882d72a20fd45131e53e9015adf6b9e5@mantis-staging-2.mantis.ws:33002?discport=33502",
+				  "enode://3ee3641a25cfc611ba54a898260af7768ecf0643f06aefedf853864ed433d5ad6265eeb24abcc4d6f6ee90a1eac6c1fbf157fc05fd8e28e194dfc864cb56058e@mantis-staging-3.mantis.ws:33003?discport=33503",
+				  "enode://907842e336fc757bbfde70368aef329714aa627e72e5da687f31b097fa71a59f36404aebbc83885c9b515270042e025a6788b700c314ee8bc68099dcff32afcd@mantis-staging-4.mantis.ws:33004?discport=33504",
 				]
 				"""
 		}
