@@ -28,13 +28,7 @@ import (
 	config: {
 		flake:   "github:input-output-hk/ECIP-Checkpointing?rev=\(#morphoRev)#morpho"
 		command: "/bin/morpho-checkpoint-node"
-		args: [
-			"--topology", "/local/morpho-topology.json",
-			"--database-path", "/local/db",
-			"--port", "${NOMAD_PORT_morpho}",
-			"--config", "/local/morpho-config.yaml",
-			"--socket-dir", "/local/socket",
-		]
+		args: [ "--config", "/local/morpho-config.yaml" ]
 	}
 
 	restart_policy: {
@@ -72,8 +66,6 @@ import (
 		change_mode: "noop"
 		splay:       "15m"
 		data:        """
-    ApplicationName: morpho-checkpoint
-    ApplicationVersion: 1
     CheckpointInterval: 4
     FedPubKeys: [
     {{ range secrets "kv/metadata/nomad-cluster/\(#namespace)/" -}}
@@ -82,43 +74,37 @@ import (
       {{ end }}
     {{- end -}}
     ]
-    LastKnownBlockVersion-Major: 0
-    LastKnownBlockVersion-Minor: 2
-    LastKnownBlockVersion-Alt: 0
     NetworkMagic: 12345
+
     NodeId: {{ env "NOMAD_ALLOC_INDEX" }}
     NodePrivKeyFile: {{ env "NOMAD_SECRETS_DIR" }}/morpho-private-key
+    TopologyFile: "/local/morpho-topology.json"
+    DatabaseDirectory: "/local/db"
+    NodePort: {{ env "NOMAD_PORT_morpho" }}
     NumCoreNodes: \(#nbNodes)
     PoWBlockFetchInterval: 5000000
     PoWNodeRpcUrl: http://127.0.0.1:{{ env "NOMAD_PORT_rpc" }}
     PrometheusPort: {{ env "NOMAD_PORT_morphoPrometheus" }}
     Protocol: MockedBFT
     RequiredMajority: \(#requiredMajority)
-    RequiresNetworkMagic: RequiresMagic
     SecurityParam: 2200
     StableLedgerDepth: 6
     SlotDuration: 5
-    SnapshotsOnDisk: 60
-    SnapshotInterval: 60
     SystemStart: "2020-11-17T00:00:00Z"
-    TurnOnLogMetrics: True
-    TurnOnLogging: True
-    ViewMode: SimpleView
-    minSeverity: Debug
-    TracingVerbosity: NormalVerbosity
-    setupScribes:
-      - scKind: StdoutSK
-        scFormat: ScText
-        scName: stdout
-    defaultScribes:
-      - - StdoutSK
-        - stdout
-    setupBackends:
-      - KatipBK
-    defaultBackends:
-      - KatipBK
-    options:
-      mapBackends:
+    Logging:
+      minSeverity: Debug
+      setupScribes:
+        - scKind: StdoutSK
+          scFormat: ScJson
+          scName: stdout
+      defaultScribes:
+        - - StdoutSK
+          - stdout
+      setupBackends:
+        - KatipBK
+      defaultBackends:
+        - KatipBK
+      options: {}
     """
 	}
 }
