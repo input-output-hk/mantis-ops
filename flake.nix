@@ -2,7 +2,7 @@
   description = "Bitte for Mantis";
 
   inputs = {
-    bitte.url = "github:input-output-hk/bitte";
+    bitte.url = "github:input-output-hk/bitte/nomad-autoscaler-module";
     nixpkgs.follows = "bitte/nixpkgs";
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     terranix.follows = "bitte/terranix";
@@ -17,6 +17,7 @@
   };
 
   outputs = { self, nixpkgs, utils, ops-lib, bitte, ... }@inputs:
+  
     let
       hashiStack = bitte.mkHashiStack {
         flake = self;
@@ -35,7 +36,8 @@
       };
 
       nixosConfigurations = hashiStack.nixosConfigurations;
-    in {
+    in
+    {
       inherit nixosConfigurations;
       clusters.x86_64-linux = hashiStack.clusters;
       legacyPackages.x86_64-linux = pkgs;
@@ -55,7 +57,7 @@
 
           morpho-node morpho-node-entrypoint
 
-        ;
+          ;
       } // (pkgs.lib.mapAttrs (_: v: v.config.system.build.toplevel)
         nixosConfigurations);
     };

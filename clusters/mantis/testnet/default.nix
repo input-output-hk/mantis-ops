@@ -113,6 +113,7 @@ in {
           (bitte + /profiles/core.nix)
           (bitte + /profiles/bootstrapper.nix)
           ./secrets.nix
+          ./nomad-autoscaler.nix
         ];
 
         securityGroupRules = {
