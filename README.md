@@ -27,7 +27,8 @@ The `/root` and `/nix` volumes are persisted between runs, so you only need to d
 ```
 $ nix-in-docker/run
 ...
-[nix-shell:/mantis-ops]# nix run .#nomadJobs.mantis-staging-mantis.run
+[nix-shell:/mantis-ops]# iogo plan mantis-staging miner
+
 ```
 
 #### Trouble shooting running Nix in Docker
@@ -41,11 +42,11 @@ error: --- Error ---------------------------------------------------------------
 ```
 that means you use automatically allocated memory in Docker and it's not enough. Go to Docker -> Resources -> Memory, setting it to 4Gb should be enough.
 
-* If you encounter this error when running the deploy command 
+* If you encounter this error when running the deploy command
 ```
 FATA[0000] Error initializing source docker-archive:///nix/store/hmnzy4n45fmn1p9caq47pz652f6d6q1m-docker.mantis.ws-mantis.tar.gz: error creating temporary file: open /var/tmp/docker-tar540472188: no such file or directory
 ```
-it means you have to create mentioned folders manually with this command: 
+it means you have to create mentioned folders manually with this command:
 ```
 mkdir -p /var/tmp
 ```
@@ -85,8 +86,8 @@ mkdir -p /var/tmp
 * The following configuration lines need to be added to the Nix configuration:
     ```
     experimental-features = nix-command flakes ca-references
-    substituters = https://hydra.iohk.io https://cache.nixos.org https://mantis-ops.cachix.org
-    trusted-public-keys = hydra.iohk.io:f/Ea+s+dFdN+3Y/G+FDgSq+a5NEWhJGzdjvKNGv0/EQ= cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= mantis-ops.cachix.org-1:SornDcX8/9rFrpTjU+mAAb26sF8mUpnxgXNjmKGcglQ=
+    substituters = https://hydra.iohk.io https://cache.nixos.org https://hydra.mantis.ist
+    trusted-public-keys = hydra.iohk.io:f/Ea+s+dFdN+3Y/G+FDgSq+a5NEWhJGzdjvKNGv0/EQ= cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= hydra.mantis.ist-1:4LTe7Q+5pm8+HawKxvmn2Hx0E3NbkYjtf1oWv+eAmTo=
     ```
 
 * Additionally, for a Nix multi-user install:
@@ -111,12 +112,12 @@ mkdir -p /var/tmp
       nix.binaryCaches = [
         "https://hydra.iohk.io"
         "https://cache.nixos.org"
-        "https://mantis-ops.cachix.org"
+        "https://hydra.mantis.ist"
       ];
       nix.binaryCachePublicKeys = [
         "hydra.iohk.io:f/Ea+s+dFdN+3Y/G+FDgSq+a5NEWhJGzdjvKNGv0/EQ="
         "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
-        "mantis-ops.cachix.org-1:SornDcX8/9rFrpTjU+mAAb26sF8mUpnxgXNjmKGcglQ="
+        "hydra.mantis.ist-1:4LTe7Q+5pm8+HawKxvmn2Hx0E3NbkYjtf1oWv+eAmTo="
       ];
       nix.extraOptions = ''
         experimental-features = nix-command flakes ca-references
@@ -263,21 +264,22 @@ mkdir -p /var/tmp
 * If you don't see this "Explore" icon which looks like a compass, request "Editor" access from DevOps.
 * Examples of log queries to the `Loki` log datasource in Grafana are:
     ```
-    # In the "Log labels" field enter the following to search for all logs related to the `mantis-1` taskgroup:
-    {syslog_identifier="mantis-1"}
+    # In the "Log labels" field enter the following to search for all logs related to the `mantis-testnet` namespace:
+    {namespace="mantis-testnet"}
 
-    # In the "Log labels" field enter the following to search for all logs related to the `mantis-1` taskgroup
+    # In the "Log labels" field enter the following to search for all logs related to the `mantis-testnet` namespace
     # and filter for DAG events:
-    {syslog_identifier="mantis-1"} |~ "DAG"
+    {namespace="mantis-testnet"} |~ "DAG"
     ```
+    A full reference of LogQL is [available](https://grafana.com/docs/loki/latest/logql) as well.
 
 * Logs can also be obtained from the command line with commands such as:
    ```
    # Generalized example:
    nomad status -namespace $NS $JOB | grep "$TG.*running" | head -1 | awk '{ print $1 }' | xargs -Ix nomad logs -namespace "$NS" [-stderr] [-tail] [-f] [-n LINES] [-verbose] x "$TG"
 
-   # Tail and follow a morpho job taskgroup (obft-node-3) in namespace mantis-testnet:
-   TG="obft-node-3"; NS="mantis-testnet"; JOB="morpho"; nomad status -namespace "$NS" "$JOB" \
+   # Tail and follow a miner job taskgroup (mantis) in namespace mantis-testnet:
+   TG="mantis"; NS="mantis-testnet"; JOB="miner"; nomad status -namespace "$NS" "$JOB" \
      | grep "$TG.*running" | head -1 | awk '{ print $1 }' \
      | xargs -Ix nomad logs -namespace "$NS" -tail -f x "$TG"
 
@@ -287,9 +289,15 @@ mkdir -p /var/tmp
 
 ### Updating the Mantis source used for Deployments
 
+* You can change the revision of Mantis that Nomad jobs are deployed with from
+  [`deploy.cue`](https://github.com/input-output-hk/mantis-ops/blob/7fdb3d5945a59c29cd0f03654fde20d5ed84b1cb/deploy.cue#L28).
+  * It's a good idea to keep the revision specified here and in `flake.nix`'s `inputs.mantis` in sync so that Hydra will build the proper revision for faster deployments.
+
+#### Updating Package Sources
+
 * Near the top of the `./overlay.nix` file of the mantis-ops repository, the mantis commit ref is seen, where $COMMIT represents the actual commit revision and $BRANCH represents the branch of the commit, typically `develop`:
     ```
-      mantis-source = builtins.fetchGit {
+      mantis-staging-source = builtins.fetchGit {
         url = "https://github.com/input-output-hk/mantis";
         rev = "$COMMIT";
         ref = "$BRANCH";
@@ -297,8 +305,8 @@ mkdir -p /var/tmp
       };
 
     ```
-* To update the commit that a mantis job will be run with, update the `rev` and `ref` fields with the appropriate git commit revision and git commit branch.
-* It is a good idea to commit mantis-source updates since a github action will automatically push the build product to cachix for faster job deployments for everyone on the team.
+* To update the commit that a package will build with, update the `rev` and `ref` fields with the appropriate git commit revision and git commit branch.
+* It is a good idea to commit any source updates since Hydra will automatically push the build product to a cache for faster job deployments for everyone on the team.
 * Other repo sources which are found in `flake.nix` and may need an update, such as `mantis-faucet-web`, can be updated from the nix develop shell and then committed as needed:
     ```
       # Update a selected flake repo input (example: mantis-faucet-web)
@@ -309,43 +317,53 @@ mkdir -p /var/tmp
 
 * Presently, there is no requirement to commit changes from a mantis job definition to the repository in order to deploy the job.
 * To minimize confusion in the team about what job definition is running on the testnet, any changes to the mantis job made and deployed should be committed.
-* Mantis-ops jobs utilize Docker containers, so a job deployment workflow generally involves:
-  * Run the nomad job which utilizes the docker images
 
 * To run a mantis-ops job by deploying it to the testnet, execute the following command:
     ```
-    # Build and run the Nomad mantis job where the nix attribute to run is generally of the form:
-    # .#nomadJobs-${NAMESPACE}-${JOB}.run
+    # Deployments are handled with the `iogo` tool from the `bitte` package
+    $ iogo plan $namespace $job
     #
     # Example for building and running only the mantis-testnet explorer job:
-    $ nix run .#nomadJobs.mantis-testnet-explorer.run
+    $ iogo plan mantis-testnet explorer
     ```
+    To help avoid unwanted changes, a confirmation dialogue will list a diff of
+    the planned changes before deployment actually runs.
 
-* Versioning information about the deployment, including changes from the last version deployed, can be viewed in the Nomad UI in the [Versions](https://nomad.mantis.ws/ui/jobs/mantis/versions) section.
+* Versioning information about the deployment, including changes from the last
+  version deployed, can be viewed in the Nomad UI in the
+  "Versions" section for a given namespace, e.g. the [mantis-testnet
+versions](https://nomad.mantis.ws/ui/jobs/miner/versions?namespace=mantis-testnet).
 
-
-### Nix Repl for Finding Nomad Jobs, Docker Images and Other Nix Attributes
+### Nix Repl For Exploring Nix Attributes
 
 * Nix repl can be used for finding nix attributes by entering a nix repl environment:
     ```
     $ nix repl repl.nix
     ```
-
-* From this repl environment, you can hit the `tab` key to see available attributes at the current attribute level.
-  * To see available sub-attributes of any available attribute, type the name of the attribute of interest, append a `.` and hit `tab` again.
-  * In this way you can see the available Nomad job attributes (`.nomadJobs.<tab>`), docker image attributes (`dockerImages.<tab>`), and other attributes.
-
-* If auto-complete is also set up correctly for your shell, you may also be able to see attribute information by auto-complete on the command line.
-  * Example: the following may work for you:
+* Nomad server conigs are available via `nixosConfigurations`.
+* Packages are available via `legacyPackages` and `hydraJobs`.
+* Tab completion works in the repl to help explore an attribute set:
+  ```console
+  nix-repl> hydraJobs.x86_64-linux.<tab>
+  hydraJobs.x86_64-linux.bitte
+  hydraJobs.x86_64-linux.cfssl
+  hydraJobs.x86_64-linux.consul
+  hydraJobs.x86_64-linux.cue
+  hydraJobs.x86_64-linux.devShellPath
+  hydraJobs.x86_64-linux.generate-mantis-keys
+  ...
   ```
-  nix run .#dockerImages.<tab><tab>
-  ```
 
+### Finding Nomad Jobs
+
+* Jobs are defined in the toplevel `deploy.cue` for each namespace.
 
 ### Mantis-Ops Job Definition Files
 
-* The mantis job definition for the `mantis-testnet` namespace is stored in file: `jobs/mantis.nix`
-* Mantis miner and passive nodes are defined in this file, each with definitions of resource requirements, mantis configuration, lifecycle policy and quantity.
+* If you're not already familiar, be sure to check out the official [Cue Documentation](https://cuelang.org/docs).
+
+* The mantis job definition for the `mantis-testnet` namespace is stored in file: `jobs/mantis.cue`
+* Mantis miner and passive nodes are defined in this file, each with definitions of resource requirements (set in the imported tasks file), mantis configuration, lifecycle policy and quantity.
 * This file can be edited to reflect the desired definition and then deployed with the command above.
 * A job deployment can be done in a few ways:
   * In a single deployment where all taskgroups are deployed at once.
@@ -353,9 +371,10 @@ mkdir -p /var/tmp
   * In partial deployments where a subset of the full taskgroups in the job definition are deployed incrementally by changing the job definition slightly between each deployment, for example by editing passive node quantity or uncommenting pre-defined miners.
     * An example would be to deploy bootstrap miners first and then once they are running successfully to deploy passive nodes.
     * In the case of partial deployments, be aware that if the definition of taskgroups already deployed in an earlier step are modified, those particular taskgroup jobs will be restarted with the next deployment.
-* Job definition information for a currently deployed job can be viewed in the Nomad UI in the [Definition](https://nomad.mantis.ws/ui/jobs/mantis/definition) section under the appropriate namespace.
-* Job definitions for namespaces other than `mantis-testnet` are also stored in the `jobs/` directory with their namespace as part of the filename.
-
+* Job definition information for a currently deployed job can be viewed in the Nomad UI in the
+[Definition](https://nomad.mantis.ws/ui/jobs/miner/definition?namespace=mantis-testnet) section under the appropriate namespace.
+* Each task group has it's own cue file under the `jobs/tasks` directory which gets imported by the `job/*.cue` files.
+* If you run into any cue type errors, you can review type defintions in `schemas/nomad/types.cue` to ensure you haven't misused a type.
 
 ### Lifecycle Definitions: Healthchecks, Restarts and Reschedules
 
@@ -371,11 +390,11 @@ mkdir -p /var/tmp
 
 ### Scaling For Performance Testing
 
-* The job definition files can easily be used to scale the number of passive nodes by adjusting the number following the `mkPassive` function call.
-* The job definition files can also be used to scale the number of bootstrap nodes by defining more miners in the `miners` list.
+* You may scale the number of passive nodes by adjusting the `#count` passed to the `passive` job in `deploy.cue`.
+* In the same fashion, you can scale the number of bootstrap nodes by defining more miners.
   * Pre-existing `enode-hash`, `key` and `coinbase` state needs to be created prior to deploying bootstrap nodes.
   * This state will be re-used across deployments and persists in the Vault `kv` store.
-  * Additional bootstrap miner state only needs to be generated if the total number to be scaled to exceeds the number which currently exists (6 at the time of writing).
+  * Additional bootstrap miner state only needs to be generated if the total number to be scaled to exceeds the number which currently exists (5 at the time of writing).
   * Pre-existing bootstrap node state can be viewed at the [testnet Vault kv](https://vault.mantis.ws/ui/vault/secrets/kv/list/nomad-cluster/testnet/) path.
   * This state pre-generation is done with the following command:
     ```
@@ -396,30 +415,4 @@ mkdir -p /var/tmp
 * Consul templates provide a powerful manner to extract real-time information about the mantis-ops cluster and services.
 * Consul templates are described at their github repository [README.md](https://github.com/hashicorp/consul-template/blob/master/README.md) and utilize the [Go Template Format](https://golang.org/pkg/text/template/).
 
-
-### Mapping Taskgoups to IPs
-
-* For debugging purposes, it can be helpful to generate a real time map of running taskgroups and the associated public IP and node hostname (containing internal IP).
-* To do this we can use a Consul template:
-   ```
-   $ consul-template -template templates/map.tmpl -once -dry -log-level err
-   ```
-
-
-### Starting a Mantis Local Node Connected to Testnet
-
-* A local mantis node can be build and run connected to the testnet:
-    ```
-    # Build the mantis executables and configuration files
-    $ nix build .#mantis -o mantis-node
-
-    # Run a local mantis node against the testnet bootstrap cluster
-    $ consul-template -template templates/mantis.tmpl:mantis-local.conf -exec './mantis-node/bin/mantis -Dconfig.file=./mantis-local.conf'
-    ```
-
-
-
-## CUE
-
-    nix build .#dockerImagesCue
-    cue import -p bitte json: - < result > docker_images.cue
+* At the time of writing, the templates in the `templates` dir are no longer useful but are left as an example to the user.
