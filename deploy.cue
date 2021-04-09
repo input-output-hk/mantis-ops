@@ -6,6 +6,12 @@ import (
 	"list"
 )
 
+#defaults: {
+	mantisRev: "b6a26f8624cd6bbf0467a97bbd42c99d3db021a0"
+	// Temporary mantisRev to be re-unified when tested on other networks
+	mantisRevKEVM: "24f34e15090ac624285c3f2719feef2809abe17f"
+}
+
 #namespaces: [Name=_]: {
 	args: {
 		namespace: =~"^mantis-[a-z-]+$"
@@ -34,10 +40,6 @@ geneses: {
 	"mantis-kevm": #genesis & {nonce: "0x0000000000000066", #networkId: 102}
 	"mantis-evm":  #genesis & {nonce: "0x0000000000000067", #networkId: 103}
 	"mantis-iele": #genesis & {nonce: "0x0000000000000068", #networkId: 104}
-}
-
-#defaults: {
-	mantisRev: "432c1655a00928d4c1b1694501b7b7712ad5f30a"
 }
 
 #domain: "portal.dev.cardano.org"
@@ -147,7 +149,7 @@ geneses: {
 		args: {
 			#id:          "kevm"
 			#fqdn:        "-\(#id).\(#domain)"
-			#mantisRev:   #defaults.mantisRev
+			#mantisRev:   #defaults.mantisRevKEVM
 			#genesis:     geneses["mantis-\(#id)"]
 			#extraConfig: """
 				mantis {

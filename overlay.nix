@@ -24,8 +24,8 @@ in {
   # The branch was `chore/update-sbt-add-nix`, for future reference.
   mantis-source = builtins.fetchGit {
     url = "https://github.com/input-output-hk/mantis";
-    rev = "e503a7ff3b316da1fd1a2a2f0db9131e4550b161";
-    ref = "3.1.0-flake-redux";
+    rev = "b6a26f8624cd6bbf0467a97bbd42c99d3db021a0";
+    ref = "3.1.0-flake";
     submodules = true;
   };
 

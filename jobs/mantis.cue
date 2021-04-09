@@ -17,15 +17,15 @@ import (
 	type:      "service"
 
 	update: {
-		max_parallel:      2
+		max_parallel:      1
 		health_check:      "checks"
-		min_healthy_time:  "5m"
+		min_healthy_time:  "1m"
 		healthy_deadline:  "30m"
 		progress_deadline: "1h"
-		auto_revert:       true
-		auto_promote:      true
-		canary:            1
-		stagger:           "1m"
+		auto_revert:       false
+		auto_promote:      false
+		canary:            0
+		stagger:           "10m"
 	}
 
 	group: mantis: {
