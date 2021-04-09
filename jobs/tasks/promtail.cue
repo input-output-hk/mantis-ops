@@ -43,7 +43,7 @@ import (
 						nomad_namespace:     "{{ env \"NOMAD_NAMESPACE\" }}"
 						nomad_region:        "{{ env \"NOMAD_REGION\" }}"
 						nomad_task_name:     "{{ env \"NOMAD_TASK_NAME\" }}"
-						"__path__":          "/alloc/logs/*.std*.0"
+						"__path__":          "/alloc/logs/*.std*.[0-9]*"
 					}
 				}]
 			}]
