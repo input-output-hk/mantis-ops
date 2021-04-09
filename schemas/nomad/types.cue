@@ -98,7 +98,7 @@ import (
 	TaskGroup: {
 		Affinities: [...Affinity]
 		Constraints: [...Constraint]
-		Count: int & >0 | *1
+		Count: int & >0
 		Meta: [string]: string
 		Name:          string
 		RestartPolicy: *null | #json.RestartPolicy
@@ -550,9 +550,6 @@ let durationType = string & =~"^[1-9]\\d*[hms]$"
 
 	network: {
 		mode: "host" | "bridge"
-		dns:  *null | {
-			servers: [...string]
-		}
 		port: [string]: {
 			static:       *null | uint
 			to:           *null | uint

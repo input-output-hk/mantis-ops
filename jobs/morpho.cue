@@ -6,17 +6,17 @@ import (
 )
 
 #Morpho: types.#stanza.job & {
-	#index:     uint
-	#count:     uint
-	#mantisRev: string
-	#morphoRev: string
-	#fqdn:      string
-	#network:   string
+	#index:         uint
+	#count:         uint
+	#mantisRev:     string
+	#morphoRev:     string
+	#fqdn:          string
+	#networkConfig: string
 
 	#name: "morpho-\(#index)"
 	#id:   "\(namespace)-\(#name)"
 
-	let ref = {morphoRev: #morphoRev, network: #network, mantisRev: #mantisRev}
+	let ref = {morphoRev: #morphoRev, networkConfig: #networkConfig, mantisRev: #mantisRev}
 
 	namespace: string
 	type:      "service"
@@ -52,10 +52,9 @@ import (
 			sticky:  true
 		}
 
+
 		network: {
 			mode: "host"
-			// From https://github.com/input-output-hk/bitte/blob/33cb20fa1cd7c6e4d3bc75253fc166bf048b500c/profiles/docker.nix#L16
-			dns: servers: [ "172.17.0.1"]
 			port: {
 				discovery: {}
 				metrics: {}
@@ -83,10 +82,10 @@ import (
 		}
 
 		task: mantis: tasks.#Mantis & {
-			#namespace: namespace
-			#mantisRev: ref.mantisRev
-			#role:      "passive"
-			#network:   ref.network
+			#namespace:     namespace
+			#mantisRev:     ref.mantisRev
+			#role:          "passive"
+			#networkConfig: ref.networkConfig
 		}
 	}
 }

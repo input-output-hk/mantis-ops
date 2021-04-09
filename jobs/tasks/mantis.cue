@@ -7,10 +7,10 @@ import (
 )
 
 #Mantis: types.#stanza.task & {
-	#namespace: string
-	#role:      "passive" | "miner" | "backup"
-	#mantisRev: string
-	#network:   string
+	#namespace:     string
+	#role:          "passive" | "miner" | "backup"
+	#mantisRev:     string
+	#networkConfig: string
 	#miners: []
 	#amountOfMorphoNodes: 5
 	#requiredPeerCount:   len(#miners)
@@ -111,42 +111,23 @@ import (
 				"""
 		}
 
-		#saganoConf: string
+		change_mode: "noop"
+		splay:       "1h"
+		data:        """
+		logging.json-output = false
+		logging.logs-file = "logs"
 
-		if #network != "sagano" {
-			#saganoConf: ""
-		}
+		include "/conf/base.conf"
+		include "/conf/testnet-internal-nomad.conf"
 
-		if #network == "sagano" {
-			#saganoConf: """
+		mantis = {
 			blockchains.testnet-internal-nomad = {
 			  custom-genesis-file = "/local/genesis.json"
 			  allowed-miners = []
-			  bootstrap-nodes = [
-			    "enode://f92aa66337ab1993cc7269d4295d296aefe6199b34e900eac08c514c947ec7340d46a5648ffc2da10325dbaba16bdf92aa9c0b5e51d97a7818c3f495d478ddad@mantis-testnet-0.mantis.ws:9001?discport=9501",
-			    "enode://d8a010f019db37dcaf2e1fb98d4fcbf1f57dbd7e2a7f065e92fbe77dca8b9120d6e79f1617e98fa6134e6af8858ac8f3735b1e70a5708eb14f228080356eb0a7@mantis-testnet-1.mantis.ws:9002?discport=9502",
-			    "enode://442e2bd50eece65f90dee0d5c6075da4e1b4bc62e36b261a52e7f393dae6a68241e4dbad868c7ecc14fed277ed72e99a289a811b6172f35fb18bdca0b7a5602c@mantis-testnet-2.mantis.ws:9003?discport=9503",
-			    "enode://ff86741b7b35087b2b53f44a612b233336490d5fae10b1434619b7714fe2d5346c71427a5e126cd27b9422a4d4376c1534ef66e88c5e62d6441d2541f63de0cf@mantis-testnet-3.mantis.ws:9004?discport=9504",
-			    "enode://af97643f364b805d5b0e32b5356578a16afcc4fb9d1b6622998e9441eeb7795e8daf8e6b0ff3330da9879034112be56954f9269164513ece0f7394b805be3633@mantis-testnet-4.mantis.ws:9005?discport=9505",
-			  ]
 			  checkpoint-public-keys = [
 			    \(#checkPointKeysString)
 			  ]
 			}
-			"""
-		}
-
-		change_mode: "noop"
-		splay:       "1h"
-		data:        """
-		include "/conf/base.conf"
-		include "/conf/\(#network).conf"
-
-		logging.json-output = false
-		logging.logs-file = "logs"
-
-		mantis = {
-			\(#saganoConf)
 
 			client-id = "mantis-\(#role)-{{env "NOMAD_ALLOC_INDEX"}}"
 			datadir = "/local/mantis"
@@ -169,6 +150,7 @@ import (
 		}
 
 		\(#extraConfig)
+		\(#networkConfig)
 		"""
 	}
 
