@@ -6,13 +6,21 @@ import (
 )
 
 #Mantis: types.#stanza.job & {
-	#count:         uint | *5
-	#role:          "passive" | "miner" | "backup"
-	#mantisRev:     string
-	#fqdn:          string
+	#count:     uint | *5
+	#role:      "passive" | "miner" | "backup"
+	#logLevel:  string
+	#mantisRev: string
+	#fqdn:      string
+	#loggers: {[string]: string}
 	#networkConfig: string
 
-	let ref = {networkConfig: #networkConfig, mantisRev: #mantisRev, role: #role}
+	let ref = {
+		networkConfig: #networkConfig
+		mantisRev:     #mantisRev
+		role:          #role
+		logLevel:      #logLevel
+		loggers:       #loggers
+	}
 
 	namespace: string
 	type:      "service"
@@ -62,7 +70,9 @@ import (
 			#namespace:     namespace
 			#mantisRev:     ref.mantisRev
 			#role:          ref.role
+			#logLevel:      ref.logLevel
 			#networkConfig: ref.networkConfig
+			#loggers:       ref.loggers
 		}
 
 		task: promtail: tasks.#Promtail

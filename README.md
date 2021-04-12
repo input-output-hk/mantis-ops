@@ -334,6 +334,32 @@ mkdir -p /var/tmp
   "Versions" section for a given namespace, e.g. the [mantis-testnet
 versions](https://nomad.mantis.ws/ui/jobs/miner/versions?namespace=mantis-testnet).
 
+### Debugging Mantis Nodes
+
+It is possible to set the logging level for individual classes in order to assist in debugging without flooding the logs with irrelevant detail.
+
+To get started, open up the `deploy.cue` file, and look for the `#loggers` set under `vars`.
+
+The default values are given for the sake of example. You can either add your own classes: `"CLASSNAME": "LOGLEVEL"`, or modify the existing values to the desired level. The special value `"${LOGLEVEL}"` refers to the global `logging.logs-level` setting.
+
+#### Global logging
+
+If you wish set the global logging level for all namespaces, simply open the `deploy.cue` file and change `#logLevel`, where the `*` designates the default value if unset elsewhere.
+
+If you only want it on for a particular Nomad namespace, you can set `#logLevel` to the appropriate value under a given namespace's `vars` in `deploy.cue`:
+```cue
+#namespaces: {
+  // ...
+  "mantis-staging": {
+      vars: {
+        #logLevel: "DEBUG"
+        // other vars ...
+      }
+      // ...
+  }
+}
+```
+
 ### Nix Repl For Exploring Nix Attributes
 
 * Nix repl can be used for finding nix attributes by entering a nix repl environment:

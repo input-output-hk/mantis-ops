@@ -9,11 +9,13 @@ import (
 #Mantis: types.#stanza.task & {
 	#namespace:     string
 	#role:          "passive" | "miner" | "backup"
+	#logLevel:      "TRACE" | "DEBUG" | "INFO" | "WARN" | "ERROR" | "OFF"
 	#mantisRev:     string
 	#networkConfig: string
 	#miners: []
 	#amountOfMorphoNodes: 5
 	#requiredPeerCount:   len(#miners)
+	#loggers: {}
 
 	driver: "exec"
 
@@ -39,7 +41,7 @@ import (
 	config: {
 		flake:   "github:input-output-hk/mantis?rev=\(#mantisRev)#mantis"
 		command: "/bin/mantis"
-		args: ["-Dconfig.file=/local/mantis.conf", "-XX:ActiveProcessorCount=2"]
+		args: ["-Dconfig.file=/local/mantis.conf", "-XX:ActiveProcessorCount=2", "-Dlogback.configurationFile=/local/logback.xml"]
 	}
 
 	restart: {
@@ -80,6 +82,78 @@ import (
 		change_mode: "noop"
 	}
 
+	template: "local/logback.xml": {
+		data: """
+		<configuration>
+		
+		    <property name="stdoutEncoderPattern" value="%d [%logger{36}] - %msg%n" />
+		    <property name="fileEncoderPattern" value="%d [%thread] %-5level %logger{36} %X{akkaSource} - %msg%n" />
+		
+		    <!--read properties from application.conf-->
+		    <newRule pattern="*/load" actionClass="io.iohk.ethereum.utils.LoadFromApplicationConfiguration"/>
+		    <load key="logging.json-output" as="ASJSON"/>
+		    <load key="logging.logs-dir" as="LOGSDIR"/>
+		    <load key="logging.logs-file" as="LOGSFILENAME"/>
+		    <load key="logging.logs-level" as="LOGSLEVEL"/>
+		
+		    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+		        <encoder>
+		            <pattern>${stdoutEncoderPattern}</pattern>
+		        </encoder>
+		    </appender>
+		
+		    <appender name="STASH" class="ch.qos.logback.core.ConsoleAppender">
+		        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+		            <customFields>{"hostname":"${HOSTNAME}"}</customFields>
+		            <fieldNames>
+		                <timestamp>timestamp</timestamp>
+		                <version>[ignore]</version>
+		            </fieldNames>
+		        </encoder>
+		    </appender>
+		
+		    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		        <file>${LOGSDIR}/${LOGSFILENAME}.log</file>
+		        <append>true</append>
+		        <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
+		            <fileNamePattern>${LOGSDIR}/${LOGSFILENAME}.%i.log.zip</fileNamePattern>
+		            <minIndex>1</minIndex>
+		            <maxIndex>10</maxIndex>
+		        </rollingPolicy>
+		        <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+		            <maxFileSize>10MB</maxFileSize>
+		        </triggeringPolicy>
+		        <encoder>
+		            <pattern>${fileEncoderPattern}</pattern>
+		        </encoder>
+		    </appender>
+		
+		    <appender name="METRICS" class="io.prometheus.client.logback.InstrumentedAppender" />
+		
+		    <root level="${LOGSLEVEL}">
+		        <if condition='p("ASJSON").contains("true")'>
+		            <then>
+		                <appender-ref ref="STASH" />
+		            </then>
+		            <else>
+		                <appender-ref ref="STDOUT" />
+		            </else>
+		        </if>
+		        <appender-ref ref="FILE" />
+		        <appender-ref ref="METRICS" />
+		    </root>
+		
+		\(strings.Join(#loggerTags, "\n"))
+		</configuration>
+		"""
+
+		#loggerTags: [ for class, level in #loggers {
+			"    <logger name=\"\(class)\" level=\"\(level)\"/>"
+		}]
+
+		change_mode: "noop"
+	}
+
 	template: "local/mantis.conf": {
 		#checkpointRange: list.Range(0, #amountOfMorphoNodes, 1)
 		#checkpointKeys: [ for n in #checkpointRange {
@@ -116,6 +190,7 @@ import (
 		data:        """
 		logging.json-output = false
 		logging.logs-file = "logs"
+		logging.logs-level = "\(#logLevel)"
 
 		include "/conf/base.conf"
 		include "/conf/testnet-internal-nomad.conf"

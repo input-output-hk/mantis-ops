@@ -86,6 +86,21 @@ _Namespace: [Name=_]: {
 		  \(strings.Join(#bootstrapNodes[Name], ",\n"))
 		]
 		"""
+		#logLevel:      "TRACE" | "DEBUG" | *"INFO" | "WARN" | "ERROR" | "OFF"
+		let #logType = #logLevel | "${LOGSLEVEL}"
+
+		// specify a unique loglevel for a given object; passed to logback.xml
+		#loggers: {[string]: #logType} & {
+			"io.netty":                                            "WARN"
+			"io.iohk.scalanet":                                    "INFO"
+			"io.iohk.ethereum.blockchain.sync.SyncController":     "INFO"
+			"io.iohk.ethereum.network.PeerActor":                  "${LOGSLEVEL}"
+			"io.iohk.ethereum.network.rlpx.RLPxConnectionHandler": "${LOGSLEVEL}"
+			"io.iohk.ethereum.vm.VM":                              "OFF"
+			"org.jupnp.QueueingThreadPoolExecutor":                "WARN"
+			"org.jupnp.util.SpecificationViolationReporter":       "ERROR"
+			"org.jupnp.protocol.RetrieveRemoteDescriptors":        "ERROR"
+		}
 	}
 	jobs: [string]: types.#stanza.job
 }

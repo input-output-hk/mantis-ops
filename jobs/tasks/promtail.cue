@@ -44,7 +44,7 @@ import (
 						nomad_region:        "{{ env \"NOMAD_REGION\" }}"
 						// This is currently always "promtail", so this label wouldn't be of any use
 						// nomad_task_name:     "{{ env \"NOMAD_TASK_NAME\" }}"
-						"__path__":          "/alloc/logs/*.std*.[0-9]*"
+						"__path__": "/alloc/logs/*.std*.[0-9]*"
 					}
 				}]
 			}]
