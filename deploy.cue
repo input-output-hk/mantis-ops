@@ -25,7 +25,7 @@ _Namespace: [Name=_]: {
 #defaults: {
 	mantisOpsRev: "97dfa8601097e8e0cf52d2f62d2f57b5ddb8cd81"
 	mantisRev:    "fdeb1c33f6e0fc24680e256fe1b8d920b04950a8"
-	morphoRev:    "5f519ff3ff3609f081ffa0817bc5167f84b08f41"
+	morphoRev:    "e47b74d5e7a78bf665758927336a28a915b3e596"
 }
 
 #faucet: jobDef.#Faucet & {

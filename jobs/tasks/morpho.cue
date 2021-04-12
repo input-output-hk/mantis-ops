@@ -92,7 +92,7 @@ import (
     SlotDuration: 5
     SystemStart: "2020-11-17T00:00:00Z"
     Logging:
-      minSeverity: Debug
+      minSeverity: Info
       setupScribes:
         - scKind: StdoutSK
           scFormat: ScJson
