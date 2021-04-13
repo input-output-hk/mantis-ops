@@ -27,6 +27,8 @@ import (
 	}
 
 	group: explorer: {
+		count: 1
+
 		service: "\(#name)": {
 			address_mode: "host"
 			port:         "explorer"

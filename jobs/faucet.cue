@@ -30,6 +30,8 @@ import (
 	}
 
 	group: faucet: {
+		count: 1
+
 		network: {
 			mode: "host"
 			port: {

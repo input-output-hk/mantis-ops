@@ -6,11 +6,11 @@ import (
 )
 
 #Mantis: types.#stanza.job & {
-	#count:     uint
-	#role:      "passive" | "miner" | "backup"
-	#mantisRev: string
-	#fqdn:      string
-	#networkConfig:   string
+	#count:         uint | *5
+	#role:          "passive" | "miner" | "backup"
+	#mantisRev:     string
+	#fqdn:          string
+	#networkConfig: string
 
 	let ref = {networkConfig: #networkConfig, mantisRev: #mantisRev, role: #role}
 
@@ -59,10 +59,10 @@ import (
 		}
 
 		task: mantis: tasks.#Mantis & {
-			#namespace: namespace
-			#mantisRev: ref.mantisRev
-			#role:      ref.role
-			#networkConfig:   ref.networkConfig
+			#namespace:     namespace
+			#mantisRev:     ref.mantisRev
+			#role:          ref.role
+			#networkConfig: ref.networkConfig
 		}
 
 		task: promtail: tasks.#Promtail

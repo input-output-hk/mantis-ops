@@ -7,7 +7,7 @@ import (
 
 #Morpho: types.#stanza.job & {
 	#index:         uint
-	#count:         uint
+	#count:         uint | *5
 	#mantisRev:     string
 	#morphoRev:     string
 	#fqdn:          string
@@ -51,7 +51,6 @@ import (
 			migrate: true
 			sticky:  true
 		}
-
 
 		network: {
 			mode: "host"
