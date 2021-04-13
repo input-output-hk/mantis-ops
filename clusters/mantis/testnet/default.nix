@@ -13,6 +13,7 @@ in {
   imports = [ ./iam.nix ./nix.nix ];
 
   services.nomad.namespaces = {
+    mantis-mainnet.description = "Mantis MainNet node";
     mantis-testnet.description = "Mantis testnet";
     mantis-iele.description = "Mantis IELE";
     mantis-qa-load.description = "Mantis QA Load";

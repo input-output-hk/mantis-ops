@@ -12,6 +12,7 @@ import (
 	#logLevel:      "TRACE" | "DEBUG" | "INFO" | "WARN" | "ERROR" | "OFF"
 	#mantisRev:     string
 	#networkConfig: string
+	#network:       *"testnet-internal-nomad" | "etc"
 	#miners: []
 	#amountOfMorphoNodes: 5
 	#requiredPeerCount:   len(#miners)
@@ -63,14 +64,16 @@ import (
 
 	#vaultPrefix: 'kv/data/nomad-cluster/\(#namespace)/mantis-%s'
 
-	template: "secrets/secret-key": {
-		#prefix:     'kv/data/nomad-cluster/\(#namespace)/mantis-%s'
-		change_mode: "noop"
-		splay:       "15m"
-		data:        """
+	if #role == "miner" {
+		template: "secrets/secret-key": {
+			#prefix:     'kv/data/nomad-cluster/\(#namespace)/mantis-%s'
+			change_mode: "noop"
+			splay:       "15m"
+			data:        """
 		{{ with secret (printf "\(#vaultPrefix)/secret-key" (env "NOMAD_ALLOC_INDEX")) }}{{.Data.data.value}}{{end}}
 		{{ with secret (printf "\(#vaultPrefix)/enode-hash" (env "NOMAD_ALLOC_INDEX")) }}{{.Data.data.value}}{{end}}
 		"""
+		}
 	}
 
 	template: "secrets/env.txt": {
@@ -156,16 +159,23 @@ import (
 
 	template: "local/mantis.conf": {
 		#checkpointRange: list.Range(0, #amountOfMorphoNodes, 1)
-		#checkpointKeys: [ for n in #checkpointRange {
-			"""
+		if #network == "testnet-internal-nomad" {
+			#checkpointKeys: [ for n in #checkpointRange {
+				"""
 			{{- with secret "kv/data/nomad-cluster/\(#namespace)/obft-node-\(n)/obft-public-key" -}}
 			"{{- .Data.data.value -}}"
 			{{ end -}}
 			"""
-		}]
-		#checkPointKeysString: strings.Join(#checkpointKeys, ",")
+			}]
+			#checkPointKeysString: strings.Join(#checkpointKeys, ",")
+		}
 
-		#extraConfig: string
+		if #network == "etc" {
+			#checkPointKeysString: ""
+		}
+
+		#extraConfig:          string
+		#checkPointKeysString: string
 
 		if #role == "miner" {
 			#extraConfig: """
@@ -193,7 +203,7 @@ import (
 		logging.logs-level = "\(#logLevel)"
 
 		include "/conf/base.conf"
-		include "/conf/testnet-internal-nomad.conf"
+		include "/conf/\(#network).conf"
 
 		mantis = {
 			blockchains.testnet-internal-nomad = {
@@ -229,12 +239,14 @@ import (
 		"""
 	}
 
-	template: "local/genesis.json": {
-		change_mode: "noop"
-		data:        """
+	if #network != "etc" {
+		template: "local/genesis.json": {
+			change_mode: "noop"
+			data:        """
 		{{- with secret "kv/nomad-cluster/\(#namespace)/genesis" -}}
 		{{.Data.data | toJSON }}
 		{{- end -}}
 		"""
+		}
 	}
 }
