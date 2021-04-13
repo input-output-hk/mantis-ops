@@ -22,7 +22,7 @@ let
     destination = "local/genesis.json";
   };
 
-  amountOfMorphoNodes = 5;
+  amountOfMorphoNodes = 0;
 
   morphoNodes = lib.forEach (lib.range 1 amountOfMorphoNodes) (n: {
     inherit namespace morpho-source vault dockerImages;
@@ -365,7 +365,7 @@ let
       ];
     };
 
-  amountOfMiners = 3;
+  amountOfMiners = 5;
 
   miners = lib.forEach (lib.range 1 amountOfMiners) (num: {
     name = "mantis-${toString num}";
@@ -918,7 +918,7 @@ in {
     taskGroups = let
       minerTaskGroups = lib.listToAttrs (map mkMiner miners);
       passiveTaskGroups = { passive = mkPassive null 3; };
-    in minerTaskGroups; #// passiveTaskGroups;
+    in minerTaskGroups // passiveTaskGroups;
   };
 
   "${namespace}-morpho" = mkNomadJob "morpho" {
