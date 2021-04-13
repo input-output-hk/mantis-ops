@@ -156,16 +156,23 @@ import (
 
 	template: "local/mantis.conf": {
 		#checkpointRange: list.Range(0, #amountOfMorphoNodes, 1)
-		#checkpointKeys: [ for n in #checkpointRange {
-			"""
+		if #network == "testnet-internal-nomad" {
+			#checkpointKeys: [ for n in #checkpointRange {
+				"""
 			{{- with secret "kv/data/nomad-cluster/\(#namespace)/obft-node-\(n)/obft-public-key" -}}
 			"{{- .Data.data.value -}}"
 			{{ end -}}
 			"""
-		}]
-		#checkPointKeysString: strings.Join(#checkpointKeys, ",")
+			}]
+			#checkPointKeysString: strings.Join(#checkpointKeys, ",")
+		}
 
-		#extraConfig: string
+		if #network == "etc" {
+			#checkPointKeysString: ""
+		}
+
+		#extraConfig:          string
+		#checkPointKeysString: string
 
 		if #role == "miner" {
 			#extraConfig: """
@@ -193,7 +200,7 @@ import (
 		logging.logs-level = "\(#logLevel)"
 
 		include "/conf/base.conf"
-		include "/conf/testnet-internal-nomad.conf"
+		include "/conf/\(#network).conf"
 
 		mantis = {
 			blockchains.testnet-internal-nomad = {
@@ -229,12 +236,14 @@ import (
 		"""
 	}
 
-	template: "local/genesis.json": {
-		change_mode: "noop"
-		data:        """
+	if #network != "etc" {
+		template: "local/genesis.json": {
+			change_mode: "noop"
+			data:        """
 		{{- with secret "kv/nomad-cluster/\(#namespace)/genesis" -}}
 		{{.Data.data | toJSON }}
 		{{- end -}}
 		"""
+		}
 	}
 }

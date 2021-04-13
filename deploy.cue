@@ -21,6 +21,13 @@ import (
 		passive:  #passive
 		morpho:   #morpho
 	}
+	"mantis-mainnet": jobs: {
+		passive: #passive & {
+			#network:       "etc"
+			#networkConfig: ""
+			#count:         1
+		}
+	}
 }
 
 #revisions: {
@@ -76,7 +83,7 @@ _Namespace: [Name=_]: {
 		let datacenter = "eu-central-1" | "us-east-2" | "eu-west-1"
 		datacenters:    list.MinItems(1) | [...datacenter] | *["eu-central-1", "us-east-2"]
 		#fqdn:          "mantis.ws"
-		#networkConfig: """
+		#networkConfig: string | *"""
 		mantis.blockchains.testnet-internal-nomad.bootstrap-nodes = [
 		  \(strings.Join(#bootstrapNodes[Name], ",\n"))
 		]

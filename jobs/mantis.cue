@@ -12,6 +12,7 @@ import (
 	#mantisRev: string
 	#fqdn:      string
 	#loggers: {[string]: string}
+	#network:       string
 	#networkConfig: string
 
 	let ref = {
@@ -20,6 +21,7 @@ import (
 		role:          #role
 		logLevel:      #logLevel
 		loggers:       #loggers
+		network:       #network
 	}
 
 	namespace: string
@@ -73,6 +75,7 @@ import (
 			#logLevel:      ref.logLevel
 			#networkConfig: ref.networkConfig
 			#loggers:       ref.loggers
+			#network:       ref.network
 		}
 
 		task: promtail: tasks.#Promtail
