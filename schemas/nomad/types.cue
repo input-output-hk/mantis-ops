@@ -98,7 +98,7 @@ import (
 	TaskGroup: {
 		Affinities: [...Affinity]
 		Constraints: [...Constraint]
-		Count: int & >0
+		Count: uint
 		Meta: [string]: string
 		Name:          string
 		RestartPolicy: *null | #json.RestartPolicy
@@ -518,7 +518,7 @@ let durationType = string & =~"^[1-9]\\d*[hms]$"
 		network:        #stanza.network
 		service: [string]: #stanza.service
 		task: [string]:    #stanza.task
-		count: uint | *1
+		count: uint
 		volume: [string]: #stanza.volume
 		restart:        #stanza.restart & {#type: #type}
 		vault:          *null | #stanza.vault
