@@ -90,6 +90,7 @@ in {
             ./nix.nix
             ./reserve.nix
             ./host-volumes.nix
+            ./node-class.nix
           ];
 
           securityGroupRules = {
