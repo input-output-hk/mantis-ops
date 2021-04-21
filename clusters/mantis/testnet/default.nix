@@ -140,7 +140,8 @@ in {
         subnet = cluster.vpc.subnets.core-3;
         volumeSize = 100;
 
-        modules = [ (bitte + /profiles/core.nix) ./secrets.nix ];
+        modules =
+          [ (bitte + /profiles/core.nix) ./secrets.nix ./nomad-autoscaler.nix ];
 
         securityGroupRules = {
           inherit (securityGroupRules) internet internal ssh;
