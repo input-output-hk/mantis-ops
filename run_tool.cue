@@ -3,7 +3,6 @@ package bitte
 import (
 	"encoding/json"
 	"tool/cli"
-	"tool/exec"
 )
 
 #jobName:   string @tag(job)
