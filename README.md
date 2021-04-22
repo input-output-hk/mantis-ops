@@ -59,11 +59,11 @@ mkdir -p /var/tmp
 * In general, unless you have difficulty installing multi-user Nix, or have a specific reason to use a single-user Nix installation, proceed with a multi-user Nix installation.
   * *RECOMMENDED:* To install Nix as a multi-user install, the following command can be run as a regular non-root user with `sudo` access:
     ```
-    $ sh <(curl -L https://nixos.org/nix/install) --daemon
+    $ sh <(curl -L https://github.com/numtide/nix-flakes-installer/releases/download/nix-2.4pre20210415_76980a1/install) --daemon
     ```
   * *NOT RECOMMENDED:* To install Nix as a single-user install, the following command can be run as a regular non-root user with `sudo` access:
     ```
-    $ sh <(curl -L https://nixos.org/nix/install) --no-daemon
+    $ sh <(curl -L https://github.com/numtide/nix-flakes-installer/releases/download/nix-2.4pre20210415_76980a1/install) --no-daemon
     ```
 * After performing a Nix multi-user or single-user install, any shells should be exited and re-entered to ensure the new Nix settings take effect in the environment.
 * Alternatively, the operating system [NixOS](https://nixos.org/manual/nixos/stable/#sec-installation) can be used which includes a Nix installation.
