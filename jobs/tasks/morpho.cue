@@ -28,7 +28,7 @@ import (
 	config: {
 		flake:   "github:input-output-hk/ECIP-Checkpointing?rev=\(#morphoRev)#morpho"
 		command: "/bin/morpho-checkpoint-node"
-		args: [ "--config", "/local/morpho-config.yaml" ]
+		args: [ "--config", "/local/morpho-config.yaml"]
 	}
 
 	restart_policy: {

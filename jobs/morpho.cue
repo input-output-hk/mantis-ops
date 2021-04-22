@@ -84,6 +84,7 @@ import (
 			#namespace:     namespace
 			#mantisRev:     ref.mantisRev
 			#role:          "passive"
+			#logLevel:      "INFO"
 			#networkConfig: ref.networkConfig
 		}
 	}
