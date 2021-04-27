@@ -29,7 +29,7 @@
         system = "x86_64-linux";
         overlays = [
           (final: prev: { inherit (hashiStack) clusters dockerImages; })
-          bitte.overlay.x86_64-linux
+          bitte.overlay
           (import ./overlay.nix inputs)
         ];
       };
