@@ -26,6 +26,7 @@ import (
 			#network:       "etc"
 			#networkConfig: ""
 			#count:         1
+			#fastSync:      true
 		}
 	}
 }

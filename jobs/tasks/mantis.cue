@@ -17,6 +17,7 @@ import (
 	#amountOfMorphoNodes: 5
 	#requiredPeerCount:   len(#miners)
 	#loggers: {}
+	#fastSync: true | *false
 
 	driver: "exec"
 
@@ -218,7 +219,7 @@ import (
 			datadir = "/local/mantis"
 			ethash.ethash-dir = "/local/ethash"
 
-			sync.do-fast-sync = false
+			sync.do-fast-sync = \(#fastSync)
 
 			metrics.enabled = true
 			metrics.port = {{ env "NOMAD_PORT_metrics" }}

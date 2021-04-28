@@ -14,6 +14,7 @@ import (
 	#loggers: {[string]: string}
 	#network:       string
 	#networkConfig: string
+	#fastSync:      bool
 
 	let ref = {
 		networkConfig: #networkConfig
@@ -22,6 +23,7 @@ import (
 		logLevel:      #logLevel
 		loggers:       #loggers
 		network:       #network
+		fastSync:      #fastSync
 	}
 
 	namespace: string
@@ -76,6 +78,7 @@ import (
 			#networkConfig: ref.networkConfig
 			#loggers:       ref.loggers
 			#network:       ref.network
+			#fastSync:      ref.fastSync
 		}
 
 		task: promtail: tasks.#Promtail
