@@ -19,6 +19,7 @@ import (
 		VaultToken:  *null | string
 		Vault:       *null | #json.Vault
 		Update:      *null | #json.Update
+		Periodic:    *null | #json.Periodic
 	}
 
 	Constraint: {
@@ -81,6 +82,12 @@ import (
 		HealthyDeadline: uint | *500000000000
 		MaxParallel:     uint | *1
 		MinHealthyTime:  uint | *10000000000
+	}
+
+	Periodic: {
+		TimeZone:        string | *"UTC"
+		Cron:            string
+		ProhibitOverlap: bool | *false
 	}
 
 	Update: {
@@ -270,6 +277,7 @@ let durationType = string & =~"^[1-9]\\d*[hms]$"
 	Namespace:   #job.namespace
 	Type:        #job.type
 	Priority:    #job.priority
+	Periodic:    #job.periodic
 
 	if #job.update != null {
 		let u = #job.update
@@ -283,6 +291,15 @@ let durationType = string & =~"^[1-9]\\d*[hms]$"
 			MinHealthyTime:   time.ParseDuration(u.min_healthy_time)
 			ProgressDeadline: time.ParseDuration(u.progress_deadline)
 			Stagger:          time.ParseDuration(u.stagger)
+		}
+	}
+
+	if #job.periodic != null {
+		let u = #job.periodic
+		Periodic: {
+			TimeZone:        u.time_zone
+			Cron:            u.cron
+			ProhibitOverlap: u.prohibit_overlap
 		}
 	}
 
@@ -498,6 +515,13 @@ let durationType = string & =~"^[1-9]\\d*[hms]$"
 		update:   #stanza.update | *null
 		vault:    #stanza.vault | *null
 		priority: uint | *50
+		periodic: #stanza.periodic | *null
+	}
+
+	periodic: {
+		time_zone:        string | *"UTC"
+		prohibit_overlap: bool | *false
+		cron:             string
 	}
 
 	constraint: {

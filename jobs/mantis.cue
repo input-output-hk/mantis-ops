@@ -12,7 +12,7 @@ import (
 	#mantisRev: string
 	#fqdn:      string
 	#loggers: {[string]: string}
-	#network:       string
+	#network:       *"testnet-internal-nomad" | "etc"
 	#networkConfig: string
 	#fastSync:      bool
 
@@ -27,7 +27,17 @@ import (
 	}
 
 	namespace: string
-	type:      "service"
+	if ref.network == "etc" {
+		type: "batch"
+		periodic: {
+			prohibit_overlap: true
+			cron:             "@daily"
+			time_zone:        "UTC"
+		}
+	}
+	if ref.network != "etc" {
+		type: "service"
+	}
 
 	update: {
 		max_parallel:      1
