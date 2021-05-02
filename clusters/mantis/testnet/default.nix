@@ -20,6 +20,7 @@ in {
     mantis-staging.description = "Mantis Staging";
     mantis-unstable.description = "Mantis Unstable";
     mantis-paliga.description = "Mantis Paliga";
+    mantis-mainnet.description = "Mantis Mainnet";
   };
 
   services.consul.policies.developer.servicePrefix."mantis-" = {
