@@ -12,7 +12,7 @@ import (
 	#mantisRev: string
 	#fqdn:      string
 	#loggers: {[string]: string}
-	#network:       string
+	#network:       *"testnet-internal-nomad" | "etc"
 	#networkConfig: string
 	#fastSync:      bool
 
@@ -27,18 +27,29 @@ import (
 	}
 
 	namespace: string
-	type:      "service"
+	if #network == "etc" {
+		type: "batch"
+		periodic: {
+			prohibit_overlap: true
+			cron:             "@daily"
+			time_zone:        "UTC"
+		}
+	}
 
-	update: {
-		max_parallel:      1
-		health_check:      "checks"
-		min_healthy_time:  "1m" // Give enough time for the DAG generation
-		healthy_deadline:  "15m"
-		progress_deadline: "30m"
-		auto_revert:       false
-		auto_promote:      false
-		canary:            0
-		stagger:           "20m"
+	if #network != "etc" {
+		type: "service"
+
+		update: {
+			max_parallel:      1
+			health_check:      "checks"
+			min_healthy_time:  "1m" // Give enough time for the DAG generation
+			healthy_deadline:  "15m"
+			progress_deadline: "30m"
+			auto_revert:       false
+			auto_promote:      false
+			canary:            0
+			stagger:           "20m"
+		}
 	}
 
 	group: mantis: {
