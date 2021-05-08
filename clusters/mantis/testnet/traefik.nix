@@ -23,7 +23,7 @@ in {
 
     serviceConfig = {
       Type = "oneshot";
-      RemainAfterExit = true;
+      RemainAfterExit = lib.mkForce true;
       Restart = "on-failure";
       RestartSec = "30s";
     };
