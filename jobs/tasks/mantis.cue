@@ -188,9 +188,17 @@ import (
 		}
 
 		if #role == "passive" {
-			#extraConfig: """
-				mantis.consensus.mining-enabled = false
-				"""
+			if #network != "etc" {
+				#extraConfig: """
+					mantis.consensus.mining-enabled = false
+					"""
+			}
+			if #network == "etc" {
+				#extraConfig: """
+					mantis.consensus.mining-enabled = false
+					mantis.sync.min-peers-to-choose-pivot-block = 1
+					"""
+			}
 		}
 
 		change_mode: "noop"
