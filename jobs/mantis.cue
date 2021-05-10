@@ -75,6 +75,10 @@ import (
 			unlimited: true
 		}
 
+		if #network == "etc" {
+			task: syncstat: tasks.#SyncStat
+		}
+
 		task: telegraf: tasks.#Telegraf & {
 			#namespace:      namespace
 			#name:           "\(#role)-${NOMAD_ALLOC_INDEX}"

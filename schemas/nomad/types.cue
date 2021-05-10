@@ -456,6 +456,8 @@ let durationType = string & =~"^[1-9]\\d*[hms]$"
 				MemoryMB: t.resources.memory
 			}
 
+			Leader: t.leader
+
 			Templates: [ for tplName, tpl in t.template {
 				DestPath:     tplName
 				EmbeddedTmpl: tpl.data
@@ -746,6 +748,8 @@ let durationType = string & =~"^[1-9]\\d*[hms]$"
 		vault: *null | #stanza.vault
 		volume_mount: [string]: #stanza.volume_mount
 		restart_policy: *null | #stanza.restart_policy
+
+		leader: bool | *false
 	}
 
 	restart_policy: {
