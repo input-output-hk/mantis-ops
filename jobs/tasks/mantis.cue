@@ -87,7 +87,7 @@ import (
 		data: """
 		<configuration>
 		
-		    <property name="stdoutEncoderPattern" value="%d [%logger{36}] - %msg%n" />
+		    <property name="stdoutEncoderPattern" value="%d %-5level [%logger{36}] - %msg%n" />
 		    <property name="fileEncoderPattern" value="%d [%thread] %-5level %logger{36} %X{akkaSource} - %msg%n" />
 		
 		    <!--read properties from application.conf-->
@@ -239,6 +239,8 @@ import (
 			network.discovery.host = "172.16.0.20"
 			network.discovery.port = {{ env "NOMAD_PORT_discovery" }}
 		}
+
+		akka.loglevel = "DEBUG"
 
 		\(#extraConfig)
 		\(#networkConfig)
