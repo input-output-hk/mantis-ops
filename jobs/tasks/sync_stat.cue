@@ -13,14 +13,17 @@ import (
 	}
 
 	config: {
-		flake:   "github:input-output-hk/mantis-ops/mainnet-node?dir=pkgs/syncstat"
+		flake:   "github:input-output-hk/mantis-ops/mainnet-node?dir=pkgs/syncstat#syncstat"
 		command: "/bin/syncstat"
 	}
 
 	leader: true
 
-	env: {
-		RPC_NODE: "http://${NOMAD_ADDR_mantis_rpc}"
+	template: "env.txt": {
+		env: true
+		data: """
+			RPC_NODE="http://{{ env "NOMAD_ADDR_rpc" }}"
+			"""
 	}
 
 	// lifecycle: hook: "poststart"
