@@ -25,9 +25,9 @@ fn main() -> Result<()> {
         })?,
         None => 12,
     };
-    thread::spawn(move || {
+    let timer = thread::spawn(move || {
         stat::timeout(hours);
-        tx.send(0).unwrap();
+        tx.send(()).unwrap();
     });
 
     let mantis_rpc_addr = env::var("RPC_NODE")?;
@@ -56,15 +56,6 @@ fn main() -> Result<()> {
             RPCResult::Failure(_) => (0, 0),
         };
 
-        info!(
-            "{} blocks left until synced.",
-            highest_block - current_block
-        );
-        debug!(
-            "block height: {}, current position: {}.",
-            highest_block, current_block
-        );
-
         let delta = ratio.apply_to(highest_block);
 
         if (highest_block, current_block) == (0, 0)
@@ -81,7 +72,7 @@ fn main() -> Result<()> {
         break;
     }
 
-    rx.recv()?;
+    timer.join().ok();
 
     Ok(())
 }
