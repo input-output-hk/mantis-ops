@@ -1,71 +1,38 @@
+use anyhow::{Context, Result};
 use percentage::Percentage;
-use restson::{RestClient, RestPath};
-use serde::{Deserialize, Serialize};
-use serde_hex::{CompactPfx, SerHex};
+use restson::RestClient;
+use stat::{RPCData, RPCRender, RPCResult};
 use std::env;
-use std::error::Error;
-use std::process;
+use std::sync::mpsc;
 use std::thread;
 use std::time::Duration;
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct RPCRender {
-    pub jsonrpc: String,
-    pub result: RPCResult,
-    pub id: i32,
-}
+mod stat;
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct ResultSuccess {
-    #[serde(rename = "startingBlock")]
-    #[serde(with = "SerHex::<CompactPfx>")]
-    pub starting_block: u64,
-    #[serde(rename = "currentBlock")]
-    #[serde(with = "SerHex::<CompactPfx>")]
-    pub current_block: u64,
-    #[serde(rename = "highestBlock")]
-    #[serde(with = "SerHex::<CompactPfx>")]
-    pub highest_block: u64,
-    #[serde(rename = "knownStates")]
-    #[serde(with = "SerHex::<CompactPfx>")]
-    pub known_states: u64,
-    #[serde(rename = "pulledStates")]
-    #[serde(with = "SerHex::<CompactPfx>")]
-    pub pulled_states: u64,
-}
+#[macro_use]
+extern crate log;
 
-#[derive(Debug, Serialize, Deserialize)]
-#[serde(untagged)]
-pub enum RPCResult {
-    Success(ResultSuccess),
-    Failure(bool),
-}
+fn main() -> Result<()> {
+    pretty_env_logger::init();
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct RPCData {
-    pub jsonrpc: String,
-    pub method: String,
-    pub params: Vec<String>,
-    pub id: i32,
-}
+    let (tx, rx) = mpsc::channel();
 
-impl RestPath<()> for RPCData {
-    fn get_path(_: ()) -> Result<String, restson::Error> {
-        Ok("".to_string())
-    }
-}
-
-fn timeout(seconds: u64) {
-    thread::sleep(Duration::new(seconds, 0));
-    eprintln!("timed out after {} seconds", seconds);
-    process::exit(1)
-}
-
-fn main() -> Result<(), Box<dyn Error>> {
-    thread::spawn(|| timeout(60 * 60 * 12));
+    let hours: u64 = match env::args().nth(1) {
+        Some(num) => num.parse::<u64>().with_context(|| {
+            format!(
+        "Takes the number of hours to wait before timing out.\nYou passed: {}"
+        , num)
+        })?,
+        None => 12,
+    };
+    thread::spawn(move || {
+        stat::timeout(hours);
+        tx.send(0).unwrap();
+    });
 
     let mantis_rpc_addr = env::var("RPC_NODE")?;
-    println!("RPC_NODE is {}", mantis_rpc_addr);
+    debug!("RPC_NODE is {}", mantis_rpc_addr);
+
     let mut client = RestClient::new(&mantis_rpc_addr)?;
 
     let data: RPCData = RPCData {
@@ -74,11 +41,13 @@ fn main() -> Result<(), Box<dyn Error>> {
         params: vec![],
         id: 1,
     };
+    debug!("posting to {}:\n{:#?}", mantis_rpc_addr, data);
 
     let ratio = Percentage::from(2);
 
     loop {
         let response: RPCRender = client.post_capture((), &data)?;
+        debug!("response:\n{:#?}", response);
 
         let (highest_block, current_block) = match response.result {
             RPCResult::Success(result) => {
@@ -87,17 +56,32 @@ fn main() -> Result<(), Box<dyn Error>> {
             RPCResult::Failure(_) => (0, 0),
         };
 
+        info!(
+            "{} blocks left until synced.",
+            highest_block - current_block
+        );
+        debug!(
+            "block height: {}, current position: {}.",
+            highest_block, current_block
+        );
+
         let delta = ratio.apply_to(highest_block);
 
         if (highest_block, current_block) == (0, 0)
             || current_block < highest_block - delta
         {
-            thread::sleep(Duration::new(30, 0));
-            continue;
+            thread::sleep(Duration::new(300, 0));
+            if rx.try_recv().is_err() {
+                continue;
+            } else {
+                break;
+            };
         }
 
         break;
     }
+
+    rx.recv()?;
 
     Ok(())
 }
