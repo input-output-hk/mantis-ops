@@ -72,6 +72,8 @@ fn main() -> Result<()> {
         break;
     }
 
+    info!("sync is complete");
+
     timer.join().ok();
 
     Ok(())
