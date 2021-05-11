@@ -65,6 +65,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     thread::spawn(|| timeout(60 * 60 * 12));
 
     let mantis_rpc_addr = env::var("RPC_NODE")?;
+    println!("RPC_NODE is {}", mantis_rpc_addr);
     let mut client = RestClient::new(&mantis_rpc_addr)?;
 
     let data: RPCData = RPCData {
