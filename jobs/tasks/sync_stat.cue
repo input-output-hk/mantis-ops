@@ -13,8 +13,10 @@ import (
 	}
 
 	config: {
-		flake:   "github:input-output-hk/mantis-ops/mainnet-node?dir=pkgs/syncstat#syncstat"
+		flake:   "github:input-output-hk/mantis-ops?dir=pkgs/syncstat&rev=0ed3cdc15796db034cd21b50f4f52563f6f1c7d0#syncstat"
 		command: "/bin/syncstat"
+		// number of hours to run the node
+		args: ["18"]
 	}
 
 	leader: true
