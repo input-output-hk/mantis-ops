@@ -19,12 +19,14 @@ import (
 
 	leader: true
 
+	env: {
+		RUST_LOG: "INFO"
+	}
+
 	template: "env.txt": {
 		env: true
 		data: """
 			RPC_NODE="http://{{ env "NOMAD_ADDR_rpc" }}"
 			"""
 	}
-
-	// lifecycle: hook: "poststart"
 }
