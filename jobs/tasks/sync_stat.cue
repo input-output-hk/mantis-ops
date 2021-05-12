@@ -12,6 +12,13 @@ import (
 		memory: 1 * 1024
 	}
 
+	restart: {
+		interval: "1m"
+		attempts: 0
+		delay:    "1m"
+		mode:     "fail"
+	}
+
 	config: {
 		flake:   "github:input-output-hk/mantis-ops?dir=pkgs/syncstat&rev=0ed3cdc15796db034cd21b50f4f52563f6f1c7d0#syncstat"
 		command: "/bin/syncstat"
