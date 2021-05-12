@@ -4,7 +4,7 @@ use serde_hex::{CompactPfx, SerHex};
 use std::thread;
 use std::time::Duration;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Default, Debug, Serialize, Deserialize)]
 pub struct RPCRender {
     pub jsonrpc: String,
     pub result: RPCResult,
@@ -35,6 +35,12 @@ pub struct ResultSuccess {
 pub enum RPCResult {
     Success(ResultSuccess),
     Failure(bool),
+}
+
+impl Default for RPCResult {
+    fn default() -> Self {
+        Self::Failure(false)
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize)]

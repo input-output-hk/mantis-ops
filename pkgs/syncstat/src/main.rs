@@ -46,7 +46,8 @@ fn main() -> Result<()> {
     let ratio = Percentage::from(2);
 
     loop {
-        let response: RPCRender = client.post_capture((), &data)?;
+        let response: RPCRender =
+            client.post_capture((), &data).unwrap_or_default();
         debug!("response:\n{:#?}", response);
 
         let (highest_block, current_block) = match response.result {
