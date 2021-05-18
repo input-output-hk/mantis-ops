@@ -43,7 +43,7 @@
       },
       "targets": [
         {
-          "expr": "{namespace=\"$namespace\",container_tag=\"$tag\"}",
+          "expr": "{nomad_namespace=\"$namespace\"}",
           "refId": "A"
         }
       ],
@@ -81,32 +81,6 @@
         "regex": "",
         "skipUrlSync": false,
         "sort": 5,
-        "tagValuesQuery": "",
-        "tags": [],
-        "tagsQuery": "",
-        "type": "query",
-        "useTags": false
-      },
-      {
-        "allValue": null,
-        "current": {
-          "selected": false,
-          "text": "mantis-2",
-          "value": "mantis-2"
-        },
-        "datasource": "Loki",
-        "definition": "label_values(container_tag)",
-        "hide": 0,
-        "includeAll": false,
-        "label": "Tag",
-        "multi": false,
-        "name": "tag",
-        "options": [],
-        "query": "label_values(container_tag)",
-        "refresh": 2,
-        "regex": "",
-        "skipUrlSync": false,
-        "sort": 0,
         "tagValuesQuery": "",
         "tags": [],
         "tagsQuery": "",
