@@ -2232,11 +2232,13 @@
         "allValue": null,
         "current": {
           "selected": true,
-          "text": "mantis-qa-fastsync",
-          "value": "mantis-qa-fastsync"
+          "text": "mantis-mainnet",
+          "value": "mantis-mainnet"
         },
         "datasource": "VictoriaMetrics",
         "definition": "label_values(namespace)",
+        "description": null,
+        "error": null,
         "hide": 0,
         "includeAll": false,
         "label": "Namespace",
@@ -2244,19 +2246,14 @@
         "name": "namespace",
         "options": [
           {
-            "selected": false,
-            "text": "default",
-            "value": "default"
-          },
-          {
             "selected": true,
-            "text": "mantis-qa-fastsync",
-            "value": "mantis-qa-fastsync"
+            "text": "mantis-mainnet",
+            "value": "mantis-mainnet"
           },
           {
             "selected": false,
-            "text": "mantis-qa-load",
-            "value": "mantis-qa-load"
+            "text": "mantis-staging",
+            "value": "mantis-staging"
           },
           {
             "selected": false,
