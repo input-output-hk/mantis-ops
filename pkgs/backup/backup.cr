@@ -2,6 +2,7 @@ require "file_utils"
 
 class Backup
   TASK_DIR = ENV["NOMAD_TASK_DIR"]
+  MANTIS_CONF = File.join(TASK_DIR, "mantis.conf")
 
   property tag : String
 
@@ -14,10 +15,10 @@ class Backup
   end
 
   def sync
-    puts File.read("#{TASK_DIR}/mantis.conf")
+    puts File.read(MANTIS_CONF)
     process = Process.new "mantis", error: STDERR, output: STDOUT, args: [
       "-Duser.home=#{TASK_DIR}",
-      "-Dconfig.file=mantis.conf"
+      "-Dconfig.file=#{MANTIS_CONF}"
     ]
 
     wait_for_tip process
