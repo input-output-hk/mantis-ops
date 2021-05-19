@@ -7,14 +7,12 @@ import (
 )
 
 #Mantis: types.#stanza.task & {
-	#namespace:     string
-	#role:          "passive" | "miner" | "backup"
-	#logLevel:      "TRACE" | "DEBUG" | "INFO" | "WARN" | "ERROR" | "OFF"
-	#mantisRev:     string
-	#networkConfig: string
-	#miners: []
+	#namespace:           string
+	#role:                "passive" | "miner" | "backup"
+	#logLevel:            "TRACE" | "DEBUG" | "INFO" | "WARN" | "ERROR" | "OFF"
+	#mantisRev:           string
+	#networkConfig:       string
 	#amountOfMorphoNodes: 5
-	#requiredPeerCount:   len(#miners)
 	#loggers: {}
 
 	driver: "exec"
@@ -63,14 +61,16 @@ import (
 
 	#vaultPrefix: 'kv/data/nomad-cluster/\(#namespace)/mantis-%s'
 
-	template: "secrets/secret-key": {
-		#prefix:     'kv/data/nomad-cluster/\(#namespace)/mantis-%s'
-		change_mode: "noop"
-		splay:       "15m"
-		data:        """
-		{{ with secret (printf "\(#vaultPrefix)/secret-key" (env "NOMAD_ALLOC_INDEX")) }}{{.Data.data.value}}{{end}}
-		{{ with secret (printf "\(#vaultPrefix)/enode-hash" (env "NOMAD_ALLOC_INDEX")) }}{{.Data.data.value}}{{end}}
-		"""
+	if #role == "miner" {
+		template: "secrets/secret-key": {
+			#prefix:     'kv/data/nomad-cluster/\(#namespace)/mantis-%s'
+			change_mode: "noop"
+			splay:       "15m"
+			data:        """
+			{{ with secret (printf "\(#vaultPrefix)/secret-key" (env "NOMAD_ALLOC_INDEX")) }}{{.Data.data.value}}{{end}}
+			{{ with secret (printf "\(#vaultPrefix)/enode-hash" (env "NOMAD_ALLOC_INDEX")) }}{{.Data.data.value}}{{end}}
+			"""
+		}
 	}
 
 	template: "secrets/env.txt": {
