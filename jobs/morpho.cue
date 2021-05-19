@@ -11,12 +11,18 @@ import (
 	#mantisRev:     string
 	#morphoRev:     string
 	#fqdn:          string
+	#network:       *"testnet-internal-nomad" | "etc"
 	#networkConfig: string
 
 	#name: "morpho-\(#index)"
 	#id:   "\(namespace)-\(#name)"
 
-	let ref = {morphoRev: #morphoRev, networkConfig: #networkConfig, mantisRev: #mantisRev}
+	let ref = {
+		mantisRev:     #mantisRev
+		morphoRev:     #morphoRev
+		networkConfig: #networkConfig
+		network:       #network
+	}
 
 	namespace: string
 	type:      "service"
@@ -86,6 +92,7 @@ import (
 			#role:          "passive"
 			#logLevel:      "INFO"
 			#networkConfig: ref.networkConfig
+			#network:       ref.network
 		}
 	}
 }

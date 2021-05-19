@@ -11,6 +11,7 @@ import (
 	#role:                "passive" | "miner" | "backup"
 	#logLevel:            "TRACE" | "DEBUG" | "INFO" | "WARN" | "ERROR" | "OFF"
 	#mantisRev:           string
+	#network:             string
 	#networkConfig:       string
 	#amountOfMorphoNodes: 5
 	#loggers: {}

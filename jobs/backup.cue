@@ -20,7 +20,7 @@ import (
 	periodic: {
 		cron:             "15 */1 * * * *"
 		prohibit_overlap: true
-		timeZone:         "UTC"
+		time_zone:        "UTC"
 	}
 
 	group: mantis: {
@@ -43,7 +43,7 @@ import (
 
 		task: telegraf: tasks.#Telegraf & {
 			#namespace:      namespace
-			#name:           "\(#role)-${NOMAD_ALLOC_INDEX}"
+			#name:           "backup-${NOMAD_ALLOC_INDEX}"
 			#prometheusPort: "metrics"
 		}
 
