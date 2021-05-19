@@ -32,7 +32,9 @@ class Backup
 
     old_height = 0
     current_height = 0
-    loop do
+    60.times do
+      sleep 1.minute
+
       raise "mantis died #{process.wait.exit_status}" unless process.exists?
 
       response = HTTP::Client.get(block_height_url)
@@ -54,8 +56,6 @@ class Backup
       end
 
       return if current_height >= (max_height - 2)
-
-      sleep 30
     end
   end
 
