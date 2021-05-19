@@ -16,6 +16,11 @@ import (
 	#amountOfMorphoNodes: 5
 	#loggers: {}
 	#fastSync: true | *false
+	#flake:    *"github:input-output-hk/mantis?rev=\(#mantisRev)#mantis" | string
+
+	if #network == "etc" {
+		#flake: "github:input-output-hk/mantis/develop#mantis"
+	}
 
 	driver: "exec"
 
@@ -39,7 +44,7 @@ import (
 	}
 
 	config: {
-		flake:   "github:input-output-hk/mantis?rev=\(#mantisRev)#mantis"
+		flake:   #flake
 		command: "/bin/mantis"
 		args: ["-Dconfig.file=/local/mantis.conf", "-XX:ActiveProcessorCount=2", "-Dlogback.configurationFile=/local/logback.xml"]
 	}
