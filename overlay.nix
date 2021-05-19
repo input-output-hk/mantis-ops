@@ -167,7 +167,7 @@ in {
     BITTE_CLUSTER = cluster;
     AWS_PROFILE = "mantis";
     AWS_DEFAULT_REGION = final.clusters.${cluster}.proto.config.cluster.region;
-    NOMAD_NAMESPACE = "mantis-unstable";
+    NOMAD_NAMESPACE = "mantis-testnet";
 
     VAULT_ADDR = "https://vault.${domain}";
     NOMAD_ADDR = "https://nomad.${domain}";

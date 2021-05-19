@@ -11,7 +11,7 @@
     inclusive.follows = "bitte/inclusive";
     morpho-node.url = "github:input-output-hk/ECIP-Checkpointing";
     mantis.url =
-      "github:input-output-hk/mantis?rev=4fc4f4f841dc059d9b23a8d131552b487344e4fd";
+      "github:input-output-hk/mantis?rev=0146d23cb8515841cfae817b33d0023a5fdd37eb";
     mantis-explorer.url = "github:input-output-hk/mantis-explorer";
     mantis-faucet-web.url = "github:input-output-hk/mantis-faucet-web";
   };
