@@ -36,7 +36,7 @@ import (
 }
 
 #revisions: {
-	mantisOpsRev: "97dfa8601097e8e0cf52d2f62d2f57b5ddb8cd81"
+	mantisOpsRev: "41157619b6ea25988d75115e0eb96b8460c8b6e9"
 	mantisRev:    "4fc4f4f841dc059d9b23a8d131552b487344e4fd"
 	morphoRev:    "e47b74d5e7a78bf665758927336a28a915b3e596"
 }
