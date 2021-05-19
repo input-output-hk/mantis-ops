@@ -2,7 +2,7 @@
   description = "Bitte for Mantis";
 
   inputs = {
-    bitte.url = "github:input-output-hk/bitte/wip-periodic";
+    bitte.url = "github:input-output-hk/bitte";
     nixpkgs.follows = "bitte/nixpkgs";
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     terranix.follows = "bitte/terranix";
@@ -11,7 +11,7 @@
     inclusive.follows = "bitte/inclusive";
     morpho-node.url = "github:input-output-hk/ECIP-Checkpointing";
     mantis.url =
-      "github:input-output-hk/mantis?rev=fdeb1c33f6e0fc24680e256fe1b8d920b04950a8";
+      "github:input-output-hk/mantis?rev=4fc4f4f841dc059d9b23a8d131552b487344e4fd";
     mantis-explorer.url = "github:input-output-hk/mantis-explorer";
     mantis-faucet-web.url = "github:input-output-hk/mantis-faucet-web";
   };

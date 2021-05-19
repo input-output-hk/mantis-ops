@@ -13,6 +13,7 @@ import (
 		faucet:   #faucet
 		miner:    #miner & {#count:   5}
 		passive:  #passive & {#count: 5}
+		backup:   #backup
 	}
 	"mantis-staging": jobs: {
 		explorer: #explorer
@@ -27,7 +28,7 @@ import (
 			#networkConfig: ""
 			#count:         1
 			#fastSync:      true
-			#loggers: #defaultLoggers & {
+			#loggers:       #defaultLoggers & {
 				"io.iohk.ethereum.blockchain.sync.fast.FastSync": "DEBUG"
 			}
 		}
@@ -80,21 +81,24 @@ bootstrapNodes: {
 	#mantisRev: #revisions.mantisRev
 }
 
+#backup: jobDef.#Backup & {
+	#mantisOpsRev: #revisions.mantisOpsRev
+}
+
 #logLevelType: "TRACE" | "DEBUG" | "INFO" | "WARN" | "ERROR" | "OFF"
 let #logType = #logLevelType | "${LOGSLEVEL}"
 #defaultLoggers: {[string]: #logType} & {
-	"io.netty":                                            "WARN"
-	"io.iohk.scalanet":                                    "INFO"
-	"io.iohk.ethereum.blockchain.sync.SyncController":     "INFO"
-	"io.iohk.ethereum.network.PeerActor":                  "${LOGSLEVEL}"
-	"io.iohk.ethereum.network.rlpx.RLPxConnectionHandler": "${LOGSLEVEL}"
-	"io.iohk.ethereum.vm.VM":                              "OFF"
-	"org.jupnp.QueueingThreadPoolExecutor":                "WARN"
-	"org.jupnp.util.SpecificationViolationReporter":       "ERROR"
-	"org.jupnp.protocol.RetrieveRemoteDescriptors":        "ERROR"
+	"io.netty":                                                "WARN"
+	"io.iohk.scalanet":                                        "INFO"
+	"io.iohk.ethereum.blockchain.sync.SyncController":         "INFO"
+	"io.iohk.ethereum.network.PeerActor":                      "${LOGSLEVEL}"
+	"io.iohk.ethereum.network.rlpx.RLPxConnectionHandler":     "${LOGSLEVEL}"
+	"io.iohk.ethereum.vm.VM":                                  "OFF"
+	"org.jupnp.QueueingThreadPoolExecutor":                    "WARN"
+	"org.jupnp.util.SpecificationViolationReporter":           "ERROR"
+	"org.jupnp.protocol.RetrieveRemoteDescriptors":            "ERROR"
 	"io.iohk.scalanet.discovery.ethereum.v4.DiscoveryService": "WARN"
 }
-
 
 _Namespace: [Name=_]: {
 	vars: {

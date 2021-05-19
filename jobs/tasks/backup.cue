@@ -6,9 +6,9 @@ import (
 	"strings"
 )
 
-#Mantis: types.#stanza.task & {
+#Backup: types.#stanza.task & {
 	#namespace:           string
-	#mantisRev:           types.#gitRevision
+	#mantisOpsRev:        types.#gitRevision
 	#networkConfig:       string
 	#amountOfMorphoNodes: 5
 
@@ -25,9 +25,9 @@ import (
 	}
 
 	config: {
-		flake:   "github:input-output-hk/mantis?rev=\(#mantisRev)#mantis"
-		command: "/bin/mantis"
-		args: ["-Dconfig.file=/local/mantis.conf", "-XX:ActiveProcessorCount=2", "-Dlogback.configurationFile=/local/logback.xml"]
+		flake:   "github:input-output-hk/mantis-ops?rev=\(#mantisOpsRev)#restic-backup"
+		command: "/bin/restic-backup"
+		args: ["-Dconfig.file=/local/mantis.conf", "-XX:ActiveProcessorCount=2"]
 	}
 
 	template: "secrets/env.txt": {

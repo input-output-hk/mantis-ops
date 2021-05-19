@@ -5,13 +5,13 @@ import (
 	"github.com/input-output-hk/mantis-ops/pkg/jobs/tasks:tasks"
 )
 
-#Mantis: types.#stanza.job & {
-	#mantisRev:     string
+#Backup: types.#stanza.job & {
+	#mantisOpsRev:  string
 	#networkConfig: string
 
 	let ref = {
 		networkConfig: #networkConfig
-		mantisRev:     #mantisRev
+		mantisOpsRev:  #mantisOpsRev
 	}
 
 	namespace: string
@@ -47,9 +47,9 @@ import (
 			#prometheusPort: "metrics"
 		}
 
-		task: mantis: tasks.#Mantis & {
+		task: mantis: tasks.#Backup & {
 			#namespace:     namespace
-			#mantisRev:     ref.mantisRev
+			#mantisOpsRev:  ref.mantisOpsRev
 			#networkConfig: ref.networkConfig
 		}
 
