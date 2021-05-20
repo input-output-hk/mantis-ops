@@ -8,7 +8,6 @@
     terranix.follows = "bitte/terranix";
     utils.follows = "bitte/utils";
     ops-lib.url = "github:input-output-hk/ops-lib/zfs-image?dir=zfs";
-    inclusive.follows = "bitte/inclusive";
     morpho-node.url = "github:input-output-hk/ECIP-Checkpointing";
     mantis.url =
       "github:input-output-hk/mantis?rev=0146d23cb8515841cfae817b33d0023a5fdd37eb";

@@ -10,7 +10,7 @@ let
   bitte = self.inputs.bitte;
 
 in {
-  imports = [ ./iam.nix ./nix.nix ];
+  imports = [ ./iam.nix ./nix.nix ./terraform-storage.nix ];
 
   services.nomad.namespaces = {
     mantis-testnet.description = "Mantis testnet";
@@ -147,6 +147,45 @@ in {
 
         securityGroupRules = {
           inherit (securityGroupRules) internet internal ssh;
+        };
+      };
+
+      storage-0 = {
+        instanceType = "t3a.small";
+        privateIP = "172.16.0.30";
+        subnet = cluster.vpc.subnets.core-1;
+        volumeSize = 40;
+
+        modules = [ (bitte + /profiles/glusterfs/storage.nix) ./secrets.nix ];
+
+        securityGroupRules = {
+          inherit (securityGroupRules) internal internet ssh;
+        };
+      };
+
+      storage-1 = {
+        instanceType = "t3a.small";
+        privateIP = "172.16.1.30";
+        subnet = cluster.vpc.subnets.core-2;
+        volumeSize = 40;
+
+        modules = [ (bitte + /profiles/glusterfs/storage.nix) ./secrets.nix ];
+
+        securityGroupRules = {
+          inherit (securityGroupRules) internal internet ssh;
+        };
+      };
+
+      storage-2 = {
+        instanceType = "t3a.small";
+        privateIP = "172.16.2.20";
+        subnet = cluster.vpc.subnets.core-3;
+        volumeSize = 40;
+
+        modules = [ (bitte + /profiles/glusterfs/storage.nix) ./secrets.nix ];
+
+        securityGroupRules = {
+          inherit (securityGroupRules) internal internet ssh;
         };
       };
 
