@@ -174,12 +174,10 @@ import (
 			#checkPointKeysString: strings.Join(#checkpointKeys, ",")
 		}
 
-		if #network == "etc" {
-			#checkPointKeysString: ""
-		}
-
-		#extraConfig:          string
-		#checkPointKeysString: string
+		#extraConfig:          string | *"""
+			mantis.consensus.mining-enabled = false
+			"""
+		#checkPointKeysString: string | *""
 
 		if #role == "miner" {
 			#extraConfig: """
@@ -192,13 +190,7 @@ import (
 			}
 			"""
 		}
-
 		if #role == "passive" {
-			if #network != "etc" {
-				#extraConfig: """
-					mantis.consensus.mining-enabled = false
-					"""
-			}
 			if #network == "etc" {
 				#extraConfig: """
 					mantis.consensus.mining-enabled = false
