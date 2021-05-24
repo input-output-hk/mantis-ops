@@ -37,7 +37,7 @@ import (
 
 #revisions: {
 	mantisOpsRev: "fff9e7202fb2bc63780c02c6c3c937300f4dc2fe"
-	mantisRev:    "0146d23cb8515841cfae817b33d0023a5fdd37eb"
+	mantisRev:    "b81d1831c9ab41361362b1e8e418c2e4988be643"
 	morphoRev:    "e47b74d5e7a78bf665758927336a28a915b3e596"
 }
 
