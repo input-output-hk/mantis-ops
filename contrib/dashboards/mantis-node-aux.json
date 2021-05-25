@@ -567,7 +567,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "app_sync_block_number_gauge_gauge{namespace=\"$namespace\"}",
+          "expr": "app_sync_block_number_gauge_gauge{namespace=\"$namespace\", client_id!~\"backup.*\"}",
           "interval": "",
           "legendFormat": "{{client_id}}",
           "refId": "A"
@@ -663,7 +663,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "app_sync_block_transactions_gauge_gauge{namespace=\"$namespace\"}",
+          "expr": "app_sync_block_transactions_gauge_gauge{namespace=\"$namespace\", client_id!~\"backup.*\"}",
           "interval": "",
           "legendFormat": "{{client_id}}",
           "refId": "A"
@@ -756,7 +756,7 @@
       "pluginVersion": "7.0.4",
       "targets": [
         {
-          "expr": "avg(app_sync_block_timeBetweenParent_seconds_gauge_gauge{namespace=\"$namespace\"})",
+          "expr": "avg(app_sync_block_timeBetweenParent_seconds_gauge_gauge{namespace=\"$namespace\", client_id!~\"backup.*\"})",
           "interval": "",
           "legendFormat": "",
           "refId": "A"
@@ -816,7 +816,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "app_sync_block_difficulty_gauge_gauge{namespace=\"$namespace\"}",
+          "expr": "app_sync_block_difficulty_gauge_gauge{namespace=\"$namespace\", client_id!~\"backup.*\"}",
           "interval": "",
           "legendFormat": "{{client_id}}",
           "refId": "A"
@@ -912,7 +912,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "app_sync_block_gasLimit_gauge_gauge{namespace=\"$namespace\"}",
+          "expr": "app_sync_block_gasLimit_gauge_gauge{namespace=\"$namespace\", client_id!~\"backup.*\"}",
           "interval": "",
           "legendFormat": "{{client_id}}",
           "refId": "A"
@@ -1008,7 +1008,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "app_sync_block_gasUsed_gauge_gauge{namespace=\"$namespace\"}",
+          "expr": "app_sync_block_gasUsed_gauge_gauge{namespace=\"$namespace\", client_id!~\"backup.*\"}",
           "interval": "",
           "legendFormat": "{{client_id}}",
           "refId": "A"
@@ -1104,7 +1104,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "app_transactions_pool_size_gauge_gauge{namespace=\"$namespace\"}",
+          "expr": "app_transactions_pool_size_gauge_gauge{namespace=\"$namespace\", client_id!~\"backup.*\"}",
           "interval": "",
           "legendFormat": "{{client_id}}",
           "refId": "A"
@@ -1217,7 +1217,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "app_network_discovery_foundPeers_gauge_gauge{namespace=\"$namespace\"}",
+          "expr": "app_network_discovery_foundPeers_gauge_gauge{namespace=\"$namespace\", client_id!~\"backup.*\"}",
           "interval": "",
           "legendFormat": "{{client_id}}",
           "refId": "A"
@@ -1313,7 +1313,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "app_network_peers_blacklisted_gauge_gauge{namespace=\"$namespace\"}",
+          "expr": "app_network_peers_blacklisted_gauge_gauge{namespace=\"$namespace\", client_id!~\"backup.*\"}",
           "interval": "",
           "legendFormat": "{{client_id}}",
           "refId": "A"
@@ -1409,7 +1409,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "app_network_peers_incoming_handshaked_gauge_gauge{namespace=\"$namespace\"}\n",
+          "expr": "app_network_peers_incoming_handshaked_gauge_gauge{namespace=\"$namespace\", client_id=~\"miner.*\"}\n",
           "interval": "",
           "legendFormat": "{{client_id}}",
           "refId": "A"
@@ -1505,7 +1505,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "app_network_peers_outgoing_handshaked_gauge_gauge{namespace=\"$namespace\"}",
+          "expr": "app_network_peers_outgoing_handshaked_gauge_gauge{namespace=\"$namespace\", client_id!~\"backup.*\"}",
           "interval": "",
           "legendFormat": "{{client_id}}",
           "refId": "A"
@@ -1598,7 +1598,7 @@
       "pluginVersion": "7.0.4",
       "targets": [
         {
-          "expr": "sum(app_json_rpc_methods_error_counter_total_counter{namespace=\"$namespace\"})",
+          "expr": "sum(app_json_rpc_methods_error_counter_total_counter{namespace=\"$namespace\", client_id!~\"backup.*\"})",
           "interval": "",
           "legendFormat": "{{client_id}}",
           "refId": "A"
@@ -1655,7 +1655,7 @@
       "pluginVersion": "7.0.4",
       "targets": [
         {
-          "expr": "sum(app_json_rpc_methods_exception_counter_total_counter{namespace=\"$namespace\"})",
+          "expr": "sum(app_json_rpc_methods_exception_counter_total_counter{namespace=\"$namespace\", client_id!~\"backup.*\"})",
           "interval": "",
           "legendFormat": "{{client_id}}",
           "refId": "A"
@@ -1712,7 +1712,7 @@
       "pluginVersion": "7.0.4",
       "targets": [
         {
-          "expr": "sum(app_json_rpc_notfound_calls_counter_total_counter{namespace=\"$namespace\"})",
+          "expr": "sum(app_json_rpc_notfound_calls_counter_total_counter{namespace=\"$namespace\", client_id!~\"backup.*\"})",
           "interval": "",
           "legendFormat": "{{client_id}}",
           "refId": "A"
@@ -1767,7 +1767,7 @@
       "pluginVersion": "7.0.4",
       "targets": [
         {
-          "expr": "avg(app_json_rpc_methods_timer_seconds_max_gauge{namespace=\"$namespace\"})",
+          "expr": "avg(app_json_rpc_methods_timer_seconds_max_gauge{namespace=\"$namespace\", client_id!~\"backup.*\"})",
           "interval": "",
           "legendFormat": "{{client_id}}",
           "refId": "A"
@@ -1940,7 +1940,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "app_network_peers_pending_gauge_gauge{namespace=\"$namespace\"}",
+          "expr": "app_network_peers_pending_gauge_gauge{namespace=\"$namespace\", client_id=~\"miner.*\"}",
           "interval": "",
           "legendFormat": "{{client_id}}",
           "refId": "A"
@@ -2064,7 +2064,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "jvm_memory_pool_bytes_used_gauge{namespace=\"$namespace\"}",
+          "expr": "sum by (client_id) (jvm_memory_pool_bytes_used_gauge{namespace=\"$namespace\", client_id!~\"backup.*\"})",
           "interval": "",
           "legendFormat": "{{client_id}}",
           "refId": "A"
@@ -2174,7 +2174,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "jvm_threads_current_gauge{namespace=\"$namespace\"}",
+          "expr": "jvm_threads_current_gauge{namespace=\"$namespace\", client_id!~\"backup.*\"}",
           "interval": "",
           "legendFormat": "{{client_id}}",
           "refId": "A"
