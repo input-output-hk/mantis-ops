@@ -147,6 +147,19 @@ import (
 				tags:         ["prometheus"] + #baseTags
 			}
 
+			"\(namespace)-\(#role)-${NOMAD_ALLOC_INDEX}": {
+				address_mode: "host"
+				port:         "rpc"
+				tags:         [
+						"rpc",
+						"ingress",
+						"traefik.enable=true",
+						"traefik.http.routers.\(namespace)-\(#role)-${NOMAD_ALLOC_INDEX}.rule=Host(`\(namespace)-\(#role)-${NOMAD_ALLOC_INDEX}.\(#fqdn)`)",
+						"traefik.http.routers.\(namespace)-\(#role)-${NOMAD_ALLOC_INDEX}.entrypoints=https",
+						"traefik.http.routers.\(namespace)-\(#role)-${NOMAD_ALLOC_INDEX}.tls=true",
+				] + #baseTags
+			}
+
 			"\(namespace)-mantis-\(#role)-discovery-${NOMAD_ALLOC_INDEX}": {
 				port: "discovery"
 
