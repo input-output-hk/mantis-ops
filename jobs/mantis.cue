@@ -122,16 +122,12 @@ import (
 				tags:         ["rpc"] + #baseTags
 
 				check: rpc: {
-					// needs https://github.com/hashicorp/nomad/issues/10084
-					// type: "http"
-					// path: "/"
-					// header: "Content-Type": ["application/json"]
-					// body:     json.Marshal({jsonrpc: "2.0", method: "eth_chainId", params: [], id: 1})
 					address_mode: "host"
 					interval:     "10s"
 					port:         "rpc"
 					timeout:      "3s"
-					type:         "tcp"
+					type:         "http"
+					path:         "/healthcheck"
 					check_restart: {
 						limit: 5
 						grace: "10m"
