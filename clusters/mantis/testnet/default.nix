@@ -15,12 +15,8 @@ in {
   services.nomad.namespaces = {
     mantis-testnet.description = "Mantis testnet";
     mantis-mainnet.description = "Mantis mainnet";
-    mantis-iele.description = "Mantis IELE";
-    mantis-qa-load.description = "Mantis QA Load";
-    mantis-qa-fastsync.description = "Mantis QA FastSync";
     mantis-staging.description = "Mantis Staging";
-    mantis-unstable.description = "Mantis Unstable";
-    mantis-paliga.description = "Mantis Paliga";
+    mantis-e2e.description = "Mantis E2E";
   };
 
   services.consul.policies.developer.servicePrefix."mantis-" = {
@@ -48,6 +44,7 @@ in {
       "michael.fellinger"
       "samuel.evans-powell"
       "samuel.leathers"
+      "tim.deherrera"
       "shay.bergmann"
     ];
     developerGithubNames = [ ];
