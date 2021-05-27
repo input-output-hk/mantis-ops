@@ -16,11 +16,7 @@ import (
 		backup:   #backup
 	}
 	"mantis-staging": jobs: {
-		explorer: #explorer
-		faucet:   #faucet
-		miner:    #miner
-		passive:  #passive
-		morpho:   #morpho
+		miner: #miner
 	}
 	"mantis-e2e": jobs: {
 		miner:    #miner & {#count:   2}
