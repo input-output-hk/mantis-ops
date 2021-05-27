@@ -116,8 +116,7 @@ in {
         publicPortMappings = lib.pipe {
           mantis-testnet = 9001;
           mantis-staging = 33000;
-          mantis-unstable = 34000;
-          mantis-paliga = 35000;
+          mantis-e2e = 35000;
         } [
           (lib.mapAttrsToList (namespace: port:
             lib.genList (n: [
