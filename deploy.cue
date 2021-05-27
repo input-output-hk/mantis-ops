@@ -22,7 +22,7 @@ import (
 		passive:  #passive
 		morpho:   #morpho
 	}
-	"mantis-e2e": {
+	"mantis-e2e": jobs: {
 		miner:    #miner & {#count:   2}
 		passive:  #passive & {#count: 2}
 		explorer: #explorer
