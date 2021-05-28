@@ -128,7 +128,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "app_sync_block_number_gauge_gauge{namespace=\"$namespace\"}",
+          "expr": "app_sync_block_number_gauge_gauge{namespace=\"$namespace\", client_id=\"$node\"}",
           "hide": false,
           "interval": "",
           "legendFormat": "{{client_id}}",
@@ -243,7 +243,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "app_sync_block_checkpoint_number_gauge_gauge{namespace=\"$namespace\"}",
+          "expr": "app_sync_block_checkpoint_number_gauge_gauge{namespace=\"$namespace\", client_id=\"$node\"}",
           "interval": "",
           "legendFormat": "{{client_id}}",
           "refId": "A"
@@ -345,7 +345,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "app_transactions_pool_size_gauge_gauge{namespace=\"$namespace\"}",
+          "expr": "app_transactions_pool_size_gauge_gauge{namespace=\"$namespace\", client_id=\"$node\"}",
           "interval": "",
           "legendFormat": "{{client_id}}",
           "refId": "A"
@@ -491,7 +491,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "app_sync_block_timeBetweenParent_seconds_gauge_gauge{namespace=\"$namespace\"}",
+          "expr": "app_sync_block_timeBetweenParent_seconds_gauge_gauge{namespace=\"$namespace\", client_id=\"$node\"}",
           "hide": false,
           "interval": "",
           "legendFormat": "{{client_id}}",
@@ -674,7 +674,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "increase((absent(app_sync_block_number_gauge_gauge{namespace=\"$namespace\"}) default 0)[1h]) default 0",
+          "expr": "increase((absent(app_sync_block_number_gauge_gauge{namespace=\"$namespace\", client_id=\"$node\"}) default 0)[1h]) default 0",
           "hide": false,
           "interval": "",
           "legendFormat": "{{client_id}}",
@@ -1105,7 +1105,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "app_sync_block_uncles_gauge_gauge{namespace=\"$namespace\"}",
+          "expr": "app_sync_block_uncles_gauge_gauge{namespace=\"$namespace\", client_id=\"$node\"}",
           "interval": "",
           "legendFormat": "{{client_id}}",
           "refId": "A"
@@ -1203,7 +1203,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "app_sync_block_transactions_gauge_gauge{namespace=\"$namespace\"}",
+          "expr": "app_sync_block_transactions_gauge_gauge{namespace=\"$namespace\", client_id=\"$node\"}",
           "interval": "",
           "legendFormat": "{{client_id}}",
           "refId": "A"
@@ -1301,7 +1301,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "app_sync_block_gasUsed_gauge_gauge{namespace=\"$namespace\"}",
+          "expr": "app_sync_block_gasUsed_gauge_gauge{namespace=\"$namespace\", client_id=\"$node\"}",
           "interval": "",
           "legendFormat": "{{client_id}}",
           "refId": "A"
@@ -1403,7 +1403,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "app_sync_block_difficulty_gauge_gauge{namespace=\"$namespace\"}",
+          "expr": "app_sync_block_difficulty_gauge_gauge{namespace=\"$namespace\", client_id=\"$node\"}",
           "interval": "",
           "legendFormat": "{{client_id}}",
           "refId": "A"
@@ -1503,7 +1503,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "app_sync_block_gasLimit_gauge_gauge{namespace=\"$namespace\"}",
+          "expr": "app_sync_block_gasLimit_gauge_gauge{namespace=\"$namespace\", client_id=\"$node\"}",
           "interval": "",
           "legendFormat": "{{client_id}}",
           "refId": "A"
@@ -2155,7 +2155,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "app_network_discovery_foundPeers_gauge_gauge{namespace=\"$namespace\"}",
+          "expr": "app_network_discovery_foundPeers_gauge_gauge{namespace=\"$namespace\", client_id=\"$node\"}",
           "interval": "",
           "legendFormat": "{{client_id}}",
           "refId": "A"
@@ -2254,7 +2254,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "app_network_peers_pending_gauge_gauge{namespace=\"$namespace\"}",
+          "expr": "app_network_peers_pending_gauge_gauge{namespace=\"$namespace\", client_id=\"$node\"}",
           "interval": "",
           "legendFormat": "{{client_id}}",
           "refId": "A"
@@ -2350,7 +2350,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "app_network_peers_incoming_handshaked_gauge_gauge{namespace=\"$namespace\"}",
+          "expr": "app_network_peers_incoming_handshaked_gauge_gauge{namespace=\"$namespace\", client_id=\"$node\"}",
           "interval": "",
           "legendFormat": "{{client_id}}",
           "refId": "A"
@@ -2545,7 +2545,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "app_network_peers_blacklisted_gauge_gauge{namespace=\"$namespace\"}",
+          "expr": "app_network_peers_blacklisted_gauge_gauge{namespace=\"$namespace\", client_id=\"$node\"}",
           "interval": "",
           "legendFormat": "{{client_id}}",
           "refId": "A"
@@ -2641,7 +2641,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "app_network_peers_outgoing_handshaked_gauge_gauge{namespace=\"$namespace\"}",
+          "expr": "app_network_peers_outgoing_handshaked_gauge_gauge{namespace=\"$namespace\", client_id=\"$node\"}",
           "interval": "",
           "legendFormat": "{{client_id}}",
           "refId": "A"
@@ -2839,7 +2839,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "increase(app_network_messages_sent_counter_total_counter{namespace=\"$namespace\"}[$__range])",
+          "expr": "increase(app_network_messages_sent_counter_total_counter{namespace=\"$namespace\", client_id=\"$node\"}[$__range])",
           "interval": "",
           "legendFormat": "{{client_id}}",
           "refId": "A"
@@ -2942,7 +2942,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "increase(app_network_messages_received_counter_total_counter{namespace=\"$namespace\"}[$__range])",
+          "expr": "increase(app_network_messages_received_counter_total_counter{namespace=\"$namespace\", client_id=\"$node\"}[$__range])",
           "interval": "",
           "legendFormat": "{{client_id}}",
           "refId": "A"
@@ -4124,7 +4124,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "increase(logback_appender_total_counter{client_id=\"$node\"}[1m])",
+          "expr": "sum by (level) (increase(logback_appender_total_counter{client_id=\"$node\"}[1m]))",
           "interval": "",
           "legendFormat": "{{level}}",
           "refId": "A"
@@ -4526,7 +4526,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "jvm_memory_pool_bytes_used_gauge{client_id=~\"$node\"}",
+          "expr": "jvm_memory_pool_bytes_used_gauge{namespace=\"$namespace\", client_id=~\"$node\"}",
           "interval": "",
           "legendFormat": "{{pool}}",
           "refId": "A"
@@ -4632,7 +4632,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "jvm_threads_state_gauge{client_id=\"$node\"}",
+          "expr": "jvm_threads_state_gauge{namespace=\"$namespace\", client_id=\"$node\"}",
           "interval": "",
           "legendFormat": "{{state}}",
           "refId": "A"
@@ -4729,13 +4729,13 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "jvm_threads_current_gauge{client_id=\"$node\"}",
+          "expr": "jvm_threads_current_gauge{namespace=\"$namespace\", client_id=\"$node\"}",
           "interval": "",
           "legendFormat": "current",
           "refId": "A"
         },
         {
-          "expr": "jvm_threads_daemon_gauge{client_id=\"$node\"}",
+          "expr": "jvm_threads_daemon_gauge{namespace=\"$namespace\", client_id=\"$node\"}",
           "interval": "",
           "legendFormat": "daemon",
           "refId": "B"
@@ -4832,7 +4832,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "jvm_memory_bytes_used_gauge{client_id=\"$node\"}",
+          "expr": "jvm_memory_bytes_used_gauge{namespace=\"$namespace\", client_id=\"$node\"}",
           "interval": "",
           "legendFormat": "{{area}} memory",
           "refId": "A"
@@ -4929,7 +4929,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "jvm_classes_loaded_gauge{client_id=~\"$node\"}",
+          "expr": "jvm_classes_loaded_gauge{namespace=\"$namespace\", client_id=~\"$node\"}",
           "interval": "",
           "legendFormat": "loaded",
           "refId": "A"
@@ -5027,7 +5027,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "jvm_gc_collection_seconds_count{client_id=\"$node\"}",
+          "expr": "jvm_gc_collection_seconds_count{namespace=\"$namespace\", client_id=\"$node\"}",
           "interval": "",
           "legendFormat": "{{gc}}",
           "refId": "A"
@@ -5124,7 +5124,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "rate(jvm_gc_collection_seconds_sum{client_id=\"$node\"}[1m])",
+          "expr": "rate(jvm_gc_collection_seconds_sum{namespace=\"$namespace\", client_id=\"$node\"}[1m])",
           "interval": "",
           "legendFormat": "{{gc}}",
           "refId": "A"
@@ -5234,13 +5234,13 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "process_open_fds_gauge{client_id=\"$node\"}",
+          "expr": "process_open_fds_gauge{namespace=\"$namespace\", client_id=\"$node\"}",
           "interval": "",
           "legendFormat": "open",
           "refId": "A"
         },
         {
-          "expr": "process_max_fds_gauge{client_id=\"$node\"}",
+          "expr": "process_max_fds_gauge{namespace=\"$namespace\", client_id=\"$node\"}",
           "interval": "",
           "legendFormat": "max",
           "refId": "B"
@@ -5320,7 +5320,7 @@
         "options": [],
         "query": "label_values(client_id)",
         "refresh": 2,
-        "regex": "",
+        "regex": "/miner.*|passive.*/",
         "skipUrlSync": false,
         "sort": 0,
         "tagValuesQuery": "",
