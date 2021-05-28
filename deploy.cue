@@ -19,8 +19,8 @@ import (
 		miner: #miner
 	}
 	"mantis-e2e": jobs: {
-		miner:    #miner & {#count:   2}
-		passive:  #passive & {#count: 2}
+		miner:    #miner & {#count:   5}
+		passive:  #passive & {#count: 5}
 		explorer: #explorer
 		faucet:   #faucet
 	}
@@ -52,11 +52,11 @@ bootstrapNodes: {
 		"enode://af97643f364b805d5b0e32b5356578a16afcc4fb9d1b6622998e9441eeb7795e8daf8e6b0ff3330da9879034112be56954f9269164513ece0f7394b805be3633@mantis-testnet-4.mantis.ws:9005?discport=9505",
 	]
 	"mantis-e2e": [
-		"enode://c6ea9b9a96cdd6ab6b8b98bb1dc6db163d1d2006629c5cb2b6e9cb64e44b398741bfe4787963e75d6a01618af1f92330882a873d3c9198de04ba028b5abe4485@mantis-e2e-0.mantis.ws:35000?discport=355000",
-		"enode://c93b354a4d0782cc61f3e55132540ad8f83678ca1cd1d5fdc301eda60a770e793149e3166ba95065f0ae8cda054988a34906b3c906d4c713c373c001b90e40c1@mantis-e2e-1.mantis.ws:35001?discport=355001",
-		"enode://763eba5440b57f008316801cb4e5cc6428c3073ebc72563432b8210e0fb378fc84ae0f639d31f60b01c19e989a2103453eaee449fd469a511d8ed98e97f653d6@mantis-e2e-2.mantis.ws:35002?discport=355002",
-		"enode://8536966bc1e115d0628b7d582e4bc6b538b043135eb5297e6fe2eff2ea27ac4d31b23d0f7dfcc44cef4fef0a820c56d3cb3bd61a6267416c6541cbc78bcf88ac@mantis-e2e-3.mantis.ws:35003?discport=355003",
-		"enode://0088ef3a87c1883699fdd6cc36391338b3f162695b94112ffd2c71e1f2c63570dbb2f17a0e0c63d3123c56835af7b48dc2e5a22fc71396c53d59eb7772495a10@mantis-e2e-4.mantis.ws:35004?discport=355004",
+		"enode://c6ea9b9a96cdd6ab6b8b98bb1dc6db163d1d2006629c5cb2b6e9cb64e44b398741bfe4787963e75d6a01618af1f92330882a873d3c9198de04ba028b5abe4485@mantis-e2e-0.mantis.ws:35000?discport=35500",
+		"enode://c93b354a4d0782cc61f3e55132540ad8f83678ca1cd1d5fdc301eda60a770e793149e3166ba95065f0ae8cda054988a34906b3c906d4c713c373c001b90e40c1@mantis-e2e-1.mantis.ws:35001?discport=35501",
+		"enode://763eba5440b57f008316801cb4e5cc6428c3073ebc72563432b8210e0fb378fc84ae0f639d31f60b01c19e989a2103453eaee449fd469a511d8ed98e97f653d6@mantis-e2e-2.mantis.ws:35002?discport=35502",
+		"enode://8536966bc1e115d0628b7d582e4bc6b538b043135eb5297e6fe2eff2ea27ac4d31b23d0f7dfcc44cef4fef0a820c56d3cb3bd61a6267416c6541cbc78bcf88ac@mantis-e2e-3.mantis.ws:35003?discport=35503",
+		"enode://0088ef3a87c1883699fdd6cc36391338b3f162695b94112ffd2c71e1f2c63570dbb2f17a0e0c63d3123c56835af7b48dc2e5a22fc71396c53d59eb7772495a10@mantis-e2e-4.mantis.ws:35004?discport=35504",
 	]
 	"mantis-staging": [
 		"enode://39b925ba0beffdb80859a0ab34895c98bb61bd20d686ccd27f8c5a04dddc82b712081fd11bfd43f3bc08b00423a5ff8fee70b8a22dcc95e85537b2084dc6816a@mantis-staging-0.mantis.ws:33000?discport=33500",
