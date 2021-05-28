@@ -1844,9 +1844,9 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "",
+          "expr": "sum by (level) (increase(logback_appender_total_counter{namespace=\"$namespace\"}[1m]))",
           "interval": "",
-          "legendFormat": "",
+          "legendFormat": "{{level}}",
           "refId": "A"
         }
       ],
