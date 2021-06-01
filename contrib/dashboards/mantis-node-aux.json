@@ -2262,6 +2262,11 @@
           },
           {
             "selected": false,
+            "text": "mantis-e2e",
+            "value": "mantis-e2e"
+          },
+          {
+            "selected": false,
             "text": "root",
             "value": "root"
           }
