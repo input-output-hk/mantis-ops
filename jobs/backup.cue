@@ -41,12 +41,6 @@ import (
 			sticky:  true
 		}
 
-		task: telegraf: tasks.#Telegraf & {
-			#namespace:      namespace
-			#name:           "backup-${NOMAD_ALLOC_INDEX}"
-			#prometheusPort: "metrics"
-		}
-
 		task: mantis: tasks.#Backup & {
 			#namespace:     namespace
 			#mantisOpsRev:  ref.mantisOpsRev
