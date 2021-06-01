@@ -498,7 +498,7 @@
           "refId": "A"
         },
         {
-          "expr": "app_sync_block_timeBetweenParent_seconds_gauge_gauge{namespace=\"mantis-testnet\"}",
+          "expr": "app_sync_block_timeBetweenParent_seconds_gauge_gauge{namespace=~\"mantis-(test|main)net\"}",
           "hide": true,
           "interval": "",
           "legendFormat": "{{client_id}}",
