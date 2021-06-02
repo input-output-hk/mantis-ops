@@ -14,15 +14,16 @@
         "utils": "utils_2"
       },
       "locked": {
-        "lastModified": 1622069935,
-        "narHash": "sha256-Jw0QG8qJUeJTQyEiXZriRKsZTbPq4v05puedx7tuJoA=",
+        "lastModified": 1622673632,
+        "narHash": "sha256-R235O9HAjzHAS2v11EOw2gAk+6Jkb33SX88Wg3nAyLU=",
         "owner": "input-output-hk",
         "repo": "bitte",
-        "rev": "6889ce40bdb594f716f237baf70d781772b2023c",
+        "rev": "7fedcc30299071e0092b90c7b648b673e72f0ca6",
         "type": "github"
       },
       "original": {
         "owner": "input-output-hk",
+        "ref": "nomad-1.1.0",
         "repo": "bitte",
         "type": "github"
       }
@@ -432,16 +433,16 @@
     "nomad-source": {
       "flake": false,
       "locked": {
-        "lastModified": 1619804772,
-        "narHash": "sha256-Zm4IPjcSCCTquQD04veJVS+YsZWAqddFk4xd2l9GjD4=",
-        "owner": "manveru",
+        "lastModified": 1622657457,
+        "narHash": "sha256-gOs4hN4DaEoB9P1PBGguRVbloOZaY034tvcpsVcL9mo=",
+        "owner": "input-output-hk",
         "repo": "nomad",
-        "rev": "06cf845a5c71147f76be3b2b39c61c1b4f6b0dea",
+        "rev": "ee73dd5b5a3641618cad70b99a64d110e627e505",
         "type": "github"
       },
       "original": {
-        "owner": "manveru",
-        "ref": "release-1.0.4",
+        "owner": "input-output-hk",
+        "ref": "release-1.1.0",
         "repo": "nomad",
         "type": "github"
       }
@@ -449,11 +450,11 @@
     "ops-lib": {
       "flake": false,
       "locked": {
-        "lastModified": 1617820161,
-        "narHash": "sha256-DwWzvhbBaXKJVZn41CmkO1mk8hdQ8qAdtYHnTDnmKM4=",
+        "lastModified": 1622246496,
+        "narHash": "sha256-2E/+IFBDSyHhe7mJ8lXf/lPdL5iLYeDiQ/mT60ro5o4=",
         "owner": "input-output-hk",
         "repo": "ops-lib",
-        "rev": "c5fe77aa5d534e7e261b0836c6041245de327af7",
+        "rev": "31d5bf9f5a21110fd4df2056177c3f52d8a62bb4",
         "type": "github"
       },
       "original": {
