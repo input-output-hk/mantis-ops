@@ -29,7 +29,7 @@ import (
 			#network:       "etc"
 			#networkConfig: ""
 			#count:         1
-			#fastSync:      true
+			#fastSync:      false
 			#loggers:       #defaultLoggers & {
 				"io.iohk.ethereum.blockchain.sync.fast.FastSync": "DEBUG"
 			}
