@@ -44,7 +44,6 @@ in {
       "michael.fellinger"
       "samuel.evans-powell"
       "samuel.leathers"
-      "tim.deherrera"
       "shay.bergmann"
     ];
     developerGithubNames = [ ];
