@@ -909,7 +909,7 @@
           {
             "evaluator": {
               "params": [
-                0
+                2
               ],
               "type": "gt"
             },
@@ -919,7 +919,7 @@
             "query": {
               "params": [
                 "B",
-                "5m",
+                "1h",
                 "now"
               ]
             },
