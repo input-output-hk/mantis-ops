@@ -14,16 +14,15 @@
         "utils": "utils_2"
       },
       "locked": {
-        "lastModified": 1622673632,
-        "narHash": "sha256-R235O9HAjzHAS2v11EOw2gAk+6Jkb33SX88Wg3nAyLU=",
+        "lastModified": 1623081110,
+        "narHash": "sha256-sLY+N3aAXbZtnwPih3DkisDFncERh3RAyBARGfqBO8Q=",
         "owner": "input-output-hk",
         "repo": "bitte",
-        "rev": "7fedcc30299071e0092b90c7b648b673e72f0ca6",
+        "rev": "3d00ed162dbc760ee3f73c79ea4da5835c5ded00",
         "type": "github"
       },
       "original": {
         "owner": "input-output-hk",
-        "ref": "nomad-1.1.0",
         "repo": "bitte",
         "type": "github"
       }
