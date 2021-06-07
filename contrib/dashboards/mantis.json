@@ -782,7 +782,7 @@
         "handler": 1,
         "message": "mantis-testnet: Mantis testnet cluster has failed to complete an hourly backup.",
         "name": "[Mantis] Completed Backup Jobs alert",
-        "noDataState": "alerting",
+        "noDataState": "ok",
         "notifications": []
       },
       "aliasColors": {},
@@ -909,7 +909,7 @@
           {
             "evaluator": {
               "params": [
-                2
+                2.1
               ],
               "type": "gt"
             },
@@ -919,7 +919,7 @@
             "query": {
               "params": [
                 "B",
-                "1h",
+                "30m",
                 "now"
               ]
             },
@@ -936,7 +936,7 @@
         "handler": 1,
         "message": "mantis-testnet: Mantis testnet cluster has failed an hourly backup job.",
         "name": "[Mantis] Failed Backup Jobs alert",
-        "noDataState": "alerting",
+        "noDataState": "ok",
         "notifications": []
       },
       "aliasColors": {},
