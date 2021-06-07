@@ -12,6 +12,8 @@ import (
 	#mantisRev: string
 	#fqdn:      string
 	#loggers: {[string]: string}
+	#minerCpu:      int
+	#minerMem:      int
 	#network:       *"testnet-internal-nomad" | "etc"
 	#networkConfig: string
 	#fastSync:      bool
@@ -22,6 +24,8 @@ import (
 		role:          #role
 		logLevel:      #logLevel
 		loggers:       #loggers
+		minerCpu:      #minerCpu
+		minerMem:      #minerMem
 		network:       #network
 		fastSync:      #fastSync
 	}
@@ -91,6 +95,8 @@ import (
 			#role:          ref.role
 			#logLevel:      ref.logLevel
 			#networkConfig: ref.networkConfig
+			#minerCpu:      ref.minerCpu
+			#minerMem:      ref.minerMem
 			#loggers:       ref.loggers
 			#network:       ref.network
 			#fastSync:      ref.fastSync
@@ -143,16 +149,16 @@ import (
 				tags:         ["prometheus"] + #baseTags
 			}
 
-			"\(namespace)-\(#role)-${NOMAD_ALLOC_INDEX}": {
+			"\(namespace)-${NOMAD_JOB_NAME}-${NOMAD_ALLOC_INDEX}": {
 				address_mode: "host"
 				port:         "rpc"
 				tags:         [
 						"rpc",
 						"ingress",
 						"traefik.enable=true",
-						"traefik.http.routers.\(namespace)-\(#role)-${NOMAD_ALLOC_INDEX}.rule=Host(`\(namespace)-\(#role)-${NOMAD_ALLOC_INDEX}.\(#fqdn)`)",
-						"traefik.http.routers.\(namespace)-\(#role)-${NOMAD_ALLOC_INDEX}.entrypoints=https",
-						"traefik.http.routers.\(namespace)-\(#role)-${NOMAD_ALLOC_INDEX}.tls=true",
+						"traefik.http.routers.\(namespace)-${NOMAD_JOB_NAME}-${NOMAD_ALLOC_INDEX}.rule=Host(`\(namespace)-\(#role)-${NOMAD_ALLOC_INDEX}.\(#fqdn)`)",
+						"traefik.http.routers.\(namespace)-${NOMAD_JOB_NAME}-${NOMAD_ALLOC_INDEX}.entrypoints=https",
+						"traefik.http.routers.\(namespace)-${NOMAD_JOB_NAME}-${NOMAD_ALLOC_INDEX}.tls=true",
 				] + #baseTags
 			}
 

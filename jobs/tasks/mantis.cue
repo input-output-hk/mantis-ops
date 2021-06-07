@@ -13,6 +13,8 @@ import (
 	#mantisRev:           string
 	#network:             string
 	#networkConfig:       string
+	#minerCpu:            >=1000 | *7500
+	#minerMem:            >=1024 | *(6 * 1024)
 	#amountOfMorphoNodes: 5
 	#loggers: {}
 	#fastSync: true | *false
@@ -26,8 +28,8 @@ import (
 
 	if #role == "miner" {
 		resources: {
-			cpu:    7500
-			memory: 6 * 1024
+			cpu:    #minerCpu
+			memory: #minerMem
 		}
 	}
 

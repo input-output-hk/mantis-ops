@@ -19,7 +19,12 @@ import (
 		miner: #miner
 	}
 	"mantis-e2e": jobs: {
-		miner:    #miner & {#count:   5}
+		superior: #miner & {#count: 2}
+		inferior: #miner & {
+			#count:    3
+			#minerCpu: 1500
+			#minerMem: 2 * 1024
+		}
 		passive:  #passive & {#count: 5}
 		explorer: #explorer
 		faucet:   #faucet
