@@ -11,7 +11,6 @@
     terranix.follows = "bitte/terranix";
     utils.follows = "bitte/utils";
     ops-lib.url = "github:input-output-hk/ops-lib/zfs-image?dir=zfs";
-    inclusive.follows = "bitte/inclusive";
     morpho-node.url = "github:input-output-hk/ECIP-Checkpointing/master";
     mantis-explorer.url = "github:input-output-hk/mantis-explorer";
     mantis-faucet-web.url = "github:input-output-hk/mantis-faucet-web";
