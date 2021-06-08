@@ -36,6 +36,7 @@ import (
 		env: true
 		data: """
 			RPC_NODE="http://{{ env "NOMAD_ADDR_rpc" }}"
+			SLACK_URL="{{with secret "kv/nomad-cluster/mainnet/slack"}}{{.Data.data.url}}{{end}}"
 			"""
 	}
 }

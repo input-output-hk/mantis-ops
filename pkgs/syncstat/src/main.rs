@@ -1,11 +1,11 @@
-use anyhow::{Context, Result};
+use anyhow::{anyhow, Context, Result};
 use percentage::Percentage;
 use restson::RestClient;
-use stat::{RPCData, RPCRender, RPCResult};
+use stat::{RPCData, RPCRender, RPCResult, SlackSend};
 use std::env;
 use std::sync::mpsc;
 use std::thread;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 mod stat;
 
@@ -14,6 +14,8 @@ extern crate log;
 
 fn main() -> Result<()> {
     pretty_env_logger::init();
+
+    let start_time = Instant::now();
 
     let (tx, rx) = mpsc::channel();
 
@@ -25,6 +27,7 @@ fn main() -> Result<()> {
         })?,
         None => 12,
     };
+
     let timer = thread::spawn(move || {
         stat::timeout(hours);
         tx.send(()).unwrap();
@@ -34,6 +37,11 @@ fn main() -> Result<()> {
     debug!("RPC_NODE is {}", mantis_rpc_addr);
 
     let mut client = RestClient::new(&mantis_rpc_addr)?;
+
+    let slack_url = env::var("SLACK_URL")?;
+    debug!("RPC_NODE is {}", mantis_rpc_addr);
+
+    let mut slack_client = RestClient::new(&slack_url)?;
 
     let data: RPCData = RPCData {
         jsonrpc: String::from("2.0"),
@@ -57,6 +65,8 @@ fn main() -> Result<()> {
             RPCResult::Failure(_) => (0, 0),
         };
 
+        info!("{}", stat::format_time(start_time.elapsed().as_secs()));
+
         let delta = ratio.apply_to(highest_block);
 
         if (highest_block, current_block) == (0, 0)
@@ -66,14 +76,36 @@ fn main() -> Result<()> {
             if rx.try_recv().is_err() {
                 continue;
             } else {
-                break;
+                let message = format!(
+                    "Timed out after {} hours, before sync completed.",
+                    hours
+                );
+
+                let data: SlackSend = SlackSend {
+                    text: format!("Mainnet node: {}", message).to_owned(),
+                };
+
+                slack_client.post((), &data)?;
+
+                let err: Result<()> = Err(anyhow!(message));
+                return err;
             };
         }
-
         break;
     }
 
-    info!("sync is complete");
+    let message = format!(
+        "Sync completed.\n{}",
+        stat::format_time(start_time.elapsed().as_secs())
+    );
+
+    let data: SlackSend = SlackSend {
+        text: format!("Mainnet node: {}", message).to_owned(),
+    };
+
+    slack_client.post((), &data)?;
+
+    info!("{}", message);
 
     timer.join().ok();
 

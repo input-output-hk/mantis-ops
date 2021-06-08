@@ -31,6 +31,11 @@ pub struct ResultSuccess {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+pub struct SlackSend {
+    pub text: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum RPCResult {
     Success(ResultSuccess),
@@ -57,7 +62,22 @@ impl RestPath<()> for RPCData {
     }
 }
 
+impl RestPath<()> for SlackSend {
+    fn get_path(_: ()) -> Result<String, restson::Error> {
+        Ok("".to_string())
+    }
+}
+
 pub fn timeout(hours: u64) {
     info!("Mantis node will run for {} hours.", hours);
     thread::sleep(Duration::new(hours * 60 * 60, 0));
+}
+
+pub fn format_time(secs: u64) -> String {
+    format!(
+        "time elapsed: {}:{}:{}",
+        secs / 60 / 60,
+        (secs / 60) % 60,
+        secs % 60
+    )
 }
