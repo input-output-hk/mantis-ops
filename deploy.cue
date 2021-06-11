@@ -29,10 +29,12 @@ import (
 			#network:       "etc"
 			#networkConfig: ""
 			#count:         1
-			#fastSync:      false
 			#loggers:       #defaultLoggers & {
 				"io.iohk.ethereum.blockchain.sync.fast.FastSync": "DEBUG"
 			}
+		}
+		"passive-fast": jobs.passive & {
+			#fastSync: true
 		}
 	}
 }

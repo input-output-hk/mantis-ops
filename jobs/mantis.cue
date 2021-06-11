@@ -14,7 +14,7 @@ import (
 	#loggers: {[string]: string}
 	#network:       *"testnet-internal-nomad" | "etc"
 	#networkConfig: string
-	#fastSync:      bool
+	#fastSync:      bool | *false
 
 	let ref = {
 		networkConfig: #networkConfig
