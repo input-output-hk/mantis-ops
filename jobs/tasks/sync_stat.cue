@@ -29,7 +29,7 @@ import (
 	leader: true
 
 	env: {
-		RUST_LOG: "INFO"
+		RUST_LOG: "DEBUG"
 	}
 
 	template: "env.txt": {

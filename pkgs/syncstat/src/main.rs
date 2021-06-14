@@ -85,7 +85,11 @@ fn main() -> Result<()> {
                     text: format!("Mainnet node: {}", message).to_owned(),
                 };
 
-                slack_client.post((), &data)?;
+                slack_client.post((), &data).unwrap_or_else(|err| {
+                    error!("Failed to send message to slack: {}", err)
+                });
+
+                info!("{}", message);
 
                 let err: Result<()> = Err(anyhow!(message));
                 return err;
@@ -103,7 +107,9 @@ fn main() -> Result<()> {
         text: format!("Mainnet node: {}", message).to_owned(),
     };
 
-    slack_client.post((), &data)?;
+    slack_client.post((), &data).unwrap_or_else(|err| {
+        error!("Failed to send message to slack: {}", err)
+    });
 
     info!("{}", message);
 
