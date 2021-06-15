@@ -70,7 +70,7 @@ impl RestPath<()> for SlackSend {
 
 pub fn timeout(hours: u64) {
     info!("Mantis node will run for {} hours.", hours);
-    thread::sleep(Duration::new(hours * 60 * 60, 0));
+    thread::sleep(Duration::new(hours, 0));
 }
 
 pub fn format_time(secs: u64) -> String {

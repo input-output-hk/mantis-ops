@@ -72,7 +72,7 @@ fn main() -> Result<()> {
         if (highest_block, current_block) == (0, 0)
             || current_block < highest_block - delta
         {
-            thread::sleep(Duration::new(300, 0));
+            thread::sleep(Duration::new(3, 0));
             if rx.try_recv().is_err() {
                 continue;
             } else {
@@ -82,7 +82,8 @@ fn main() -> Result<()> {
                 );
 
                 let data: SlackSend = SlackSend {
-                    text: format!("Mainnet node: {}", message).to_owned(),
+                    text: format!("TEST_MESSAGE: Mainnet node: {}", message)
+                        .to_owned(),
                 };
 
                 slack_client.post((), &data).unwrap_or_else(|err| {
@@ -104,7 +105,7 @@ fn main() -> Result<()> {
     );
 
     let data: SlackSend = SlackSend {
-        text: format!("Mainnet node: {}", message).to_owned(),
+        text: format!("TEST_MESSAGE: Mainnet node: {}", message).to_owned(),
     };
 
     slack_client.post((), &data).unwrap_or_else(|err| {
