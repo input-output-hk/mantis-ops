@@ -14,7 +14,7 @@ import (
 
 	restart: {
 		interval: "1m"
-		attempts: 0
+		attempts: 1
 		delay:    "1m"
 		mode:     "fail"
 	}
