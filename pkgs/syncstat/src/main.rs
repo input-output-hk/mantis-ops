@@ -1,7 +1,7 @@
 use anyhow::{anyhow, Context, Result};
 use percentage::Percentage;
 use restson::RestClient;
-use stat::{RPCData, RPCRender, RPCResult, SlackSend};
+use stat::{RPCData, RPCRender, RPCResult};
 use std::env;
 use std::sync::mpsc;
 use std::thread;
@@ -38,10 +38,15 @@ fn main() -> Result<()> {
 
     let mut client = RestClient::new(&mantis_rpc_addr)?;
 
-    let slack_url = env::var("SLACK_URL")?;
-    debug!("RPC_NODE is {}", mantis_rpc_addr);
+    let slack_path = env::var("SLACK_PATH")?;
 
-    let mut slack_client = RestClient::new(&slack_url)?;
+    let job = env::var("NOMAD_JOB_NAME")?;
+
+    stat::post_slack(
+        &job,
+        &slack_path,
+        &format!("Starting a sync that will timeout in {} hours", hours),
+    );
 
     let data: RPCData = RPCData {
         jsonrpc: String::from("2.0"),
@@ -81,13 +86,7 @@ fn main() -> Result<()> {
                     hours
                 );
 
-                let data: SlackSend = SlackSend {
-                    text: format!("Mainnet node: {}", message).to_owned(),
-                };
-
-                slack_client.post((), &data).unwrap_or_else(|err| {
-                    error!("Failed to send message to slack: {}", err)
-                });
+                stat::post_slack(&job, &slack_path, &message);
 
                 info!("{}", message);
 
@@ -103,13 +102,7 @@ fn main() -> Result<()> {
         stat::format_time(start_time.elapsed().as_secs())
     );
 
-    let data: SlackSend = SlackSend {
-        text: format!("Mainnet node: {}", message).to_owned(),
-    };
-
-    slack_client.post((), &data).unwrap_or_else(|err| {
-        error!("Failed to send message to slack: {}", err)
-    });
+    stat::post_slack(&job, &slack_path, &message);
 
     info!("{}", message);
 

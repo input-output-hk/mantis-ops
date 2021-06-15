@@ -1,3 +1,4 @@
+use restson::RestClient;
 use restson::RestPath;
 use serde::{Deserialize, Serialize};
 use serde_hex::{CompactPfx, SerHex};
@@ -58,13 +59,13 @@ pub struct RPCData {
 
 impl RestPath<()> for RPCData {
     fn get_path(_: ()) -> Result<String, restson::Error> {
-        Ok("".to_string())
+        Ok("".to_owned())
     }
 }
 
-impl RestPath<()> for SlackSend {
-    fn get_path(_: ()) -> Result<String, restson::Error> {
-        Ok("".to_string())
+impl RestPath<&String> for SlackSend {
+    fn get_path(path: &String) -> Result<String, restson::Error> {
+        Ok(format!("/services/{}", path))
     }
 }
 
@@ -80,4 +81,16 @@ pub fn format_time(secs: u64) -> String {
         (secs / 60) % 60,
         secs % 60
     )
+}
+
+pub fn post_slack(job: &String, path: &String, message: &String) -> () {
+    let mut client = RestClient::new("https://hooks.slack.com").unwrap();
+
+    let data: SlackSend = SlackSend {
+        text: format!("Mainnet job {}: {}", job, message),
+    };
+
+    client.post(path, &data).unwrap_or_else(|err| {
+        error!("Failed to send message to slack: {}", err)
+    });
 }
