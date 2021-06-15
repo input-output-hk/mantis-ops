@@ -1,7 +1,8 @@
-use restson::RestClient;
+use anyhow::Result;
 use restson::RestPath;
 use serde::{Deserialize, Serialize};
 use serde_hex::{CompactPfx, SerHex};
+use slack_hook2::{PayloadBuilder, Slack};
 use std::thread;
 use std::time::Duration;
 
@@ -83,14 +84,18 @@ pub fn format_time(secs: u64) -> String {
     )
 }
 
-pub fn post_slack(job: &String, path: &String, message: &String) -> () {
-    let mut client = RestClient::new("https://hooks.slack.com").unwrap();
-
-    let data: SlackSend = SlackSend {
-        text: format!("Mainnet job {}: {}", job, message),
-    };
-
-    client.post(path, &data).unwrap_or_else(|err| {
-        error!("Failed to send message to slack: {}", err)
-    });
+pub async fn post_slack(
+    job: &String,
+    path: &String,
+    message: &String,
+) -> Result<()> {
+    let slack = Slack::new(
+        format!("https://hooks.slack.com/services/{}", path).as_str(),
+    )?;
+    let payload = PayloadBuilder::new()
+        .text(format!("Mainnet job {}: {}", job, message))
+        .icon_emoji(":mantis:")
+        .build()?;
+    slack.send(&payload).await?;
+    Ok(())
 }

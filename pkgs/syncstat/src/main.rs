@@ -12,7 +12,8 @@ mod stat;
 #[macro_use]
 extern crate log;
 
-fn main() -> Result<()> {
+#[tokio::main]
+async fn main() -> Result<()> {
     pretty_env_logger::init();
 
     let start_time = Instant::now();
@@ -46,7 +47,8 @@ fn main() -> Result<()> {
         &job,
         &slack_path,
         &format!("Starting a sync that will timeout in {} hours", hours),
-    );
+    )
+    .await?;
 
     let data: RPCData = RPCData {
         jsonrpc: String::from("2.0"),
@@ -86,7 +88,7 @@ fn main() -> Result<()> {
                     hours
                 );
 
-                stat::post_slack(&job, &slack_path, &message);
+                stat::post_slack(&job, &slack_path, &message).await?;
 
                 info!("{}", message);
 
@@ -102,7 +104,7 @@ fn main() -> Result<()> {
         stat::format_time(start_time.elapsed().as_secs())
     );
 
-    stat::post_slack(&job, &slack_path, &message);
+    stat::post_slack(&job, &slack_path, &message).await?;
 
     info!("{}", message);
 
