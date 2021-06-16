@@ -20,7 +20,7 @@ import (
 	}
 
 	config: {
-		flake:   "github:input-output-hk/mantis-ops?dir=pkgs/syncstat&rev=1aa954ebeceb95852b8b594f9b4ac3ff95e3de7a#syncstat"
+		flake:   "github:input-output-hk/mantis-ops?dir=pkgs/syncstat&rev=165244598a2d6ca5bef3bb5957f23eafad5d6f70#syncstat"
 		command: "/bin/syncstat"
 		// number of hours to run the node
 		args: ["18"]
@@ -29,7 +29,7 @@ import (
 	leader: true
 
 	env: {
-		RUST_LOG:      "DEBUG"
+		RUST_LOG:      "INFO"
 		SSL_CERT_FILE: "/etc/ssl/certs/ca-bundle.crt"
 	}
 
