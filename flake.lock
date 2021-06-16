@@ -14,11 +14,11 @@
         "utils": "utils_2"
       },
       "locked": {
-        "lastModified": 1623111749,
-        "narHash": "sha256-wRsLbk4A1HevQUUQV3hepKRwvzIdCgxnBpT98jw2F2k=",
+        "lastModified": 1623769121,
+        "narHash": "sha256-juGZ6kelxPAexWC3nhysJ8qRmEQLXJOa9RLrLF89qHk=",
         "owner": "input-output-hk",
         "repo": "bitte",
-        "rev": "7c5340c7bc3c011b881de23dfe927f2d54bbce10",
+        "rev": "5a8bbd980b0a99f97d7907b45862e3a0221ca4ef",
         "type": "github"
       },
       "original": {
@@ -34,11 +34,11 @@
         "utils": "utils"
       },
       "locked": {
-        "lastModified": 1623110454,
-        "narHash": "sha256-M8mGQ2PRxzSNX9F+8OHbVqw8Pmv3/Dz9TTxYvNP3GmU=",
+        "lastModified": 1623768420,
+        "narHash": "sha256-PK6a+q0THIbZ1FaXBDKVoOG0MNx+rhULleGs72WS0z8=",
         "owner": "input-output-hk",
         "repo": "bitte-cli",
-        "rev": "bace9342716502d67d2e388edb0003ad5e28686f",
+        "rev": "8dfb8092e5b7a3c4bfbca0267277872ace779043",
         "type": "github"
       },
       "original": {
@@ -277,16 +277,16 @@
     },
     "nixpkgs-terraform": {
       "locked": {
-        "lastModified": 1620395313,
-        "narHash": "sha256-zaNy1ZD0WNKon3ZmEEte7z74CE6PWmQ8XltwuTMGDMI=",
-        "owner": "manveru",
+        "lastModified": 1623440955,
+        "narHash": "sha256-4hM9akwZ2RojC1CT5geV4IZhek/fUPpFitb5ItdoK5s=",
+        "owner": "input-output-hk",
         "repo": "nixpkgs",
-        "rev": "316b82563a7793a4a88bed9e41adb936d9adc969",
+        "rev": "f94bea476f46784adf587e1cb3a5af9587fe9652",
         "type": "github"
       },
       "original": {
-        "owner": "manveru",
-        "ref": "updated-terraform-providers",
+        "owner": "input-output-hk",
+        "ref": "iohk-terraform-2021-06",
         "repo": "nixpkgs",
         "type": "github"
       }
@@ -432,16 +432,16 @@
     "nomad-source": {
       "flake": false,
       "locked": {
-        "lastModified": 1622657457,
-        "narHash": "sha256-gOs4hN4DaEoB9P1PBGguRVbloOZaY034tvcpsVcL9mo=",
+        "lastModified": 1623434122,
+        "narHash": "sha256-3cPp8STtTKMHtA2+rWqAjHVevAnUorRtZFWRnmaLLJc=",
         "owner": "input-output-hk",
         "repo": "nomad",
-        "rev": "ee73dd5b5a3641618cad70b99a64d110e627e505",
+        "rev": "1e35d887c0de086d344d7f9514eb0f63c3c68199",
         "type": "github"
       },
       "original": {
         "owner": "input-output-hk",
-        "ref": "release-1.1.0",
+        "ref": "release-1.1.1",
         "repo": "nomad",
         "type": "github"
       }
