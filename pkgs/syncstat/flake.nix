@@ -11,12 +11,18 @@
         naersk-lib = naersk.lib."${system}";
       in rec {
         # `nix build`
-        packages.syncstat = naersk-lib.buildPackage {
-          pname = "syncstat";
-          root = ./.;
+        packages.syncstat = pkgs.symlinkJoin {
+          name = "syncstat";
+          paths = [
+            pkgs.cacert
+            (naersk-lib.buildPackage {
+              pname = "syncstat";
+              root = ./.;
 
-          PKG_CONFIG_PATH = "${pkgs.openssl.dev}/lib/pkgconfig";
-          nativeBuildInputs = [ pkgs.pkgconfig ];
+              PKG_CONFIG_PATH = "${pkgs.openssl.dev}/lib/pkgconfig";
+              nativeBuildInputs = [ pkgs.pkgconfig ];
+            })
+          ];
         };
         defaultPackage = packages.syncstat;
 

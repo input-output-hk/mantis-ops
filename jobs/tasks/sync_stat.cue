@@ -29,7 +29,8 @@ import (
 	leader: true
 
 	env: {
-		RUST_LOG: "DEBUG"
+		RUST_LOG:      "DEBUG"
+		SSL_CERT_FILE: "/etc/ssl/certs/ca-bundle.crt"
 	}
 
 	template: "env.txt": {
