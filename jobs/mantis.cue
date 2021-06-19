@@ -14,7 +14,12 @@ import (
 	#loggers: {[string]: string}
 	#network:       *"testnet-internal-nomad" | "etc"
 	#networkConfig: string
-	#fastSync:      bool | *false
+
+	#fastSync:   bool | *false
+	#reschedule: {[string]: string | int | bool} | *{
+		attempts:  0
+		unlimited: true
+	}
 
 	let ref = {
 		networkConfig: #networkConfig
@@ -70,14 +75,17 @@ import (
 			sticky:  true
 		}
 
-		reschedule: {
-			attempts:  0
-			unlimited: true
-		}
-
 		if #network == "etc" {
+			restart: {
+				interval: "1m"
+				attempts: 1
+				delay:    "1m"
+				mode:     "fail"
+			}
 			task: syncstat: tasks.#SyncStat
 		}
+
+		reschedule: #reschedule
 
 		task: telegraf: tasks.#Telegraf & {
 			#namespace:      namespace

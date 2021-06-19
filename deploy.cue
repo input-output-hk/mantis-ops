@@ -29,7 +29,14 @@ import (
 			#network:       "etc"
 			#networkConfig: ""
 			#count:         1
-			#loggers:       #defaultLoggers & {
+			#reschedule: {
+				interval:       "1m"
+				attempts:       1
+				delay:          "1m"
+				delay_function: "constant"
+				unlimited:      false
+			}
+			#loggers: #defaultLoggers & {
 				"io.iohk.ethereum.blockchain.sync.fast.FastSync": "DEBUG"
 			}
 		}
