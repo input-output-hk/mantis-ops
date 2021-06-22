@@ -49,11 +49,13 @@ import (
 		args: ["-Dconfig.file=/local/mantis.conf", "-XX:ActiveProcessorCount=2", "-Dlogback.configurationFile=/local/logback.xml"]
 	}
 
-	restart: {
-		interval: "30m"
-		attempts: 10
-		delay:    "1m"
-		mode:     "fail"
+	if #network != "etc" {
+		restart: {
+			interval: "30m"
+			attempts: 10
+			delay:    "1m"
+			mode:     "fail"
+		}
 	}
 
 	env: {

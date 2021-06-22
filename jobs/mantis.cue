@@ -78,7 +78,7 @@ import (
 		if #network == "etc" {
 			restart: {
 				interval: "1m"
-				attempts: 1
+				attempts: 0
 				delay:    "1m"
 				mode:     "fail"
 			}
@@ -136,9 +136,11 @@ import (
 					timeout:      "3s"
 					type:         "http"
 					path:         "/healthcheck"
-					check_restart: {
-						limit: 5
-						grace: "10m"
+					if #network != "etc" {
+						check_restart: {
+							limit: 5
+							grace: "10m"
+						}
 					}
 				}
 			}
@@ -212,9 +214,11 @@ import (
 					port:         "server"
 					timeout:      "3s"
 					type:         "tcp"
-					check_restart: {
-						limit: 5
-						grace: "10m"
+					if #network != "etc" {
+						check_restart: {
+							limit: 5
+							grace: "10m"
+						}
 					}
 				}
 			}

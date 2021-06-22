@@ -31,7 +31,7 @@ import (
 			#count:         1
 			#reschedule: {
 				interval:       "1m"
-				attempts:       1
+				attempts:       0
 				delay:          "1m"
 				delay_function: "constant"
 				unlimited:      false
