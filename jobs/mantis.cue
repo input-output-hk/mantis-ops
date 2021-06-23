@@ -123,26 +123,28 @@ import (
 			}
 		}
 
+		service: "\(namespace)-mantis-\(#role)-rpc": {
+			check: rpc: {
+				address_mode: "host"
+				interval:     "10s"
+				port:         "rpc"
+				timeout:      "3s"
+				type:         "http"
+				path:         "/healthcheck"
+				if #network != "etc" {
+					check_restart: {
+						limit: 5
+						grace: "10m"
+					}
+				}
+			}
+		}
+
 		if #role == "miner" {
 			service: "\(namespace)-mantis-\(#role)-rpc": {
 				address_mode: "host"
 				port:         "rpc"
 				tags:         ["rpc"] + #baseTags
-
-				check: rpc: {
-					address_mode: "host"
-					interval:     "10s"
-					port:         "rpc"
-					timeout:      "3s"
-					type:         "http"
-					path:         "/healthcheck"
-					if #network != "etc" {
-						check_restart: {
-							limit: 5
-							grace: "10m"
-						}
-					}
-				}
 			}
 		}
 
