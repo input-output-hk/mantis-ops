@@ -19,7 +19,7 @@ import (
 		miner: #miner
 	}
 	"mantis-e2e": jobs: {
-		miner:    #miner & {#count:   5}
+		miner:    #e2eMiner
 		passive:  #passive & {#count: 5}
 		explorer: #explorer
 		faucet:   #faucet
@@ -85,6 +85,11 @@ bootstrapNodes: {
 }
 
 #miner: jobDef.#Mantis & {
+	#role:      "miner"
+	#mantisRev: #revisions.mantisRev
+}
+
+#e2eMiner: jobDef.#MantisE2E & {
 	#role:      "miner"
 	#mantisRev: #revisions.mantisRev
 }

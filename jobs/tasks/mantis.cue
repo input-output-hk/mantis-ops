@@ -17,6 +17,9 @@ import (
 	#loggers: {}
 	#fastSync: true | *false
 	#flake:    *"github:input-output-hk/mantis?rev=\(#mantisRev)#mantis" | string
+	#minerCpu: >=1000 | *7500
+
+	#peerCount: string | *"${NOMAD_ALLOC_INDEX}"
 
 	if #network == "etc" {
 		#flake: "github:input-output-hk/mantis/develop#mantis"
@@ -26,7 +29,7 @@ import (
 
 	if #role == "miner" {
 		resources: {
-			cpu:    7500
+			cpu:    #minerCpu
 			memory: 6 * 1024
 		}
 	}
@@ -59,7 +62,7 @@ import (
 	}
 
 	env: {
-		REQUIRED_PEER_COUNT: "${NOMAD_ALLOC_INDEX}"
+		REQUIRED_PEER_COUNT: "\(#peerCount)"
 		STORAGE_DIR:         "/local/mantis"
 		NAMESPACE:           #namespace
 		DAG_NAME:            "full-R23-0000000000000000"
@@ -68,16 +71,21 @@ import (
 		AWS_DEFAULT_REGION:  "us-east-1"
 	}
 
-	#vaultPrefix: 'kv/data/nomad-cluster/\(#namespace)/mantis-%s'
+	#vaultPrefix: bytes | *'kv/data/nomad-cluster/\(#namespace)/mantis-%s'
+	#target:      string | *"NOMAD_ALLOC_INDEX"
+
+	if #namespace == "mantis-e2e" && #role == "miner" {
+		#vaultPrefix: 'kv/data/nomad-cluster/\(#namespace)/%s'
+		#target:      "NOMAD_GROUP_NAME"
+	}
 
 	if #role == "miner" {
 		template: "secrets/secret-key": {
-			#prefix:     'kv/data/nomad-cluster/\(#namespace)/mantis-%s'
 			change_mode: "noop"
 			splay:       "15m"
 			data:        """
-			{{ with secret (printf "\(#vaultPrefix)/secret-key" (env "NOMAD_ALLOC_INDEX")) }}{{.Data.data.value}}{{end}}
-			{{ with secret (printf "\(#vaultPrefix)/enode-hash" (env "NOMAD_ALLOC_INDEX")) }}{{.Data.data.value}}{{end}}
+			{{ with secret (printf "\(#vaultPrefix)/secret-key" (env "\(#target)")) }}{{.Data.data.value}}{{end}}
+			{{ with secret (printf "\(#vaultPrefix)/enode-hash" (env "\(#target)")) }}{{.Data.data.value}}{{end}}
 			"""
 		}
 	}
@@ -187,7 +195,7 @@ import (
 				node-key-file = "/secrets/secret-key"
 				consensus = {
 					mining-enabled = true
-					coinbase = "{{ with secret (printf "\(#vaultPrefix)/coinbase" (env "NOMAD_ALLOC_INDEX")) }}{{.Data.data.value}}{{end}}"
+					coinbase = "{{ with secret (printf "\(#vaultPrefix)/coinbase" (env "\(#target)")) }}{{.Data.data.value}}{{end}}"
 				}
 			}
 			"""
@@ -199,6 +207,12 @@ import (
 					mantis.sync.min-peers-to-choose-pivot-block = 1
 					"""
 			}
+		}
+
+		#postfix: string | *#peerCount
+
+		if #namespace != "mantis-e2e" || #role == "passive" {
+			#postfix: #"{{env "NOMAD_ALLOC_INDEX"}}"#
 		}
 
 		change_mode: "noop"
@@ -220,7 +234,7 @@ import (
 			  ]
 			}
 
-			client-id = "mantis-\(#role)-{{env "NOMAD_ALLOC_INDEX"}}"
+			client-id = "mantis-\(#role)-\(#postfix)"
 			datadir = "/local/mantis"
 			ethash.ethash-dir = "/local/ethash"
 
