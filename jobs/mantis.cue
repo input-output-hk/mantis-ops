@@ -82,7 +82,6 @@ import (
 				delay:    "1m"
 				mode:     "fail"
 			}
-			task: syncstat: tasks.#SyncStat
 		}
 
 		reschedule: #reschedule

@@ -5,6 +5,7 @@ import (
 	jobDef "github.com/input-output-hk/mantis-ops/pkg/jobs:jobs"
 	"list"
 	"strings"
+	"github.com/input-output-hk/mantis-ops/pkg/jobs/tasks:tasks"
 )
 
 #namespaces: {
@@ -36,6 +37,7 @@ import (
 				delay_function: "constant"
 				unlimited:      false
 			}
+			group: mantis: task: syncstat: tasks.#SyncStat & {#hours: 24}
 			#loggers: #defaultLoggers & {
 				"io.iohk.ethereum.blockchain.sync.fast.FastSync": "DEBUG"
 			}

@@ -2,9 +2,11 @@ package tasks
 
 import (
 	"github.com/input-output-hk/mantis-ops/pkg/schemas/nomad:types"
+	"strconv"
 )
 
 #SyncStat: types.#stanza.task & {
+	#hours: >0 | int
 	driver: "exec"
 
 	resources: {
@@ -16,7 +18,7 @@ import (
 		flake:   "github:input-output-hk/mantis-ops?dir=pkgs/syncstat&rev=165244598a2d6ca5bef3bb5957f23eafad5d6f70#syncstat"
 		command: "/bin/syncstat"
 		// number of hours to run the node
-		args: ["18"]
+		args: [strconv.FormatInt(#hours, 10)]
 	}
 
 	leader: true
