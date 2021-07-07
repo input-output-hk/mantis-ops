@@ -50,7 +50,7 @@ import (
 
 #revisions: {
 	mantisOpsRev: "fff9e7202fb2bc63780c02c6c3c937300f4dc2fe"
-	mantisRev:    "bc3259f6382168cafd144d6ada1afd9d6603712b"
+	mantisRev:    "c770bf9f083e55d044d7bafbd1695a1b933e1bcd"
 	morphoRev:    "e47b74d5e7a78bf665758927336a28a915b3e596"
 }
 
@@ -116,8 +116,12 @@ let #logType = #logLevelType | "${LOGSLEVEL}"
 	"io.netty":                                                "WARN"
 	"io.iohk.scalanet":                                        "INFO"
 	"io.iohk.ethereum.blockchain.sync.SyncController":         "INFO"
-	"io.iohk.ethereum.network.PeerActor":                      "${LOGSLEVEL}"
-	"io.iohk.ethereum.network.rlpx.RLPxConnectionHandler":     "${LOGSLEVEL}"
+	"io.iohk.ethereum.network.PeerActor":                      "DEBUG"
+	"io.iohk.ethereum.network.rlpx.RLPxConnectionHandler":     "DEBUG"
+    "io.iohk.ethereum.network.handshaker.EthNodeStatus63ExchangeState": "DEBUG"
+    "io.iohk.ethereum.network.handshaker.EthNodeStatus64ExchangeState": "DEBUG"
+    "io.iohk.ethereum.network.handshaker.EtcNodeStatus63ExchangeState": "DEBUG"
+    "io.iohk.ethereum.network.handshaker.EtcNodeStatus64ExchangeState": "DEBUG"
 	"io.iohk.ethereum.vm.VM":                                  "OFF"
 	"org.jupnp.QueueingThreadPoolExecutor":                    "WARN"
 	"org.jupnp.util.SpecificationViolationReporter":           "ERROR"
