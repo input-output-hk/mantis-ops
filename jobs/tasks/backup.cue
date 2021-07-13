@@ -61,7 +61,7 @@ import (
 			include "/conf/testnet-internal-nomad.conf"
 			
 			mantis = {
-			  consensus.mining-enabled = false
+			  mining.mining-enabled = false
 			  blockchains.testnet-internal-nomad = {
 			    custom-genesis-file = "/local/genesis.json"
 			    allowed-miners = []
