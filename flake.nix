@@ -16,46 +16,71 @@
   };
 
   outputs = { self, nixpkgs, utils, ops-lib, bitte, ... }@inputs:
-    let
-      hashiStack = bitte.mkHashiStack {
-        flake = self;
-        rootDir = ./.;
-        inherit pkgs;
+    bitte.lib.simpleFlake {
+      inherit nixpkgs;
+      systems = [ "x86_64-linux" ];
+
+      preOverlays = [
+        bitte.overlay
+      ];
+
+      overlay = import ./overlay.nix inputs;
+
+      packages =
+        { generate-mantis-keys
+        , mantis-faucet-nginx
+        , mantis-explorer-nginx
+        , restic-backup
+        , mantis-faucet-server
+        }@pkgs: pkgs;
+
+      devShell = { bitteShell }: bitteShell {
+        cluster = "mantis-testnet";
+        profile = "mantis";
+        region = self.clusters."mantis-testnet".proto.config.cluster.region;
         domain = "mantis.ws";
+        nixConfig = ''
+          extra-substituters = https://hydra.mantis.ist
+          extra-trusted-public-keys = hydra.mantis.ist-1:4LTe7Q+5pm8+HawKxvmn2Hx0E3NbkYjtf1oWv+eAmTo=
+        '';
       };
 
-      pkgs = import nixpkgs {
-        system = "x86_64-linux";
-        overlays = [
-          (final: prev: { inherit (hashiStack) clusters dockerImages; })
-          bitte.overlay
-          (import ./overlay.nix inputs)
-        ];
-      };
+      extraOutputs =
+        let hashiStack = bitte.lib.mkHashiStack {
+          flake = self;
+          domain = "mantis.ws";
+        };
+        in
+        {
+          inherit (hashiStack) clusters nixosConfigurations consulTemplates;
+        };
 
-      nixosConfigurations = hashiStack.nixosConfigurations;
-    in {
-      inherit nixosConfigurations;
-      clusters.x86_64-linux = hashiStack.clusters;
-      legacyPackages.x86_64-linux = pkgs;
-      devShell.x86_64-linux = pkgs.devShell;
-      hydraJobs.x86_64-linux = {
-        inherit (pkgs)
-          bitte cfssl consul cue devShellPath grafana grafana-loki haproxy
-          nixFlakes nomad sops terraform-with-plugins vault-bin victoriametrics
-
-          generate-mantis-keys
-
-          mantis mantis-staging
-
-          mantis-faucet-web mantis-faucet-nginx mantis-faucet-server
-
-          mantis-explorer mantis-explorer-nginx
-
-          morpho-node morpho-node-entrypoint
-
-        ;
-      } // (pkgs.lib.mapAttrs (_: v: v.config.system.build.toplevel)
-        nixosConfigurations);
+      hydraJobs =
+        { bitte
+        , cfssl
+        , consul
+        , cue
+        , devShellPath
+        , grafana
+        , grafana-loki
+        , haproxy
+        , nixFlakes
+        , nomad
+        , sops
+        , terraform-with-plugins
+        , vault-bin
+        , victoriametrics
+        , generate-mantis-keys
+        , mantis
+        , mantis-staging
+        , mantis-faucet-web
+        , mantis-faucet-nginx
+        , mantis-faucet-server
+        , mantis-explorer
+        , mantis-explorer-nginx
+        , morpho-node
+        , morpho-node-entrypoint
+        }@jobs: jobs // (builtins.mapAttrs (_: v: v.config.system.build.toplevel)
+          self.nixosConfigurations);
     };
 }
