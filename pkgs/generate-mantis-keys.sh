@@ -33,7 +33,7 @@ logging = {
 
 mantis = {
   testmode = true
-  consensus.mining-enabled = false
+  mining.mining-enabled = false
   blockchains.network = "testnet-internal-nomad"
 
   network.rpc = {
