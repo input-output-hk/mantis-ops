@@ -9,7 +9,8 @@ let
 
   bitte = self.inputs.bitte;
 
-in {
+in
+{
   imports = [ ./iam.nix ./nix.nix ];
 
   services.consul.policies.developer.servicePrefix."mantis-" = {
@@ -64,36 +65,38 @@ in {
         region = "eu-west-1";
         desiredCapacity = 8;
       }
-    ] (args:
-      let
-        attrs = ({
-          desiredCapacity = 1;
-          maxSize = 40;
-          instanceType = "c5.2xlarge";
-          iam.role = cluster.iam.roles.client;
-          iam.instanceProfile.role = cluster.iam.roles.client;
+    ]
+      (args:
+        let
+          attrs = ({
+            desiredCapacity = 1;
+            maxSize = 40;
+            instanceType = "c5.2xlarge";
+            iam.role = cluster.iam.roles.client;
+            iam.instanceProfile.role = cluster.iam.roles.client;
 
-          modules = [
-            (bitte + /profiles/client.nix)
-            self.inputs.ops-lib.nixosModules.zfs-runtime
-            "${self.inputs.nixpkgs}/nixos/modules/profiles/headless.nix"
-            "${self.inputs.nixpkgs}/nixos/modules/virtualisation/ec2-data.nix"
-            ./secrets.nix
-            ./docker-auth.nix
-          ];
+            modules = [
+              (bitte + /profiles/client.nix)
+              self.inputs.ops-lib.nixosModules.zfs-runtime
+              "${self.inputs.nixpkgs}/nixos/modules/profiles/headless.nix"
+              "${self.inputs.nixpkgs}/nixos/modules/virtualisation/ec2-data.nix"
+              ./secrets.nix
+              ./docker-auth.nix
+            ];
 
-          securityGroupRules = {
-            inherit (securityGroupRules) internet internal ssh;
-          };
-        } // args);
-        asgName = "client-${attrs.region}-${
+            securityGroupRules = {
+              inherit (securityGroupRules) internet internal ssh;
+            };
+          } // args);
+          asgName = "client-${attrs.region}-${
             replaceStrings [ "." ] [ "-" ] attrs.instanceType
           }";
-      in nameValuePair asgName attrs));
+        in
+        nameValuePair asgName attrs));
 
     instances = {
       core-1 = {
-        instanceType = "t3a.xlarge";
+        instanceType = "r5a.2xlarge";
         privateIP = "172.16.0.10";
         subnet = cluster.vpc.subnets.core-1;
 
@@ -110,7 +113,7 @@ in {
       };
 
       core-2 = {
-        instanceType = "t3a.xlarge";
+        instanceType = "r5a.2xlarge";
         privateIP = "172.16.1.10";
         subnet = cluster.vpc.subnets.core-2;
 
@@ -122,7 +125,7 @@ in {
       };
 
       core-3 = {
-        instanceType = "t3a.xlarge";
+        instanceType = "r5a.2xlarge";
         privateIP = "172.16.2.10";
         subnet = cluster.vpc.subnets.core-3;
 

@@ -14,15 +14,16 @@
         "utils": "utils_2"
       },
       "locked": {
-        "lastModified": 1623081110,
-        "narHash": "sha256-sLY+N3aAXbZtnwPih3DkisDFncERh3RAyBARGfqBO8Q=",
+        "lastModified": 1626387168,
+        "narHash": "sha256-qFQAALVBz3yDtLdCcWtMJT/CNDG0hISpJIje3i1qqbM=",
         "owner": "input-output-hk",
         "repo": "bitte",
-        "rev": "3d00ed162dbc760ee3f73c79ea4da5835c5ded00",
+        "rev": "c2012658cb9574b64cd9a408f1269f946379325b",
         "type": "github"
       },
       "original": {
         "owner": "input-output-hk",
+        "ref": "zfs-snapshot-kevm",
         "repo": "bitte",
         "type": "github"
       }
@@ -34,11 +35,11 @@
         "utils": "utils"
       },
       "locked": {
-        "lastModified": 1621628674,
-        "narHash": "sha256-P8xAOqScbJlX5lMV1BT36+1aTYk+3HSpEAVkig/MS4k=",
+        "lastModified": 1623110454,
+        "narHash": "sha256-M8mGQ2PRxzSNX9F+8OHbVqw8Pmv3/Dz9TTxYvNP3GmU=",
         "owner": "input-output-hk",
         "repo": "bitte-cli",
-        "rev": "b329f67a845e3969fea0e981a2028095b6263828",
+        "rev": "bace9342716502d67d2e388edb0003ad5e28686f",
         "type": "github"
       },
       "original": {
@@ -242,17 +243,17 @@
     },
     "nixpkgs-terraform": {
       "locked": {
-        "lastModified": 1620395313,
-        "narHash": "sha256-zaNy1ZD0WNKon3ZmEEte7z74CE6PWmQ8XltwuTMGDMI=",
-        "owner": "manveru",
-        "repo": "nixpkgs",
-        "rev": "316b82563a7793a4a88bed9e41adb936d9adc969",
+        "lastModified": 1623438013,
+        "narHash": "sha256-H6vuv1WbNppuGMngGbwtgp5/9izMLvc88n1OVUrc6ug=",
+        "owner": "johnalotoski",
+        "repo": "nixpkgs-terraform",
+        "rev": "976b4e77144f6a28d856b7fabf97d03f49b7a0a1",
         "type": "github"
       },
       "original": {
-        "owner": "manveru",
-        "ref": "updated-terraform-providers",
-        "repo": "nixpkgs",
+        "owner": "johnalotoski",
+        "ref": "iohk-terraform-2021-06",
+        "repo": "nixpkgs-terraform",
         "type": "github"
       }
     },
@@ -382,16 +383,16 @@
     "nomad-source": {
       "flake": false,
       "locked": {
-        "lastModified": 1622657457,
-        "narHash": "sha256-gOs4hN4DaEoB9P1PBGguRVbloOZaY034tvcpsVcL9mo=",
+        "lastModified": 1623434122,
+        "narHash": "sha256-3cPp8STtTKMHtA2+rWqAjHVevAnUorRtZFWRnmaLLJc=",
         "owner": "input-output-hk",
         "repo": "nomad",
-        "rev": "ee73dd5b5a3641618cad70b99a64d110e627e505",
+        "rev": "1e35d887c0de086d344d7f9514eb0f63c3c68199",
         "type": "github"
       },
       "original": {
         "owner": "input-output-hk",
-        "ref": "release-1.1.0",
+        "ref": "release-1.1.1",
         "repo": "nomad",
         "type": "github"
       }
