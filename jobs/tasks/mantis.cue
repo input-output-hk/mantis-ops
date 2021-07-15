@@ -185,7 +185,7 @@ import (
 		}
 
 		#extraConfig:          string | *"""
-			mantis.consensus.mining-enabled = false
+			mantis.mining.mining-enabled = false
 			"""
 		#checkPointKeysString: string | *""
 
@@ -193,7 +193,7 @@ import (
 			#extraConfig: """
 			mantis = {
 				node-key-file = "/secrets/secret-key"
-				consensus = {
+				mining = {
 					mining-enabled = true
 					coinbase = "{{ with secret (printf "\(#vaultPrefix)/coinbase" (env "\(#target)")) }}{{.Data.data.value}}{{end}}"
 				}
@@ -203,7 +203,7 @@ import (
 		if #role == "passive" {
 			if #network == "etc" {
 				#extraConfig: """
-					mantis.consensus.mining-enabled = false
+					mantis.mining.mining-enabled = false
 					mantis.sync.min-peers-to-choose-pivot-block = 1
 					"""
 			}
