@@ -37,13 +37,14 @@ import (
 				delay_function: "constant"
 				unlimited:      false
 			}
-			group: mantis: task: syncstat: tasks.#SyncStat & {#hours: 24}
+			group: mantis: task: syncstat: tasks.#SyncStat & {#hours: int | *24}
 			#loggers: #defaultLoggers & {
 				"io.iohk.ethereum.blockchain.sync.fast.FastSync": "DEBUG"
 			}
 		}
 		"passive-fast": jobs.passive & {
 			#fastSync: true
+			group: mantis: task: syncstat: tasks.#SyncStat & {#hours: 8}
 		}
 	}
 }
