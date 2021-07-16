@@ -32,6 +32,7 @@
         , mantis-explorer-nginx
         , restic-backup
         , mantis-faucet-server
+        , checkFmt
         }@pkgs: pkgs;
 
       devShell = { bitteShell }: bitteShell {
