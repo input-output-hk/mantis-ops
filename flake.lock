@@ -13,15 +13,16 @@
         "utils": "utils_3"
       },
       "locked": {
-        "lastModified": 1626212869,
-        "narHash": "sha256-Ahb4hDhPLNpAh9AwBBC3Dch3pgRzVTSOEGOHjHdQ9KI=",
+        "lastModified": 1626452411,
+        "narHash": "sha256-W1Ydp3n1qPzAYmJcVTzh6XQCEoHfO/XvtATDXC5oodY=",
         "owner": "input-output-hk",
         "repo": "bitte",
-        "rev": "864fadff0a297f36d5ac6c36b44e3e338ee1b114",
+        "rev": "aba12c997bf86e90faff8b250481185d43f959bd",
         "type": "github"
       },
       "original": {
         "owner": "input-output-hk",
+        "ref": "clients-use-vault-agent",
         "repo": "bitte",
         "type": "github"
       }
