@@ -33,6 +33,7 @@
         , restic-backup
         , mantis-faucet-server
         , checkFmt
+        , devShellPath
         }@pkgs: pkgs;
 
       devShell = { bitteShell }: bitteShell {
