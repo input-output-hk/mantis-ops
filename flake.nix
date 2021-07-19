@@ -36,7 +36,8 @@
         , devShellPath
         }@pkgs: pkgs;
 
-      devShell = { bitteShell }: bitteShell {
+      devShell = { bitteShell, cue }: bitteShell {
+        extraPackages = [ cue ];
         cluster = "mantis-testnet";
         profile = "mantis";
         region = self.clusters."mantis-testnet".proto.config.cluster.region;
