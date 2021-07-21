@@ -1,1 +1,1 @@
-(import ./. { }).shellNix
+(import ./. { }).shellNix.devShell
