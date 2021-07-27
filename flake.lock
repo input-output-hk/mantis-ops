@@ -175,17 +175,17 @@
         "sbt-derivation": "sbt-derivation"
       },
       "locked": {
-        "lastModified": 1621456201,
-        "narHash": "sha256-tIjL5oerDSR/gwBATzODszTnuqqWHtHNzmyt2LTEcZY=",
+        "lastModified": 1626170756,
+        "narHash": "sha256-VMiV45o6/HroTU6SBpnLaQWJRuOOzu5mOsvSa7xmmeI=",
         "owner": "input-output-hk",
         "repo": "mantis",
-        "rev": "0146d23cb8515841cfae817b33d0023a5fdd37eb",
+        "rev": "d6cada089a10e3d9988e27d695259a216f6e21f8",
         "type": "github"
       },
       "original": {
         "owner": "input-output-hk",
         "repo": "mantis",
-        "rev": "0146d23cb8515841cfae817b33d0023a5fdd37eb",
+        "rev": "d6cada089a10e3d9988e27d695259a216f6e21f8",
         "type": "github"
       }
     },

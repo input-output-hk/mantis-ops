@@ -10,7 +10,8 @@ let
     '';
   };
   writeBashBinChecked = name: writeBashChecked "/bin/${name}";
-in {
+in
+{
   inherit writeBashChecked writeBashBinChecked;
   # we cannot specify mantis as a flake input due to:
   # * the branch having a slash
@@ -42,10 +43,10 @@ in {
 
   mantis-faucet-web =
     inputs.mantis-faucet-web.defaultPackage.${final.system}.overrideAttrs
-    (old: {
-      FAUCET_NODE_URL = "https://mantis-testnet-faucet.mantis.ws";
-      MANTIS_VM = "Mantis Testnet";
-    });
+      (old: {
+        FAUCET_NODE_URL = "https://mantis-testnet-faucet.mantis.ws";
+        MANTIS_VM = "Mantis Testnet";
+      });
 
   mantis-faucet-nginx = final.callPackage ./pkgs/nginx.nix {
     package = final.mantis-faucet-web;
@@ -145,56 +146,62 @@ in {
     . ${./pkgs/check_fmt.sh}
   '';
 
-  dockerImagesCue = let
-    images = lib.mapAttrs (n: v: {
-      name = builtins.unsafeDiscardStringContext v.image.imageName;
-      tag = builtins.unsafeDiscardStringContext v.image.imageTag;
-      url = builtins.unsafeDiscardStringContext v.id;
-    }) final.dockerImages;
-    imagesJson = final.writeText "images.json"
-      (builtins.toJSON { dockerImages = images; });
-  in final.runCommand "docker_images.cue" { buildInputs = [ final.cue ]; } ''
-    cue import -p bitte json: - < ${imagesJson} > $out
-  '';
+  dockerImagesCue =
+    let
+      images = lib.mapAttrs
+        (n: v: {
+          name = builtins.unsafeDiscardStringContext v.image.imageName;
+          tag = builtins.unsafeDiscardStringContext v.image.imageTag;
+          url = builtins.unsafeDiscardStringContext v.id;
+        })
+        final.dockerImages;
+      imagesJson = final.writeText "images.json"
+        (builtins.toJSON { dockerImages = images; });
+    in
+    final.runCommand "docker_images.cue" { buildInputs = [ final.cue ]; } ''
+      cue import -p bitte json: - < ${imagesJson} > $out
+    '';
 
-  devShell = let
-    cluster = "mantis-testnet";
-    domain = final.clusters.${cluster}.proto.config.cluster.domain;
-  in prev.mkShell {
-    # for bitte-cli
-    LOG_LEVEL = "debug";
+  devShell =
+    let
+      cluster = "mantis-testnet";
+      domain = final.clusters.${cluster}.proto.config.cluster.domain;
+    in
+    prev.mkShell {
+      # for bitte-cli
+      LOG_LEVEL = "debug";
 
-    BITTE_CLUSTER = cluster;
-    AWS_PROFILE = "mantis";
-    AWS_DEFAULT_REGION = final.clusters.${cluster}.proto.config.cluster.region;
-    NOMAD_NAMESPACE = "mantis-testnet";
+      BITTE_CLUSTER = cluster;
+      AWS_PROFILE = "mantis";
+      AWS_DEFAULT_REGION = final.clusters.${cluster}.proto.config.cluster.region;
+      NOMAD_NAMESPACE = "mantis-testnet";
 
-    VAULT_ADDR = "https://vault.${domain}";
-    NOMAD_ADDR = "https://nomad.${domain}";
-    CONSUL_HTTP_ADDR = "https://consul.${domain}";
+      VAULT_ADDR = "https://vault.${domain}";
+      NOMAD_ADDR = "https://nomad.${domain}";
+      CONSUL_HTTP_ADDR = "https://consul.${domain}";
 
-    buildInputs = with final; [
-      bitte
-      scaler-guard
-      terraform-with-plugins
-      sops
-      vault-bin
-      openssl
-      cfssl
-      nixfmt
-      awscli
-      nomad
-      consul
-      consul-template
-      direnv
-      jq
-      fd
-      cue
-      # final.crystal
-      # final.pkgconfig
-      # final.openssl
-    ];
-  };
+      buildInputs = with final; [
+        bitte
+        scaler-guard
+        terraform-with-plugins
+        sops
+        vault-bin
+        openssl
+        cfssl
+        nixfmt
+        awscli
+        nomad
+        consul
+        consul-template
+        direnv
+        jq
+        fd
+        cue
+        # final.crystal
+        # final.pkgconfig
+        # final.openssl
+      ];
+    };
 
   # Used for caching
   devShellPath = prev.symlinkJoin {
@@ -203,21 +210,48 @@ in {
   };
 
   debugUtils = with final; [
+    awscli
     bashInteractive
+    bat
+    bridge-utils
     coreutils
     curl
     dnsutils
+    envdir
     fd
+    findutils
+    file
     gawk
     gnugrep
+    gnused
+    gnutar
+    gzip
+    htop
     iproute
+    iptables
+    iputils
     jq
+    less
+    locale
     lsof
     netcat
-    nettools
+    openssl
     procps
+    ripgrep
+    smem
+    sqlite-interactive
+    strace
+    tcpdump
+    tmux
     tree
+    utillinux
+    vim
   ];
+
+  mantise2e = prev.symlinkJoin {
+    name = "mantis-e2e";
+    paths = [ final.mantis final.debugUtils ];
+  };
 
   inherit ((inputs.nixpkgs.legacyPackages.${final.system}).dockerTools)
     buildImage buildLayeredImage shadowSetup;

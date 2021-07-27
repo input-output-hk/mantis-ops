@@ -10,7 +10,7 @@
     ops-lib.url = "github:input-output-hk/ops-lib/zfs-image?dir=zfs";
     morpho-node.url = "github:input-output-hk/ECIP-Checkpointing";
     mantis.url =
-      "github:input-output-hk/mantis?rev=0146d23cb8515841cfae817b33d0023a5fdd37eb";
+      "github:input-output-hk/mantis?rev=d6cada089a10e3d9988e27d695259a216f6e21f8";
     mantis-explorer.url = "github:input-output-hk/mantis-explorer";
     mantis-faucet-web.url = "github:input-output-hk/mantis-faucet-web";
   };
@@ -30,6 +30,7 @@
         { generate-mantis-keys
         , mantis-faucet-nginx
         , mantis-explorer-nginx
+        , mantise2e
         , restic-backup
         , mantis-faucet-server
         , checkFmt
