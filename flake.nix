@@ -2,7 +2,7 @@
   description = "Bitte for Mantis";
 
   inputs = {
-    bitte.url = "github:input-output-hk/bitte/zfs-snapshot-kevm";
+    bitte.url = "github:input-output-hk/bitte/kevm";
     # bitte.url = "path:/home/craige/source/IOHK/bitte";
     # bitte.url = "path:/home/jlotoski/work/iohk/bitte-wt/bitte";
     # bitte.url = "path:/home/manveru/github/input-output-hk/bitte";
@@ -35,8 +35,7 @@
       };
 
       nixosConfigurations = hashiStack.nixosConfigurations;
-    in
-    {
+    in {
       inherit nixosConfigurations;
       inherit (hashiStack) nomadJobs dockerImages;
       clusters.x86_64-linux = hashiStack.clusters;

@@ -14,16 +14,16 @@
         "utils": "utils_2"
       },
       "locked": {
-        "lastModified": 1626387168,
-        "narHash": "sha256-qFQAALVBz3yDtLdCcWtMJT/CNDG0hISpJIje3i1qqbM=",
+        "lastModified": 1628204726,
+        "narHash": "sha256-Uw5J1v/fQSg2rXXdkoGmwJjQ0c60ami3q+PXvHs3GDE=",
         "owner": "input-output-hk",
         "repo": "bitte",
-        "rev": "c2012658cb9574b64cd9a408f1269f946379325b",
+        "rev": "5436250316605313bc3d8213c646dcf736f1419f",
         "type": "github"
       },
       "original": {
         "owner": "input-output-hk",
-        "ref": "zfs-snapshot-kevm",
+        "ref": "kevm",
         "repo": "bitte",
         "type": "github"
       }

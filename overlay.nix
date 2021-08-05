@@ -148,9 +148,17 @@ in {
     which
   ];
 
-  devShell = prev.mkShell {
+  devShell = let
+    asgRegions = lib.attrValues (lib.mapAttrs (_: v: v.region)
+      final.clusters.${cluster}.proto.config.cluster.autoscalingGroups);
+    asgRegionString =
+      lib.strings.replaceStrings [ " " ] [ ":" ] (toString asgRegions);
+  in prev.mkShell {
     # for bitte-cli
     LOG_LEVEL = "debug";
+    AWS_ASG_REGIONS = asgRegionString;
+    BITTE_PROVIDER = "AWS";
+    BITTE_DOMAIN = domain;
 
     BITTE_CLUSTER = cluster;
     AWS_PROFILE = "mantis-kevm";
