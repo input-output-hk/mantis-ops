@@ -83,6 +83,19 @@ import (
 						"traefik.http.routers.\(namespace)-mantis-\(#role).entrypoints=https",
 						"traefik.http.routers.\(namespace)-mantis-\(#role).tls=true",
 				] + #baseTags
+
+				check: rpc: {
+					address_mode: "host"
+					interval:     "10s"
+					port:         "rpc"
+					timeout:      "3s"
+					type:         "http"
+					path:         "/healthcheck"
+					check_restart: {
+						limit: 5
+						grace: "10m"
+					}
+				}
 			}
 		}
 
@@ -102,7 +115,8 @@ import (
 					interval:     "10s"
 					port:         "rpc"
 					timeout:      "3s"
-					type:         "tcp"
+					type:         "http"
+					path:         "/healthcheck"
 					check_restart: {
 						limit: 5
 						grace: "10m"

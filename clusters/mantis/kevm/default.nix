@@ -9,8 +9,7 @@ let
 
   bitte = self.inputs.bitte;
 
-in
-{
+in {
   imports = [ ./iam.nix ./nix.nix ];
 
   services.consul.policies.developer.servicePrefix."mantis-" = {
@@ -65,34 +64,32 @@ in
         region = "eu-west-1";
         desiredCapacity = 8;
       }
-    ]
-      (args:
-        let
-          attrs = ({
-            desiredCapacity = 1;
-            maxSize = 40;
-            instanceType = "c5.2xlarge";
-            iam.role = cluster.iam.roles.client;
-            iam.instanceProfile.role = cluster.iam.roles.client;
+    ] (args:
+      let
+        attrs = ({
+          desiredCapacity = 1;
+          maxSize = 40;
+          instanceType = "c5.2xlarge";
+          iam.role = cluster.iam.roles.client;
+          iam.instanceProfile.role = cluster.iam.roles.client;
 
-            modules = [
-              (bitte + /profiles/client.nix)
-              self.inputs.ops-lib.nixosModules.zfs-runtime
-              "${self.inputs.nixpkgs}/nixos/modules/profiles/headless.nix"
-              "${self.inputs.nixpkgs}/nixos/modules/virtualisation/ec2-data.nix"
-              ./secrets.nix
-              ./docker-auth.nix
-            ];
+          modules = [
+            (bitte + /profiles/client.nix)
+            self.inputs.ops-lib.nixosModules.zfs-runtime
+            "${self.inputs.nixpkgs}/nixos/modules/profiles/headless.nix"
+            "${self.inputs.nixpkgs}/nixos/modules/virtualisation/ec2-data.nix"
+            ./secrets.nix
+            ./docker-auth.nix
+          ];
 
-            securityGroupRules = {
-              inherit (securityGroupRules) internet internal ssh;
-            };
-          } // args);
-          asgName = "client-${attrs.region}-${
+          securityGroupRules = {
+            inherit (securityGroupRules) internet internal ssh;
+          };
+        } // args);
+        asgName = "client-${attrs.region}-${
             replaceStrings [ "." ] [ "-" ] attrs.instanceType
           }";
-        in
-        nameValuePair asgName attrs));
+      in nameValuePair asgName attrs));
 
     instances = {
       core-1 = {
@@ -107,8 +104,7 @@ in
         ];
 
         securityGroupRules = {
-          inherit (securityGroupRules)
-            internet internal ssh http https haproxyStats vault-http grpc;
+          inherit (securityGroupRules) internet internal ssh;
         };
       };
 
@@ -156,7 +152,7 @@ in
         ];
 
         securityGroupRules = {
-          inherit (securityGroupRules) internet internal ssh http;
+          inherit (securityGroupRules) internet internal ssh http https;
         };
       };
 
@@ -170,7 +166,7 @@ in
         modules = [ ./routing.nix ];
 
         securityGroupRules = {
-          inherit (securityGroupRules) internet internal ssh http routing;
+          inherit (securityGroupRules) internet internal ssh http https routing;
         };
       };
     };

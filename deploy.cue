@@ -7,10 +7,7 @@ import (
 )
 
 #defaults: {
-	mantisRev: "b6a26f8624cd6bbf0467a97bbd42c99d3db021a0"
-	// Temporary mantisRev to be re-unified when tested on other networks
-	mantisRevEVM:  "24f34e15090ac624285c3f2719feef2809abe17f"
-	mantisRevKEVM: "24f34e15090ac624285c3f2719feef2809abe17f"
+	mantisRev: "a2ddacb63b2ace46c1800bdae95ae10e54921ab0"
 }
 
 #namespaces: [Name=_]: {
@@ -64,7 +61,7 @@ geneses: {
 		args: {
 			#id:          "evm"
 			#fqdn:        "-\(#id).\(#domain)"
-			#mantisRev:   #defaults.mantisRevEVM
+			#mantisRev:   "24f34e15090ac624285c3f2719feef2809abe17f"
 			#genesis:     geneses["mantis-\(#id)"]
 			#extraConfig: """
 				mantis {
@@ -150,7 +147,7 @@ geneses: {
 		args: {
 			#id:          "kevm"
 			#fqdn:        "-\(#id).\(#domain)"
-			#mantisRev:   #defaults.mantisRevKEVM
+			#mantisRev:   #defaults.mantisRev
 			#genesis:     geneses["mantis-\(#id)"]
 			#extraConfig: """
 				mantis {
