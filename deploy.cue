@@ -18,6 +18,7 @@ import (
 	}
 	"mantis-staging": jobs: {
 		miner: #miner
+		passive: #passive & {#count: 1}
 	}
 	"mantis-e2e": jobs: {
 		miner:    #e2eMiner
