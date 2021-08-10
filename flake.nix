@@ -2,7 +2,7 @@
   description = "Bitte for Mantis";
 
   inputs = {
-    bitte.url = "github:input-output-hk/bitte/clients-use-vault-agent";
+    bitte.url = "github:input-output-hk/bitte";
     nixpkgs.follows = "bitte/nixpkgs";
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     terranix.follows = "bitte/terranix";
@@ -37,6 +37,7 @@
         }@pkgs: pkgs;
 
       devShell = { bitteShell, cue }: bitteShell {
+        inherit self;
         extraPackages = [ cue ];
         cluster = "mantis-testnet";
         profile = "mantis";
@@ -56,7 +57,7 @@
         in
         {
           inherit (hashiStack) clusters nixosConfigurations consulTemplates;
-        };
+        } // bitte.lib.mkDeploy { inherit self; };
 
       hydraJobs =
         { bitte
