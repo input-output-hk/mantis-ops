@@ -15,11 +15,11 @@
         "utils": "utils_4"
       },
       "locked": {
-        "lastModified": 1628644260,
-        "narHash": "sha256-OwVzJej1IKFgwDRynJMUX0/VbcCXu1k5VhRpV4hLJzo=",
+        "lastModified": 1629210430,
+        "narHash": "sha256-Eduoh2TGb8KDoq7fy4RilFaUf3RuklwOpo43nZ+2jcs=",
         "owner": "input-output-hk",
         "repo": "bitte",
-        "rev": "643e905e1731463234990ac6c52da269608026d6",
+        "rev": "84ca52450c6771330e860f4e3a51783d7f052dd5",
         "type": "github"
       },
       "original": {
@@ -35,15 +35,16 @@
         "utils": "utils"
       },
       "locked": {
-        "lastModified": 1628644111,
-        "narHash": "sha256-PgI1uYpolaJHQ1+0f/FVN1RK+hhVHLuBqeS6y+j3XN8=",
+        "lastModified": 1629181278,
+        "narHash": "sha256-/17SKJQIogRVKkW/27zIIx+WtgvQ/Pm+xE2k27OPxFA=",
         "owner": "input-output-hk",
         "repo": "bitte-cli",
-        "rev": "9e93d1494a091bded4e4255fb6882682d4969b7f",
+        "rev": "3c802e7592aef64e203ed9a37d65d2b4ee3f79ee",
         "type": "github"
       },
       "original": {
         "owner": "input-output-hk",
+        "ref": "v0.2.2",
         "repo": "bitte-cli",
         "type": "github"
       }
@@ -56,11 +57,11 @@
         "utils": "utils_2"
       },
       "locked": {
-        "lastModified": 1628068208,
-        "narHash": "sha256-akJBkj6os4bjO1drhketJvXNC21yPuy4ufL2pyius4M=",
+        "lastModified": 1628752686,
+        "narHash": "sha256-Lzh9MYUJDsjgif+YEyOErXtj1IH+ci8J1C30g1ms69s=",
         "owner": "serokell",
         "repo": "deploy-rs",
-        "rev": "d72174307d5b88ec24cc2e69e875228fe3d642ed",
+        "rev": "e5546f9c2503c26d175f08a81fc0a0f330be4cbe",
         "type": "github"
       },
       "original": {
@@ -155,7 +156,6 @@
       "inputs": {
         "nix": "nix",
         "nixpkgs": [
-          "bitte",
           "nixpkgs"
         ]
       },
@@ -327,8 +327,6 @@
     "naersk_2": {
       "inputs": {
         "nixpkgs": [
-          "bitte",
-          "deploy",
           "nixpkgs"
         ]
       },
