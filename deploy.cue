@@ -51,8 +51,8 @@ import (
 }
 
 #revisions: {
-	mantisOpsRev: "7404801c6fcb3f12438d3c82e34ad1918bb5f0a5"
-	mantisRev:    "d6cada089a10e3d9988e27d695259a216f6e21f8"
+	mantisOpsRev: "dadbe85362c4f7d07aeb4fdd477c334c71627623"
+	mantisRev:    "ca0ee5cc138a4fbd796022f89d9b566ce30d62ee"
 	morphoRev:    "e47b74d5e7a78bf665758927336a28a915b3e596"
 }
 
