@@ -6,6 +6,7 @@
 
   inputs = {
     bitte.url = "github:input-output-hk/bitte";
+    bitte.inputs.bitte-cli.url = "github:input-output-hk/bitte-cli/v0.3.4";
     nixpkgs.follows = "bitte/nixpkgs";
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     terranix.follows = "bitte/terranix";
@@ -39,7 +40,7 @@
         , devShellPath
         }@pkgs: pkgs;
 
-      devShell = { bitteShell, cue }: bitteShell {
+      devShell = { bitteShellCompat, cue }: bitteShellCompat {
         inherit self;
         extraPackages = [ cue ];
         cluster = "mantis-testnet";
