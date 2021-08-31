@@ -5,8 +5,8 @@ in {
   imports = [ (self.inputs.bitte + /profiles/nomad/autoscaler.nix) ];
 
   services.nomad-autoscaler.policies = eachASG (name: asg: {
-    min = 10;
-    max = 20;
+    min = 5;
+    max = 15;
 
     policy.check = {
       mem_allocated_percentage.strategy.target-value.target = 70.0;

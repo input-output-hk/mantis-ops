@@ -14,9 +14,7 @@ in {
 
   services.nomad.namespaces = {
     mantis-testnet.description = "Mantis testnet";
-    mantis-mainnet.description = "Mantis mainnet";
     mantis-staging.description = "Mantis Staging";
-    mantis-e2e.description = "Mantis E2E";
   };
 
   services.consul.policies.developer.servicePrefix."mantis-" = {
