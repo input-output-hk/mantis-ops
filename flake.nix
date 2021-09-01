@@ -3,6 +3,8 @@
 
   inputs = {
     bitte.url = "github:input-output-hk/bitte/kevm";
+    bitte.inputs.bitte-cli.follows = "bitte-cli";
+    bitte-cli.url = "github:input-output-hk/bitte-cli/v0.3.5";
     # bitte.url = "path:/home/craige/source/IOHK/bitte";
     # bitte.url = "path:/home/jlotoski/work/iohk/bitte-wt/bitte";
     # bitte.url = "path:/home/manveru/github/input-output-hk/bitte";
