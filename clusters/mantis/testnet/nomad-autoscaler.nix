@@ -1,6 +1,5 @@
 { self, config, lib, ... }:
-let
-  eachASG = lib.flip lib.mapAttrs config.cluster.autoscalingGroups;
+let eachASG = lib.flip lib.mapAttrs config.cluster.autoscalingGroups;
 in {
   imports = [ (self.inputs.bitte + /profiles/nomad/autoscaler.nix) ];
 
@@ -9,8 +8,8 @@ in {
     max = 15;
 
     policy.check = {
-      mem_allocated_percentage.strategy.target-value.target = 70.0;
-      cpu_allocated_percentage.strategy.target-value.target = 70.0;
+      mem_allocated_percentage.strategy.target-value.target = 60.0;
+      cpu_allocated_percentage.strategy.target-value.target = 60.0;
     };
   });
 }
