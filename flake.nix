@@ -3,7 +3,6 @@
 
   inputs = {
     bitte.url = "github:input-output-hk/bitte";
-    bitte.inputs.bitte-cli.url = "github:input-output-hk/bitte-cli";
     nixpkgs.follows = "bitte/nixpkgs";
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     terranix.follows = "bitte/terranix";
