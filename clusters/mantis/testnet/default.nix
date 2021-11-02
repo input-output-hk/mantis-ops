@@ -108,6 +108,7 @@ in {
         modules = [
           (bitte + /profiles/core.nix)
           (bitte + /profiles/bootstrapper.nix)
+          (import ./snapshots.nix { inherit config lib; })
           ./secrets.nix
         ];
 
@@ -123,7 +124,11 @@ in {
         subnet = cluster.vpc.subnets.core-2;
         volumeSize = 100;
 
-        modules = [ (bitte + /profiles/core.nix) ./secrets.nix ];
+        modules = [
+          (bitte + /profiles/core.nix)
+          ./secrets.nix
+          (import ./snapshots.nix { inherit config lib; })
+        ];
 
         securityGroupRules = {
           inherit (securityGroupRules) internet internal ssh;
@@ -136,8 +141,12 @@ in {
         subnet = cluster.vpc.subnets.core-3;
         volumeSize = 100;
 
-        modules =
-          [ (bitte + /profiles/core.nix) ./secrets.nix ./nomad-autoscaler.nix ];
+        modules = [
+          (bitte + /profiles/core.nix)
+          ./secrets.nix
+          ./nomad-autoscaler.nix
+          (import ./snapshots.nix { inherit config lib; })
+        ];
 
         securityGroupRules = {
           inherit (securityGroupRules) internet internal ssh;

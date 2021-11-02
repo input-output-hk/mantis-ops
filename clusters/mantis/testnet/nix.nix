@@ -1,9 +1,6 @@
 { ... }: {
   nix = {
-    binaryCaches = [
-      "https://hydra.iohk.io"
-      "https://hydra.mantis.ist"
-    ];
+    binaryCaches = [ "https://hydra.iohk.io" "https://hydra.mantis.ist" ];
 
     binaryCachePublicKeys = [
       "hydra.iohk.io:f/Ea+s+dFdN+3Y/G+FDgSq+a5NEWhJGzdjvKNGv0/EQ="
