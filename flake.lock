@@ -50,11 +50,11 @@
         "vulnix": "vulnix"
       },
       "locked": {
-        "lastModified": 1637627132,
-        "narHash": "sha256-G8j+Ic5aTW+bFmZzC3x7Hg2QOWW9Wy+zssb6yERQ3LI=",
+        "lastModified": 1637710274,
+        "narHash": "sha256-zSclt3bWTQuarzPHedc6QIgYIpZSZsJoa30rMq/BkJE=",
         "owner": "input-output-hk",
         "repo": "bitte",
-        "rev": "028da7495e6275c3820f82d12455966abf21155a",
+        "rev": "d499dd5c0af6433752e4ad2e976576d481a2305a",
         "type": "github"
       },
       "original": {
