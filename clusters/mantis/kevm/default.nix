@@ -29,11 +29,7 @@ in {
   };
 
   services.nomad.namespaces = {
-    mantis-evm.description = "EVM";
-    mantis-iele.description = "IELE";
     mantis-kevm.description = "KEVM";
-    mantis-radek.description = "KEVM Radek";
-    mantis-cue.description = "CUE";
   };
 
   cluster = {
@@ -145,7 +141,7 @@ in {
         ];
 
         modules = [
-          (bitte + /profiles/monitoring.nix)
+          bitte.profiles.monitoring
           ./monitoring-server.nix
           ./secrets.nix
         ];
@@ -162,7 +158,7 @@ in {
         volumeSize = 100;
         route53.domains = [ "*.${cluster.domain}" ];
 
-        modules = [ ./routing.nix ];
+        modules = [ bitte.profiles.routing ./routing.nix ./secrets.nix  ];
 
         securityGroupRules = {
           inherit (securityGroupRules) internet internal ssh http https routing;
