@@ -10,7 +10,7 @@ let
   bitte = self.inputs.bitte;
 
 in {
-  imports = [ ./iam.nix ./nix.nix ];
+  imports = [ ./iam.nix ./nix.nix ./vault-raft-storage.nix ];
 
   services.consul.policies.developer.servicePrefix."mantis-" = {
     policy = "write";
@@ -75,7 +75,6 @@ in {
 
           modules = [
             (bitte + /profiles/client.nix)
-            self.inputs.ops-lib.nixosModules.zfs-runtime
             "${self.inputs.nixpkgs}/nixos/modules/profiles/headless.nix"
             "${self.inputs.nixpkgs}/nixos/modules/virtualisation/ec2-data.nix"
             ./secrets.nix

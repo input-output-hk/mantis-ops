@@ -14,7 +14,8 @@ let
 
   cluster = "mantis-kevm";
   domain = final.clusters.${cluster}.proto.config.cluster.domain;
-in {
+in
+{
   inherit domain writeBashChecked writeBashBinChecked;
   # we cannot specify mantis as a flake input due to:
   # * the branch having a slash
@@ -41,10 +42,6 @@ in {
   restic-backup = final.callPackage ./pkgs/backup { };
 
   mantis = import final.mantis-source;
-
-  morpho-source = inputs.morpho-node;
-
-  morpho-node = inputs.morpho-node.morpho-node.${system};
 
   generate-mantis-keys = final.writeBashBinChecked "generate-mantis-keys" ''
     export PATH="${
@@ -148,56 +145,12 @@ in {
     which
   ];
 
-  devShell = let
-    asgRegions = lib.attrValues (lib.mapAttrs (_: v: v.region)
-      final.clusters.${cluster}.proto.config.cluster.autoscalingGroups);
-    asgRegionString =
-      lib.strings.replaceStrings [ " " ] [ ":" ] (toString asgRegions);
-  in prev.mkShell {
-    # for bitte-cli
-    LOG_LEVEL = "debug";
-    AWS_ASG_REGIONS = asgRegionString;
-    BITTE_PROVIDER = "AWS";
-    BITTE_DOMAIN = domain;
-
-    BITTE_CLUSTER = cluster;
-    AWS_PROFILE = "mantis-kevm";
-    AWS_DEFAULT_REGION = final.clusters.${cluster}.proto.config.cluster.region;
-
-    VAULT_ADDR = "https://vault.${domain}";
-    NOMAD_ADDR = "https://nomad.${domain}";
-    CONSUL_HTTP_ADDR = "https://consul.${domain}";
-
-    buildInputs = with final; [
-      awscli
-      bitte
-      cfssl
-      consul
-      consul-template
-      cue
-      direnv
-      fd
-      jq
-      nixfmt
-      nomad
-      openssl
-      pkgconfig
-      restic
-      sops
-      terraform-with-plugins
-      vault-bin
-    ];
-  };
-
   # Used for caching
   devShellPath = prev.symlinkJoin {
     paths = final.devShell.buildInputs
       ++ [ final.grafana-loki final.mantis final.mantis-faucet ];
     name = "devShell";
   };
-
-  mantis-explorer = inputs.mantis-explorer.defaultPackage.${system};
-  mantis-faucet-web = inputs.mantis-faucet-web.defaultPackage.${system};
 
   inherit (inputs.nixpkgs-unstable.legacyPackages.${final.system}) traefik;
 }

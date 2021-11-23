@@ -2,52 +2,66 @@
   description = "Bitte for Mantis";
 
   inputs = {
-    bitte.url = "github:input-output-hk/bitte/kevm";
-    bitte.inputs.bitte-cli.follows = "bitte-cli";
-    bitte-cli.url = "github:input-output-hk/bitte-cli/v0.3.5";
-    # bitte.url = "path:/home/craige/source/IOHK/bitte";
-    # bitte.url = "path:/home/jlotoski/work/iohk/bitte-wt/bitte";
-    # bitte.url = "path:/home/manveru/github/input-output-hk/bitte";
+    bitte.url = "github:input-output-hk/bitte/fix-all-the-bootstrapping";
+    # bitte.url = "github:input-output-hk/bitte/acme-terraform-remove-fix";
+    bitte.inputs.bitte-cli.follows = "cli";
+    bitte.inputs.deploy.follows = "deploy";
+    # bitte.inputs.nixpkgs.follows = "nixpkgs";
+    deploy.url = "github:input-output-hk/deploy-rs";
+    deploy.inputs.fenix.follows = "cli/fenix";
+    deploy.inputs.nixpkgs.follows = "cli/nixpkgs";
+    deploy.inputs.utils.follows = "utils";
+    cli.url = "github:input-output-hk/bitte-cli";
+    cli.inputs.devshell.url = "github:numtide/devshell";
     nixpkgs.follows = "bitte/nixpkgs";
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     terranix.follows = "bitte/terranix";
     utils.follows = "bitte/utils";
-    ops-lib.url = "github:input-output-hk/ops-lib/zfs-image?dir=zfs";
-    morpho-node.url = "github:input-output-hk/ECIP-Checkpointing/master";
-    mantis-explorer.url = "github:input-output-hk/mantis-explorer";
-    mantis-faucet-web.url = "github:input-output-hk/mantis-faucet-web";
   };
 
-  outputs = { self, nixpkgs, ops-lib, bitte, ... }@inputs:
+  outputs = { self, nixpkgs, bitte, cli, utils, ... }@inputs:
     let
-      hashiStack = bitte.mkHashiStack {
-        flake = self;
-        rootDir = ./.;
-        inherit pkgs;
-        domain = "portal.dev.cardano.org";
-      };
+      system = "x86_64-linux";
+
+      overlay = final: prev: (nixpkgs.lib.composeManyExtensions overlays) final prev;
+      overlays = [ (import ./overlay.nix inputs) bitte.overlay ];
+
+      domain = "portal.dev.cardano.org";
+
+      bitteStack =
+        let stack = bitte.lib.mkBitteStack {
+          inherit domain self inputs pkgs;
+          clusters = "${self}/clusters";
+          deploySshKey = "./secrets/ssh-mantis-kevm";
+          hydrateModule = import ./hydrate.nix;
+        };
+        in
+        stack // {
+          deploy = stack.deploy // { autoRollback = false; };
+        };
 
       pkgs = import nixpkgs {
-        system = "x86_64-linux";
-        overlays = [
-          (final: prev: { inherit (hashiStack) clusters dockerImages; })
-          bitte.overlay
-          (import ./overlay.nix inputs)
-        ];
+        inherit overlays system;
+        config.allowUnfree = true;
       };
+    in
+    {
+      inherit overlay;
 
-      nixosConfigurations = hashiStack.nixosConfigurations;
-    in {
-      inherit nixosConfigurations;
-      inherit (hashiStack) nomadJobs dockerImages;
-      clusters.x86_64-linux = hashiStack.clusters;
-      legacyPackages.x86_64-linux = pkgs;
-      devShell.x86_64-linux = pkgs.devShell;
-      hydraJobs.x86_64-linux = {
-        inherit (pkgs)
-          devShellPath bitte nixFlakes sops terraform-with-plugins cfssl consul
-          nomad vault-bin cue grafana haproxy grafana-loki victoriametrics;
-      } // (pkgs.lib.mapAttrs (_: v: v.config.system.build.toplevel)
-        nixosConfigurations);
-    };
+      legacyPackages.${system} = pkgs;
+
+      devShell.${system} = let name = "mantis-kevm"; in
+        pkgs.bitteShell {
+          inherit self domain;
+          profile = name;
+          cluster = name;
+          namespace = name;
+          extraPackages = [ pkgs.cue ];
+          nixConfig = ''
+            extra-substituters = https://hydra.mantis.ist
+            extra-trusted-public-keys = hydra.mantis.ist-1:4LTe7Q+5pm8+HawKxvmn2Hx0E3NbkYjtf1oWv+eAmTo=
+          '';
+        };
+
+    } // bitteStack;
 }
