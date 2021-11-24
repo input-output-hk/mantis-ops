@@ -94,14 +94,14 @@ import (
 		"""
 	}
 
-	template: "secrets/env.txt": {
-		env:         true
-		change_mode: "noop"
-		data: """
-			AWS_ACCESS_KEY_ID="{{with secret "kv/data/nomad-cluster/restic"}}{{.Data.data.aws_access_key_id}}{{end}}"
-			AWS_SECRET_ACCESS_KEY="{{with secret "kv/data/nomad-cluster/restic"}}{{.Data.data.aws_secret_access_key}}{{end}}"
-			"""
-	}
+	// template: "secrets/env.txt": {
+	// 	env:         true
+	// 	change_mode: "noop"
+	// 	data: """
+	// 		AWS_ACCESS_KEY_ID="{{with secret "kv/data/nomad-cluster/restic"}}{{.Data.data.aws_access_key_id}}{{end}}"
+	// 		AWS_SECRET_ACCESS_KEY="{{with secret "kv/data/nomad-cluster/restic"}}{{.Data.data.aws_secret_access_key}}{{end}}"
+	// 		"""
+	// }
 
 	if #role == "faucet" {
 		template: "secrets/faucet.txt": {
@@ -250,6 +250,7 @@ import (
 
 		logging.json-output = false
 		logging.logs-file = "logs"
+		logging.logs-level = "DEBUG"
 
 		mantis = {
 			\(#networkConf)
