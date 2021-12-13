@@ -108,13 +108,13 @@ import (
 		}
 
 		task: nginx: tasks.#FaucetNginx & {
-			#flake:               "github:input-output-hk/mantis?rev=\(#mantisRev)#mantis-faucet-web-\(#id)"
+			#flake:               "github:input-output-hk/mantis?rev=94bf8447af0584f54ed16de8bad5cb519959f2f1#mantis-faucet-web-\(#id)"
 			#upstreamServiceName: "\(#name)-rpc"
 		}
 
 		let ref = {wallet: #wallet, network: #network, extraConfig: #extraConfig}
 		task: mantis: tasks.#Mantis & {
-			#flake:       "github:input-output-hk/mantis?rev=\(#mantisRev)#mantis-entrypoint"
+			#flake:       "git+https://github.com/input-output-hk/mantis?ref=develop&rev=\(#mantisRev)&submodules=1#mantis-entrypoint"
 			#namespace:   namespace
 			#network:     ref.network
 			#role:        "faucet"

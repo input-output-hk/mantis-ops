@@ -79,7 +79,7 @@ import (
 		NAMESPACE:           #namespace
 		// DAG_NAME:            "full-R23-0000000000000000"
 		// DAG_BUCKET:          "mantis-dag"
-		MONITORING_ADDR:     "http://172.16.0.20:9000"
+		MONITORING_ADDR: "http://172.16.0.20:9000"
 		// AWS_DEFAULT_REGION:  "us-east-1"
 	}
 
@@ -95,12 +95,12 @@ import (
 	}
 
 	// template: "secrets/env.txt": {
-	// 	env:         true
-	// 	change_mode: "noop"
-	// 	data: """
-	// 		AWS_ACCESS_KEY_ID="{{with secret "kv/data/nomad-cluster/restic"}}{{.Data.data.aws_access_key_id}}{{end}}"
-	// 		AWS_SECRET_ACCESS_KEY="{{with secret "kv/data/nomad-cluster/restic"}}{{.Data.data.aws_secret_access_key}}{{end}}"
-	// 		"""
+	//  env:         true
+	//  change_mode: "noop"
+	//  data: """
+	//   AWS_ACCESS_KEY_ID="{{with secret "kv/data/nomad-cluster/restic"}}{{.Data.data.aws_access_key_id}}{{end}}"
+	//   AWS_SECRET_ACCESS_KEY="{{with secret "kv/data/nomad-cluster/restic"}}{{.Data.data.aws_secret_access_key}}{{end}}"
+	//   """
 	// }
 
 	if #role == "faucet" {
@@ -130,7 +130,7 @@ import (
 			#roleConf: """
 			mantis = {
 				node-key-file = "/secrets/secret-key"
-				consensus = {
+				mining = {
 					mining-enabled = true
 					coinbase = "{{ with secret (printf "\(#vaultPrefix)/coinbase" (env "NOMAD_ALLOC_INDEX")) }}{{.Data.data.value}}{{end}}"
 				}
@@ -140,13 +140,13 @@ import (
 
 		if #role == "passive" {
 			#roleConf: """
-				mantis.consensus.mining-enabled = false
+				mantis.mining.mining-enabled = false
 				"""
 		}
 
 		if #role == "faucet" {
 			#roleConf: """
-			mantis.consensus.mining-enabled = false
+			mantis.mining.mining-enabled = false
 			faucet {
 			  # Base directory where all the data used by the fauced is stored
 			  datadir = "/local/mantis-faucet"
@@ -245,8 +245,6 @@ import (
 		data:        """
 		include "/conf/base.conf"
 		include "/conf/\(#network).conf"
-
-		\(#mantisBaseConfig)
 
 		logging.json-output = false
 		logging.logs-file = "logs"

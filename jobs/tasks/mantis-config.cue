@@ -271,7 +271,7 @@ package tasks
 	    get-transaction-from-pool-timeout = 5.seconds
 	  }
 
-	  consensus {
+	  mining {
 	    # Miner's coinbase address
 	    # Also used in non-Ethash consensus.
 	    coinbase = "0011223344556677889900112233445566778899"
@@ -291,7 +291,7 @@ package tasks
 	    # For example, in case of ethash, a section named `ethash` is used.
 	    # Available protocols: ethash, mocked, restricted-ethash
 	    # In case of mocked, remember to enable qa api
-	    protocol = ethash
+	    protocol = pow
 
 	    # If true then the consensus protocol uses this node for mining.
 	    # In the case of ethash PoW, this means mining new blocks, as specified by Ethereum.
@@ -830,7 +830,7 @@ package tasks
 	    mode = "archive"
 	  }
 
-	  consensus {
+	  mining {
 	    coinbase = "0011223344556677889900112233445566778899" # has to be changed for each node
 	    mining-enabled = false
 	    protocol = "restricted-ethash"

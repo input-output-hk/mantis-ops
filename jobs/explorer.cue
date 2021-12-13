@@ -59,7 +59,7 @@ import (
 
 		task: explorer: tasks.#Explorer & {
 			#upstreamServiceName: "\(namespace)-mantis-passive-rpc"
-			#flake:               "github:input-output-hk/mantis?rev=\(#mantisRev)#mantis-explorer-\(#id)"
+			#flake:               "github:input-output-hk/mantis?rev=97aefbf5c94e7bfc5af20a52d7a82b1701ef7d1c#mantis-explorer-\(#id)"
 		}
 	}
 }

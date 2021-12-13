@@ -83,7 +83,7 @@ geneses: {
 				  }
 
 				  sync.broadcast-new-block-hashes = true
-				  consensus.protocol = "ethash"
+				  mining.protocol = "pow"
 				  vm.mode = "internal"
 				}
 				"""
@@ -121,7 +121,7 @@ geneses: {
 				    }
 				  }
 				  sync.broadcast-new-block-hashes = true
-				  consensus.protocol = "ethash"
+				  mining.protocol = "pow"
 				  vm {
 				    mode = "external"
 				    external {
@@ -168,7 +168,7 @@ geneses: {
 				    }
 				  }
 				  sync.broadcast-new-block-hashes = true
-				  consensus.protocol = "ethash"
+				  mining.protocol = "pow"
 				  vm {
 				    mode = "external"
 				    external {
