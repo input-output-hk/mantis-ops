@@ -7,7 +7,7 @@ import (
 )
 
 #defaults: {
-	mantisRev: "a9fcea4d3947ba955f129d9743189047fd4329dd"
+	mantisRev: "63187a8d9e065132b4d2153b2c9ea62849dd4e71"
 }
 
 #namespaces: [Name=_]: {

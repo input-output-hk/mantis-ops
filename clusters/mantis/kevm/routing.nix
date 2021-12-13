@@ -5,6 +5,28 @@ in {
 
   services.oauth2_proxy.extraConfig.skip-provider-button = "true";
   services.oauth2_proxy.extraConfig.upstream = "static://202";
+  
+  systemd.services.copy-acme-certs = {
+    before = [ "traefik.service" ];
+    wantedBy = [ "traefik.service" ];
+
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = lib.mkForce true;
+      Restart = "on-failure";
+      RestartSec = "30s";
+    };
+
+    path = [ pkgs.coreutils ];
+
+    script = ''
+      set -exuo pipefail
+
+      mkdir -p /var/lib/traefik/certs
+      cp /etc/ssl/certs/${config.cluster.domain}-*.pem /var/lib/traefik/certs
+      chown -R traefik:traefik /var/lib/traefik
+    '';
+  };
 
   services.traefik = {
     enable = true;

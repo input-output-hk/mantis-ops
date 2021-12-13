@@ -77,10 +77,10 @@ import (
 		REQUIRED_PEER_COUNT: "${NOMAD_ALLOC_INDEX}"
 		STORAGE_DIR:         "/local/mantis"
 		NAMESPACE:           #namespace
-		DAG_NAME:            "full-R23-0000000000000000"
-		DAG_BUCKET:          "mantis-dag"
+		// DAG_NAME:            "full-R23-0000000000000000"
+		// DAG_BUCKET:          "mantis-dag"
 		MONITORING_ADDR:     "http://172.16.0.20:9000"
-		AWS_DEFAULT_REGION:  "us-east-1"
+		// AWS_DEFAULT_REGION:  "us-east-1"
 	}
 
 	#vaultPrefix: 'kv/data/nomad-cluster/\(#namespace)/mantis-%s'

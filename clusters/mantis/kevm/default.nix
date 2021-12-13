@@ -12,22 +12,6 @@ let
 in {
   imports = [ ./iam.nix ./nix.nix ./vault-raft-storage.nix ];
 
-  services.consul.policies.developer.servicePrefix."mantis-" = {
-    policy = "write";
-    intentions = "write";
-  };
-
-  services.nomad.policies = {
-    admin.namespace."mantis-*".policy = "write";
-    developer = {
-      namespace."mantis-*".policy = "write";
-      agent.policy = "read";
-      quota.policy = "read";
-      node.policy = "read";
-      hostVolume."*".policy = "read";
-    };
-  };
-
   services.nomad.namespaces = {
     mantis-kevm.description = "KEVM";
   };
@@ -68,6 +52,7 @@ in {
           instanceType = "c5.2xlarge";
           iam.role = cluster.iam.roles.client;
           iam.instanceProfile.role = cluster.iam.roles.client;
+          node_class = "client";
 
           modules = [
             (bitte + /profiles/client.nix)
