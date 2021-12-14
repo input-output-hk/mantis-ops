@@ -11,6 +11,7 @@
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     terranix.follows = "bitte/terranix";
     utils.follows = "bitte/utils";
+    mantis.url = "github:input-output-hk/mantis/develop";
   };
 
   outputs = { self, nixpkgs, bitte, utils, ... }@inputs:

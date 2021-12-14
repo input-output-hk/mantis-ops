@@ -56,7 +56,7 @@ import (
 				"traefik.http.routers.\(namespace)-faucet-rpc.tls=true",
 				"traefik.http.routers.\(namespace)-faucet-rpc.middlewares=corsheader@consulcatalog",
 				"traefik.http.middlewares.corsheader.headers.accesscontrolallowmethods=GET,OPTIONS,POST",
-				"traefik.http.middlewares.corsheader.headers.accesscontrolalloworigin=*",
+				"traefik.http.middlewares.corsheader.headers.accesscontrolalloworiginlist=*",
 				"traefik.http.middlewares.corsheader.headers.accesscontrolmaxage=100",
 				"traefik.http.middlewares.corsheader.headers.addvaryheader=true",
 				"traefik.http.middlewares.corsheader.headers.accesscontrolallowheaders=Content-Type",
@@ -87,7 +87,7 @@ import (
 				"traefik.http.routers.\(namespace)-faucet-nginx.tls=true",
 				"traefik.http.routers.\(namespace)-faucet-nginx.middlewares=corsheader@consulcatalog",
 				"traefik.http.middlewares.corsheader.headers.accesscontrolallowmethods=GET,OPTIONS,POST",
-				"traefik.http.middlewares.corsheader.headers.accesscontrolalloworigin=*",
+				"traefik.http.middlewares.corsheader.headers.accesscontrolalloworiginlist=*",
 				"traefik.http.middlewares.corsheader.headers.accesscontrolmaxage=100",
 				"traefik.http.middlewares.corsheader.headers.addvaryheader=true",
 				"traefik.http.middlewares.corsheader.headers.accesscontrolallowheaders=Content-Type",
@@ -114,7 +114,7 @@ import (
 
 		let ref = {wallet: #wallet, network: #network, extraConfig: #extraConfig}
 		task: mantis: tasks.#Mantis & {
-			#flake:       "git+https://github.com/input-output-hk/mantis?ref=develop&rev=\(#mantisRev)&submodules=1#mantis-entrypoint"
+			#flake:       "github:input-output-hk/mantis/b6a26f8624cd6bbf0467a97bbd42c99d3db021a0#mantis-entrypoint"
 			#namespace:   namespace
 			#network:     ref.network
 			#role:        "faucet"

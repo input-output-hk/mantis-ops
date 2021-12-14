@@ -17,33 +17,12 @@ let
 in
 {
   inherit domain writeBashChecked writeBashBinChecked;
-  # we cannot specify mantis as a flake input due to:
-  # * the branch having a slash
-  # * the submodules syntax is broken
-  # And here we cannot specify simply a branch since that's not reproducible,
-  # so we use the commit instead.
-  # The branch was `chore/update-sbt-add-nix`, for future reference.
-  mantis-source = builtins.fetchGit {
-    url = "https://github.com/input-output-hk/mantis";
-    rev = "b6a26f8624cd6bbf0467a97bbd42c99d3db021a0";
-    ref = "3.1.0-flake";
-    submodules = true;
-  };
-
-  mantis-iele-source = builtins.fetchGit {
-    url = "https://github.com/input-output-hk/mantis";
-    rev = "e8af13b5a237560b0186b231dfeefb7990bdfd1a";
-    ref = "iele_testnet_2020";
-    submodules = true;
-  };
-
-  mantis-iele = import final.mantis-iele-source { inherit system; };
 
   restic-backup = final.callPackage ./pkgs/backup { };
 
-  mantis = import final.mantis-source;
+  mantis = inputs.mantis.defaultPackage.${prev.system};
 
-  generate-mantis-keys = final.writeBashBinChecked "generate-mantis-keys" ''
+  generate-mantis-keys = final.writeShellScriptBin "generate-mantis-keys" ''
     export PATH="${
       lib.makeBinPath (with final; [
         coreutils

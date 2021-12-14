@@ -34,22 +34,22 @@ in {
     autoscalingGroups = listToAttrs (forEach [
       {
         region = "eu-central-1";
-        desiredCapacity = 4;
+        desiredCapacity = 2;
       }
       {
         region = "us-east-2";
-        desiredCapacity = 4;
+        desiredCapacity = 2;
       }
       {
         region = "eu-west-1";
-        desiredCapacity = 4;
+        desiredCapacity = 2;
       }
     ] (args:
       let
         attrs = ({
           desiredCapacity = 1;
           maxSize = 40;
-          instanceType = "c5.2xlarge";
+          instanceType = "c5.4xlarge";
           iam.role = cluster.iam.roles.client;
           iam.instanceProfile.role = cluster.iam.roles.client;
           node_class = "client";
