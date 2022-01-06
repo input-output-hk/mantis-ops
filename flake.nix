@@ -2,7 +2,7 @@
   description = "Bitte for Mantis";
 
   inputs = {
-    bitte.url = "github:input-output-hk/bitte/v21.12.10";
+    bitte.url = "github:input-output-hk/bitte/21.12.10";
     # bitte.url = "github:input-output-hk/bitte/acme-terraform-remove-fix";
     # bitte.inputs.nixpkgs.follows = "nixpkgs";
     deploy.url = "github:input-output-hk/deploy-rs";
