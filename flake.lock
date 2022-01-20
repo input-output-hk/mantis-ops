@@ -349,11 +349,11 @@
         "nixpkgs": "nixpkgs_3"
       },
       "locked": {
-        "lastModified": 1606398004,
-        "narHash": "sha256-DSHugqfkEgHlz5Ce28eW/V+k50OOSVjxEZIB50YX79g=",
+        "lastModified": 1617886902,
+        "narHash": "sha256-uxfD0AADx7AWwc/7l/tfh6kYI+TGcTMN7QWqi56aKCY=",
         "owner": "input-output-hk",
         "repo": "mantis-explorer",
-        "rev": "9f9a3482c4f2332b9490a673d262345bb2ba8cd7",
+        "rev": "59c3f62b1a39acd12df2acba80d8c3183db2d643",
         "type": "github"
       },
       "original": {

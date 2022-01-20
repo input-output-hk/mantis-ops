@@ -54,11 +54,13 @@ in {
 
   mantis-faucet-server = final.callPackage ./pkgs/mantis-faucet-server.nix { };
 
-  mantis-explorer = inputs.mantis-explorer.defaultPackage.${final.system};
+  mantis-explorer = inputs.mantis-explorer.defaultPackage.${final.system}.overrideAttrs (_: {
+    MANTIS_VM = "Mamba Atago";
+  });
 
   mantis-explorer-nginx = prev.callPackage ./pkgs/nginx.nix {
     package = final.mantis-explorer;
-    target = "/mantis-explorer";
+    target = "/mamba-explorer";
   };
 
   morpho-source = inputs.morpho-node;
