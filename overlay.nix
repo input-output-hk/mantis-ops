@@ -55,7 +55,7 @@ in {
   mantis-faucet-server = final.callPackage ./pkgs/mantis-faucet-server.nix { };
 
   mantis-explorer = inputs.mantis-explorer.defaultPackage.${final.system}.overrideAttrs (_: {
-    MANTIS_VM = "Mamba Atago";
+    MANTIS_VM = "Mamba KEVM";
   });
 
   mantis-explorer-nginx = prev.callPackage ./pkgs/nginx.nix {
