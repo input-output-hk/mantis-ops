@@ -42,14 +42,14 @@ in {
 
   mantis-faucet-web =
     inputs.mantis-faucet-web.defaultPackage.${final.system}.overrideAttrs
-    (old: {
-      FAUCET_NODE_URL = "https://mantis-testnet-faucet.mantis.ws";
-      MANTIS_VM = "Mantis Testnet";
-    });
+      (old: {
+        FAUCET_NODE_URL = "https://atago-faucet.pilz.iohkdev.io";
+        MANTIS_VM = "Mamba Atago Testnet";
+      });
 
   mantis-faucet-nginx = final.callPackage ./pkgs/nginx.nix {
     package = final.mantis-faucet-web;
-    target = "/mantis-faucet";
+    target = "/mamba-faucet";
   };
 
   mantis-faucet-server = final.callPackage ./pkgs/mantis-faucet-server.nix { };
