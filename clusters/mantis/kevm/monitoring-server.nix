@@ -13,4 +13,6 @@
     extraConfig = "";
     extraHttpsBackends = "";
   };
+
+  systemd.services.victoriametrics.serviceConfig.LimitNOFILE = 65535;
 }
