@@ -50,6 +50,7 @@ in {
           desiredCapacity = 1;
           maxSize = 40;
           instanceType = "c5.4xlarge";
+          volumeSize = 250;
           iam.role = cluster.iam.roles.client;
           iam.instanceProfile.role = cluster.iam.roles.client;
           node_class = "client";
